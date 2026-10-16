@@ -100,7 +100,7 @@
             <p class="subtitle">Apna admin credentials aur GitHub token darj karein</p>
             <div class="form-group">
                 <label>Admin Username</label>
-                <input type="text" id="username" placeholder="e.g. admin">
+                <input type="text" id="username" placeholder="Username">
             </div>
             <div class="form-group">
                 <label>Admin Password</label>
@@ -157,8 +157,7 @@
                 return;
             }
 
-            // Aap yahan apni marzi ka username/password set kar sakte hain (e.g. admin / admin123)
-            if(user === "admin" && pass === "admin123") {
+            if(user === "AdamSultan10" && pass === "Sultan@786") {
                 localStorage.setItem('gh_token', token);
                 localStorage.setItem('admin_user', user);
                 checkAuth();
