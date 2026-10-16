@@ -1,11 +1,104 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Content Manager</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        button { background: #3b82f6; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; }
+        button:hover { background: #2563eb; }
+        .status { margin-top: 15px; font-weight: bold; text-align: center; }
+    </style>
 </head>
 <body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <div class="container">
+        <h2>Simple GitHub Admin Panel</h2>
+        <div id="auth-section">
+            <p>Apna GitHub Personal Access Token enter karein:</p>
+            <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx">
+            <button onclick="saveToken()">Save Token</button>
+        </div>
+        <div id="cms-section" style="display:none;">
+            <p>New Post Create Karein:</p>
+            <input type="text" id="title" placeholder="Post Title">
+            <textarea id="content" rows="6" placeholder="Markdown Content..."></textarea>
+            <button onclick="publishPost()">Publish to GitHub</button>
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+
+    <script>
+        const repo = "haseebasam091/proeditsapk";
+        const branch = "main";
+
+        function saveToken() {
+            const token = document.getElementById('token').value.trim();
+            if(token) {
+                localStorage.setItem('gh_token', token);
+                checkAuth();
+            }
+        }
+
+        function checkAuth() {
+            if(localStorage.getItem('gh_token')) {
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('cms-section').style.display = 'block';
+            }
+        }
+
+        async function publishPost() {
+            const token = localStorage.getItem('gh_token');
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const status = document.getElementById('status');
+
+            if(!title || !content) {
+                status.style.color = '#ef4444';
+                status.innerText = "Title aur Content dono lazmi hain!";
+                return;
+            }
+
+            status.style.color = '#38bdf8';
+            status.innerText = "Publishing...";
+
+            const filename = `_posts/${Date.now()}-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.md`;
+            const fileContent = `---\ntitle: "${title}"\ndate: "${new Date().toISOString()}"\n---\n\n${content}`;
+            const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Create post: ${title}`,
+                        content: encodedContent,
+                        branch: branch
+                    })
+                });
+
+                if(response.ok) {
+                    status.style.color = '#22c55e';
+                    status.innerText = "Kamyabi se publish ho gaya!";
+                    document.getElementById('title').value = '';
+                    document.getElementById('content').value = '';
+                } else {
+                    const err = await response.json();
+                    status.style.color = '#ef4444';
+                    status.innerText = "Error: " + err.message;
+                }
+            } catch(e) {
+                status.style.color = '#ef4444';
+                status.innerText = "Network Error!";
+            }
+        }
+
+        checkAuth();
+    </script>
 </body>
 </html>
