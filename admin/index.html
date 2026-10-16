@@ -330,16 +330,35 @@
 
         .audit-item {
             font-size: 13px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 6px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
         }
 
         .audit-pass { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
         .audit-fail { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+
+        .btn-autofix {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            width: auto;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+            white-space: nowrap;
+        }
+
+        .btn-autofix:hover {
+            transform: scale(1.05);
+        }
 
         .toolbar {
             display: flex;
@@ -441,23 +460,23 @@
                         <ul class="seo-check-list">
                             <li>Technical SEO Analysis</li>
                             <li>On-Page Recommendations</li>
-                            <li>Instant Results</li>
+                            <li>Instant Results & Auto Fix</li>
                         </ul>
                         <button type="button" class="btn-audit" id="auditBtn" onclick="runLiveSeoAudit(true)">Run SEO Audit →</button>
                     </div>
                     <div class="score-box">
                         <div class="score-circle" id="scoreCircle">
                             <span>SEO Score</span>
-                            <h2 id="liveSeoScore">50</h2>
+                            <h2 id="liveSeoScore">30</h2>
                         </div>
                         <span id="auditStatus" style="font-size: 11px; font-weight: 700; color: #ef4444;">Needs Improvement</span>
                     </div>
                 </div>
 
-                <!-- AUDIT REPORT BOX -->
+                <!-- AUDIT REPORT BOX WITH AUTO FIX -->
                 <div class="audit-results-modal" id="auditReportBox">
                     <h4>
-                        <span>🔍 Live On-Page Audit Checklist</span>
+                        <span>🔍 Live On-Page Audit Checklist & Auto Fix</span>
                         <button style="width:auto; padding:4px 10px; font-size:11px;" onclick="document.getElementById('auditReportBox').style.display='none'">Close</button>
                     </h4>
                     <div id="auditReportList"></div>
@@ -586,42 +605,47 @@
             }
 
             setTimeout(() => {
-                let score = 30; // Base score
+                let score = 20;
                 let report = [];
 
+                // 1. TITLE CHECK
                 if (title.length >= 20 && title.length <= 70) {
                     score += 20;
-                    report.push('<div class="audit-item audit-pass">✓ Article Title length is optimal for Google Search.</div>');
+                    report.push('<div class="audit-item audit-pass"><span>✓ Article Title length is optimal for Google Search.</span></div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail">✗ Title should be between 20 to 70 characters.</div>');
+                    report.push('<div class="audit-item audit-fail"><span>✗ Title should be between 20 to 70 characters.</span> <button class="btn-autofix" onclick="autoFix(\'title\')">Auto Fix ⚡</button></div>');
                 }
 
+                // 2. META DESC CHECK
                 if (desc.length >= 50 && desc.length <= 160) {
                     score += 20;
-                    report.push('<div class="audit-item audit-pass">✓ Meta Description is well optimized.</div>');
+                    report.push('<div class="audit-item audit-pass"><span>✓ Meta Description is well optimized.</span></div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail">✗ Add a Meta Description between 50 to 160 characters.</div>');
+                    report.push('<div class="audit-item audit-fail"><span>✗ Add a Meta Description between 50 to 160 characters.</span> <button class="btn-autofix" onclick="autoFix(\'meta\')">Auto Fix ⚡</button></div>');
                 }
 
+                // 3. CONTENT LENGTH CHECK
                 if (content.length > 250) {
-                    score += 15;
-                    report.push('<div class="audit-item audit-pass">✓ Good article content length.</div>');
+                    score += 20;
+                    report.push('<div class="audit-item audit-pass"><span>✓ Good article content length.</span></div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail">✗ Article content is too short (aim for 250+ words).</div>');
+                    report.push('<div class="audit-item audit-fail"><span>✗ Article content is too short (aim for 250+ words).</span> <button class="btn-autofix" onclick="autoFix(\'content\')">Auto Fix ⚡</button></div>');
                 }
 
+                // 4. HEADINGS CHECK
                 if (content.includes('## ') || content.includes('### ')) {
                     score += 10;
-                    report.push('<div class="audit-item audit-pass">✓ Proper Headings (H2 / H3) utilized.</div>');
+                    report.push('<div class="audit-item audit-pass"><span>✓ Proper Headings (H2 / H3) utilized.</span></div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail">✗ Use H2 / H3 Headings to structure your content.</div>');
+                    report.push('<div class="audit-item audit-fail"><span>✗ Use H2 / H3 Headings to structure your content.</span> <button class="btn-autofix" onclick="autoFix(\'heading\')">Auto Fix ⚡</button></div>');
                 }
 
+                // 5. DOWNLOAD LINK CHECK
                 if (content.includes('Download') || content.includes('http')) {
-                    score += 5;
-                    report.push('<div class="audit-item audit-pass">✓ Download link or external resources added.</div>');
+                    score += 10;
+                    report.push('<div class="audit-item audit-pass"><span>✓ Download link or external resources added.</span></div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail">✗ Add an APK Download Button or link.</div>');
+                    report.push('<div class="audit-item audit-fail"><span>✗ Add an APK Download Button or link.</span> <button class="btn-autofix" onclick="autoFix(\'download\')">Auto Fix ⚡</button></div>');
                 }
 
                 score = Math.min(score, 100);
@@ -651,7 +675,24 @@
                     document.getElementById('auditReportList').innerHTML = report.join('');
                     document.getElementById('auditReportBox').style.display = 'block';
                 }
-            }, showModal ? 400 : 0);
+            }, showModal ? 300 : 0);
+        }
+
+        function autoFix(type) {
+            if(type === 'title') {
+                const cur = document.getElementById('postTitle').value.trim();
+                document.getElementById('postTitle').value = cur ? `${cur} - Download Latest Version Free 2026` : 'Kinemaster Pro APK Download Latest Version Official';
+            } else if(type === 'meta') {
+                const title = document.getElementById('postTitle').value.trim() || 'this app';
+                document.getElementById('metaDesc').value = `Download ${title} latest version with unlocked premium features, no watermark, fast download links and high performance guide.`;
+            } else if(type === 'content') {
+                document.getElementById('postContent').value += `\n\n## Comprehensive Overview\nThis application offers cutting-edge features designed to provide smooth functionality and enhanced user experience. Users can enjoy ad-free interaction, optimized responsiveness, and continuous updates. Follow our step-by-step installation instructions to set up the APK safely on your device.\n`;
+            } else if(type === 'heading') {
+                document.getElementById('postContent').value += `\n\n## Key Features & Highlights\n* **High Performance:** Smooth and lag-free UI.\n* **Unlocked Access:** Premium options included.\n* **Regular Updates:** Stay up to date with new features.\n`;
+            } else if(type === 'download') {
+                document.getElementById('postContent').value += `\n<div style="text-align:center;margin:25px 0;"><a href="https://proeditsapk.com" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+            }
+            runLiveSeoAudit(true);
         }
 
         function insertTag(startTag, endTag) {
