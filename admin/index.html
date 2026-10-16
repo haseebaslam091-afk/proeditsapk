@@ -794,7 +794,7 @@
                 if(res.ok) {
                     const files = await res.json();
                     for(let file of files) {
-                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                        if((file.name.startsWith('post-') || file.name.startsWith('draft-')) && (file.name.endsWith('.md') || file.name.endsWith('.html'))) {
                             const isDraftFile = file.name.startsWith('draft-');
                             html += `
                                 <div class="post-card" style="${isDraftFile ? 'border-color: rgba(234, 179, 8, 0.4);' : ''}">
@@ -853,7 +853,7 @@
 <\/script>\n`;
             }
 
-            let cleanSlug = slug.replace(/^draft-/, '');
+            let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '');
             let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `post-${cleanSlug}.md`;
             let finalFilePath = fileNameOnly;
 
@@ -896,6 +896,20 @@
                 });
 
                 if(res.ok) {
+                    // Agar draft se publish kiya hai, toh purana draft file delete kar dein
+                    if(!isDraft && editFilename && editFilename.startsWith('draft-')) {
+                        try {
+                            await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `token ${authData.token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ message: `Remove draft after publishing`, sha: editSha })
+                            });
+                        } catch(e) {}
+                    }
+
                     msgEl.style.color = "var(--success)";
                     msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article successfully published live!";
                     setTimeout(() => {
