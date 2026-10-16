@@ -1,5 +1,6 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: haseebasam091/proeditsapk
   branch: main
 
 media_folder: "images/uploads"
