@@ -235,192 +235,68 @@
             text-transform: uppercase;
         }
 
-        .card-info h3 {
-            font-size: 22px;
-            color: #0f172a;
-            margin-bottom: 8px;
-        }
-
-        .card-info p {
-            font-size: 13px;
-            color: #475569;
-            margin-bottom: 16px;
-            line-height: 1.5;
-        }
+        .card-info h3 { font-size: 22px; color: #0f172a; margin-bottom: 8px; }
+        .card-info p { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
 
         .btn-audit {
-            background: #2563eb;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            width: auto;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         .btn-density {
-            background: #059669;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-            width: auto;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+            background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
         }
 
         .score-box {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            min-width: 160px;
+            background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); min-width: 160px;
         }
 
         .score-circle {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            border: 8px solid #ef4444;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 10px auto;
+            width: 90px; height: 90px; border-radius: 50%; border: 8px solid #ef4444; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0 auto 10px auto;
         }
 
         .score-circle span { font-size: 10px; font-weight: 600; color: #64748b; }
         .score-circle h2 { font-size: 26px; color: #0f172a; font-weight: 800; }
 
-        .quick-tools-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
+        .quick-tools-bar { display: flex; gap: 12px; margin-bottom: 20px; }
         .btn-quick-tool {
-            flex: 1;
-            padding: 10px;
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid var(--glass-border);
-            color: #c7d2fe;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            flex: 1; padding: 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); color: #c7d2fe; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
-
-        .btn-quick-tool:hover {
-            background: var(--primary);
-            color: white;
-        }
+        .btn-quick-tool:hover { background: var(--primary); color: white; }
 
         .audit-results-modal {
-            display: none;
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .audit-item {
-            font-size: 13px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            border-left: 4px solid transparent;
-        }
-
+        .audit-item { font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
         .audit-pass { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-left-color: #22c55e; }
         .audit-fail { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-left-color: #ef4444; }
 
-        .btn-autofix {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            width: auto;
-        }
+        .btn-autofix { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; width: auto; }
+        .btn-manualguide { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; width: auto; }
+        .highlight-field { border: 2px solid #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4) !important; }
 
-        .btn-manualguide {
-            background: rgba(234, 179, 8, 0.2);
-            border: 1px solid rgba(234, 179, 8, 0.4);
-            color: #fde047;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            width: auto;
+        .action-buttons-group {
+            display: flex; gap: 10px; margin-top: 15px;
         }
-
-        .highlight-field {
-            border: 2px solid #ef4444 !important;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4) !important;
+        .btn-draft {
+            background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fde047; flex: 1;
         }
+        .btn-draft:hover { background: rgba(234, 179, 8, 0.4); }
 
         .toolbar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-            background: rgba(15, 23, 42, 0.5);
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            align-items: center;
-            flex-wrap: wrap;
+            display: flex; gap: 8px; margin-bottom: 10px; background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); align-items: center; flex-wrap: wrap;
         }
-
-        .btn-tool {
-            width: auto;
-            padding: 6px 12px;
-            font-size: 12px;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #c7d2fe;
-            border-radius: 8px;
-        }
+        .btn-tool { width: auto; padding: 6px 12px; font-size: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe; border-radius: 8px; }
 
         .post-card {
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid var(--glass-border);
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 14px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
         }
+        .btn-sm { padding: 6px 12px; font-size: 13px; width: auto; border-radius: 8px; }
+        .btn-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
+        .badge-draft { background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px; }
+        .badge-published { background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px; }
 
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 13px;
-            width: auto;
-            border-radius: 8px;
-        }
-
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #fca5a5;
-        }
-
-        .msg {
-            margin-top: 15px;
-            font-size: 14px;
-            text-align: center;
-        }
+        .msg { margin-top: 15px; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
@@ -451,7 +327,7 @@
 
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('create')">New Article / SEO Audit</button>
-                <button class="tab-btn" onclick="switchTab('manage')">Manage Articles</button>
+                <button class="tab-btn" onclick="switchTab('manage')">Manage Articles & Drafts</button>
             </div>
 
             <!-- CREATE / EDIT POST TAB -->
@@ -489,7 +365,7 @@
                     </div>
                 </div>
 
-                <!-- QUICK ACTIONS BAR FOR OTHER TOOLS -->
+                <!-- QUICK ACTIONS BAR -->
                 <div class="quick-tools-bar">
                     <button type="button" class="btn-quick-tool" onclick="runContentAnalyzer(true)">📊 Content & Readability Analyzer</button>
                     <button type="button" class="btn-quick-tool" onclick="generateMetaTags(true)">🏷️ Meta Title & Description Generator</button>
@@ -506,6 +382,7 @@
 
                 <input type="hidden" id="editSha" value="">
                 <input type="hidden" id="editFilename" value="">
+                <input type="hidden" id="editFolder" value="_posts">
                 
                 <div style="display: flex; gap: 15px;">
                     <div class="input-group" style="flex: 2;">
@@ -551,14 +428,18 @@
                     </div>
                 </div>
 
-                <button onclick="publishPost()" id="publishBtn">Publish Article</button>
+                <!-- PUBLISH & DRAFT ACTION BUTTONS -->
+                <div class="action-buttons-group">
+                    <button type="button" class="btn-draft" onclick="publishPost(true)">💾 Save as Draft</button>
+                    <button type="button" onclick="publishPost(false)">⚡ Publish Live Article</button>
+                </div>
                 <div id="actionMsg" class="msg"></div>
             </div>
 
             <!-- MANAGE POSTS TAB -->
             <div id="manageTab" class="tab-content">
-                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Published Articles List</h3>
-                <div id="postsList">Loading articles...</div>
+                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Published Articles & Drafts</h3>
+                <div id="postsList">Loading articles and drafts...</div>
             </div>
         </div>
     </div>
@@ -905,43 +786,69 @@
 
         async function loadPosts() {
             const listDiv = document.getElementById('postsList');
-            listDiv.innerHTML = "Fetching articles...";
+            listDiv.innerHTML = "Fetching articles and drafts...";
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
+                let html = '';
+
+                // 1. Fetch Published Posts
+                const resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
-                if(!res.ok) throw new Error("Could not fetch posts");
-                const files = await res.json();
-                
-                if(files.length === 0) {
-                    listDiv.innerHTML = "<p style='color: var(--text-muted);'>No articles found.</p>";
-                    return;
-                }
-
-                let html = '';
-                for(let file of files) {
-                    if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
-                        html += `
-                            <div class="post-card">
-                                <div class="post-info">
-                                    <h4>${file.name}</h4>
-                                    <span>Path: ${file.path}</span>
+                if(resPosts.ok) {
+                    const posts = await resPosts.json();
+                    for(let file of posts) {
+                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                            html += `
+                                <div class="post-card">
+                                    <div class="post-info">
+                                        <h4>${file.name} <span class="badge-published">Published</span></h4>
+                                        <span>Path: ${file.path}</span>
+                                    </div>
+                                    <div class="post-actions">
+                                        <button class="btn-sm" onclick="editPost('${file.name}', '_posts')">Edit</button>
+                                        <button class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}', '_posts')">Delete</button>
+                                    </div>
                                 </div>
-                                <div class="post-actions">
-                                    <button class="btn-sm" onclick="editPost('${file.name}')">Edit</button>
-                                    <button class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}')">Delete</button>
-                                </div>
-                            </div>
-                        `;
+                            `;
+                        }
                     }
                 }
-                listDiv.innerHTML = html;
+
+                // 2. Fetch Drafts
+                const resDrafts = await fetch(`https://api.github.com/repos/${REPO}/contents/_drafts`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+                if(resDrafts.ok) {
+                    const drafts = await resDrafts.json();
+                    for(let file of drafts) {
+                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                            html += `
+                                <div class="post-card" style="border-color: rgba(234, 179, 8, 0.3);">
+                                    <div class="post-info">
+                                        <h4>${file.name} <span class="badge-draft">Draft</span></h4>
+                                        <span>Path: ${file.path}</span>
+                                    </div>
+                                    <div class="post-actions">
+                                        <button class="btn-sm" onclick="editPost('${file.name}', '_drafts')">Review & Edit</button>
+                                        <button class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}', '_drafts')">Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                if(!html) {
+                    listDiv.innerHTML = "<p style='color: var(--text-muted);'>No articles or drafts found.</p>";
+                } else {
+                    listDiv.innerHTML = html;
+                }
             } catch(e) {
-                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading posts: ${e.message}</p>`;
+                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading list: ${e.message}</p>`;
             }
         }
 
-        async function publishPost() {
+        async function publishPost(isDraft = false) {
             const title = document.getElementById('postTitle').value.trim();
             const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
             const desc = document.getElementById('metaDesc').value.trim();
@@ -950,6 +857,7 @@
             const vUrl = document.getElementById('videoUrl').value.trim();
             const editFilename = document.getElementById('editFilename').value;
             const editSha = document.getElementById('editSha').value;
+            const editFolder = document.getElementById('editFolder').value;
             const msgEl = document.getElementById('actionMsg');
 
             if(!title || !content) {
@@ -972,19 +880,30 @@
 <\/script>\n`;
             }
 
-            const filename = editFilename ? editFilename : `_posts/${new Date().toISOString().split('T')[0]}-${slug}.md`;
+            let targetFolder = isDraft ? "_drafts" : "_posts";
+            let filename = editFilename ? editFilename : `${targetFolder}/${isDraft ? '' : new Date().toISOString().split('T')[0] + '-'}${slug}.md`;
+            
+            // If moving from draft to published, ensure correct path
+            if(!isDraft && editFolder === "_drafts") {
+                filename = `_posts/${new Date().toISOString().split('T')[0]}-${slug}.md`;
+            }
+
             const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
 
             msgEl.style.color = "var(--text-muted)";
-            msgEl.innerText = "Publishing to GitHub...";
+            msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
 
             try {
                 let bodyData = {
-                    message: editFilename ? `Update article: ${title}` : `Create article: ${title}`,
+                    message: isDraft ? `Save draft: ${title}` : `Publish article: ${title}`,
                     content: encodedContent
                 };
-                if(editSha) bodyData.sha = editSha;
+                
+                // If editing existing file in same folder, provide sha
+                if(editSha && editFolder === targetFolder) {
+                    bodyData.sha = editSha;
+                }
 
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filename}`, {
                     method: 'PUT',
@@ -996,8 +915,20 @@
                 });
 
                 if(res.ok) {
+                    // If we published from draft, delete the old draft file
+                    if(!isDraft && editFolder === "_drafts" && editFilename) {
+                        await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `token ${authData.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: `Remove published draft: ${title}`, sha: editSha })
+                        });
+                    }
+
                     msgEl.style.color = "var(--success)";
-                    msgEl.innerText = "Article successfully published!";
+                    msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article successfully published live!";
                     setTimeout(() => {
                         document.getElementById('postTitle').value = '';
                         document.getElementById('postSlug').value = '';
@@ -1007,12 +938,13 @@
                         document.getElementById('videoUrl').value = '';
                         document.getElementById('editFilename').value = '';
                         document.getElementById('editSha').value = '';
+                        document.getElementById('editFolder').value = '_posts';
                         msgEl.innerText = '';
                         switchTab('manage');
                     }, 1200);
                 } else {
                     const err = await res.json();
-                    throw new Error(err.message || "Publish failed");
+                    throw new Error(err.message || "Operation failed");
                 }
             } catch(e) {
                 msgEl.style.color = "var(--danger)";
@@ -1020,9 +952,9 @@
             }
         }
 
-        async function editPost(filename) {
+        async function editPost(filename, folder) {
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${folder}/${filename.replace('_posts/', '').replace('_drafts/', '')}`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
                 const data = await res.json();
@@ -1030,28 +962,29 @@
                 
                 document.getElementById('editFilename').value = data.path;
                 document.getElementById('editSha').value = data.sha;
+                document.getElementById('editFolder').value = folder;
                 
-                document.getElementById('postTitle').value = filename.replace('.md','');
+                document.getElementById('postTitle').value = filename.replace('.md','').replace(/^\d{4}-\d{2}-\d{2}-/, '');
                 document.getElementById('postContent').value = decoded;
                 
                 switchTab('create');
                 updateAllSeoTools();
             } catch(e) {
-                alert("Could not load post for editing.");
+                alert("Could not load file for editing.");
             }
         }
 
-        async function deletePost(filename, sha) {
+        async function deletePost(filename, sha, folder) {
             if(!confirm(`Are you sure you want to delete ${filename}?`)) return;
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${folder}/${filename.replace('_posts/', '').replace('_drafts/', '')}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `token ${authData.token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: `Delete article: ${filename}`,
+                        message: `Delete file: ${filename}`,
                         sha: sha
                     })
                 });
@@ -1061,7 +994,7 @@
                     throw new Error("Delete failed");
                 }
             } catch(e) {
-                alert("Error deleting post: " + e.message);
+                alert("Error deleting file: " + e.message);
             }
         }
     </script>
