@@ -2,8 +2,6 @@ backend:
   name: github
   repo: haseebasam091/proeditsapk
   branch: main
-  auth_type: pkce
-  app_id: Ov23libR0ZhPUsKrDZPn
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
