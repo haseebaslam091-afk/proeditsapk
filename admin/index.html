@@ -49,11 +49,6 @@
             transition: all 0.3s ease;
         }
 
-        hheading, h1, h2, h3 {
-            color: var(--text-main);
-            font-weight: 700;
-        }
-
         .login-box {
             text-align: center;
         }
@@ -221,6 +216,31 @@
             color: #fca5a5;
         }
 
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            background: rgba(15, 23, 42, 0.4);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-tool {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 13px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #c7d2fe;
+        }
+
+        .btn-tool:hover {
+            background: rgba(99, 102, 241, 0.4);
+        }
+
         .msg {
             margin-top: 15px;
             font-size: 14px;
@@ -234,14 +254,10 @@
         <!-- LOGIN VIEW -->
         <div id="loginView" class="login-box">
             <h1>ProEditsAPK CMS</h1>
-            <p>Professional 3D Secure Admin Login</p>
+            <p>Security Verification Login</p>
             <div class="input-group">
-                <label>Username</label>
-                <input type="text" id="username" placeholder="Enter username">
-            </div>
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" id="password" placeholder="Enter password">
+                <label>Question: Haseeb Life kon he?</label>
+                <input type="text" id="secAnswer" placeholder="Enter security answer">
             </div>
             <div class="input-group">
                 <label>GitHub Personal Access Token</label>
@@ -281,9 +297,27 @@
                     <input type="text" id="metaDesc" placeholder="Short description for Google search results">
                 </div>
                 <div class="input-group">
-                    <label>Article Content & Download Link (Markdown / HTML)</label>
-                    <textarea id="postContent" rows="10" placeholder="Write detailed review, features, and add download link like [Download APK](#)"></textarea>
+                    <label>Article Content & Downloads</label>
+                    
+                    <!-- TOOLBAR FOR VIDEO & MEDIA -->
+                    <div class="toolbar">
+                        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">SEO Tools:</span>
+                        <button type="button" class="btn-tool" onclick="insertVideoEmbed()">+ Add HD SEO Video</button>
+                        <button type="button" class="btn-tool" onclick="insertDownloadBtn()">+ Add APK Download Button</button>
+                    </div>
+
+                    <textarea id="postContent" rows="12" placeholder="Write detailed review, features, and insert HD Videos or Download Buttons using the toolbar above..."></textarea>
                 </div>
+
+                <!-- VIDEO SEO METADATA (OPTIONAL) -->
+                <div style="background: rgba(15, 23, 42, 0.3); border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="font-size: 14px; margin-bottom: 10px; color: #c084fc;">🎬 Video SEO Schema (Optional)</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="videoTitle" placeholder="Video Title for Google Search">
+                        <input type="text" id="videoUrl" placeholder="YouTube Video URL (e.g. https://www.youtube.com/watch?v=xxx)">
+                    </div>
+                </div>
+
                 <button onclick="publishPost()" id="publishBtn">Publish Article</button>
                 <div id="actionMsg" class="msg"></div>
             </div>
@@ -298,8 +332,7 @@
 
     <script>
         const REPO = "haseebasam091/proeditsapk";
-        const ADMIN_USER = "AdamSultan10";
-        const ADMIN_PASS = "Sultan@786";
+        const SECURITY_ANSWER = "Laadi Wifoxo";
 
         let authData = JSON.parse(localStorage.getItem('proedits_auth') || 'null');
 
@@ -308,16 +341,15 @@
         }
 
         function handleLogin() {
-            const u = document.getElementById('username').value.trim();
-            const p = document.getElementById('password').value.trim();
+            const ans = document.getElementById('secAnswer').value.trim();
             const t = document.getElementById('token').value.trim();
 
-            if (u === ADMIN_USER && p === ADMIN_PASS && t.startsWith('ghp_')) {
+            if (ans.toLowerCase() === SECURITY_ANSWER.toLowerCase() && t.startsWith('ghp_')) {
                 authData = { token: t };
                 localStorage.setItem('proedits_auth', JSON.stringify(authData));
                 showDashboard();
             } else {
-                document.getElementById('loginMsg').innerText = "Invalid credentials or token!";
+                document.getElementById('loginMsg').innerText = "Ghalat jawab ya token! Dobara koshish karein.";
             }
         }
 
@@ -343,6 +375,33 @@
                 document.getElementById('manageTab').classList.add('active');
                 loadPosts();
             }
+        }
+
+        function insertVideoEmbed() {
+            const url = prompt("Enter YouTube / Video Link (e.g. https://www.youtube.com/watch?v=XYZ123):");
+            if(!url) return;
+            let embedUrl = url;
+            if(url.includes("youtube.com/watch?v=")) {
+                const videoId = url.split("v=")[1].split("&")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            } else if(url.includes("youtu.be/")) {
+                const videoId = url.split("youtu.be/")[1].split("?")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            }
+
+            const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;box-shadow:0 10px 25px rgba(0,0,0,0.5);"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
+            
+            const textarea = document.getElementById('postContent');
+            textarea.value += videoHtml;
+        }
+
+        function insertDownloadBtn() {
+            const url = prompt("Enter Direct Download APK Link:");
+            if(!url) return;
+            const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);transition:transform 0.2s;">⚡ Download APK (Latest Version)</a></div>\n`;
+            
+            const textarea = document.getElementById('postContent');
+            textarea.value += btnHtml;
         }
 
         async function loadPosts() {
@@ -388,6 +447,8 @@
             const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
             const desc = document.getElementById('metaDesc').value.trim();
             const content = document.getElementById('postContent').value.trim();
+            const vTitle = document.getElementById('videoTitle').value.trim();
+            const vUrl = document.getElementById('videoUrl').value.trim();
             const editFilename = document.getElementById('editFilename').value;
             const editSha = document.getElementById('editSha').value;
             const msgEl = document.getElementById('actionMsg');
@@ -398,8 +459,22 @@
                 return;
             }
 
+            let videoSchema = '';
+            if(vTitle && vUrl) {
+                videoSchema = `\n<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "${vTitle}",
+  "description": "${desc}",
+  "embedUrl": "${vUrl}",
+  "uploadDate": "${new Date().toISOString()}"
+}
+<\/script>\n`;
+            }
+
             const filename = editFilename ? editFilename : `_posts/${new Date().toISOString().split('T')[0]}-${slug}.md`;
-            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndate: ${new Date().toISOString()}\n---\n\n${content}`;
+            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
 
             msgEl.style.color = "var(--text-muted)";
@@ -423,12 +498,14 @@
 
                 if(res.ok) {
                     msgEl.style.color = "var(--success)";
-                    msgEl.innerText = "Article successfully published!";
+                    msgEl.innerText = "Article & Video SEO successfully published!";
                     setTimeout(() => {
                         document.getElementById('postTitle').value = '';
                         document.getElementById('postSlug').value = '';
                         document.getElementById('metaDesc').value = '';
                         document.getElementById('postContent').value = '';
+                        document.getElementById('videoTitle').value = '';
+                        document.getElementById('videoUrl').value = '';
                         document.getElementById('editFilename').value = '';
                         document.getElementById('editSha').value = '';
                         msgEl.innerText = '';
@@ -455,7 +532,6 @@
                 document.getElementById('editFilename').value = data.path;
                 document.getElementById('editSha').value = data.sha;
                 
-                // Extract frontmatter / content roughly
                 document.getElementById('postTitle').value = filename.replace('.md','');
                 document.getElementById('postContent').value = decoded;
                 
