@@ -17,7 +17,7 @@
             --text-muted: #94a3b8;
             --danger: #ef4444;
             --success: #22c55e;
-            --blue-card: #2563eb;
+            --warning: #eab308;
         }
 
         * {
@@ -178,7 +178,7 @@
             display: block;
         }
 
-        /* SEO AUDIT CARD STYLING */
+        /* SEO AUDIT CARD */
         .seo-audit-card {
             background: rgba(240, 246, 255, 0.95);
             color: #1e293b;
@@ -223,34 +223,6 @@
             color: #475569;
             margin-bottom: 16px;
             line-height: 1.5;
-        }
-
-        .seo-check-list {
-            list-style: none;
-            margin-bottom: 20px;
-        }
-
-        .seo-check-list li {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .seo-check-list li::before {
-            content: "✓";
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            background: #e0f2fe;
-            color: #0284c7;
-            border-radius: 50%;
-            text-align: center;
-            font-size: 11px;
-            line-height: 18px;
         }
 
         .btn-audit {
@@ -308,7 +280,7 @@
             font-weight: 800;
         }
 
-        /* AUDIT RESULTS MODAL */
+        /* AUDIT RESULTS MODAL WITH HIGHLIGHTS */
         .audit-results-modal {
             display: none;
             background: rgba(15, 23, 42, 0.95);
@@ -330,17 +302,20 @@
 
         .audit-item {
             font-size: 13px;
-            padding: 10px 14px;
+            padding: 12px 14px;
             border-radius: 10px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid transparent;
         }
 
-        .audit-pass { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-        .audit-fail { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+        .audit-pass { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-left-color: #22c55e; }
+        .audit-fail { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-left-color: #ef4444; }
+
+        .audit-actions-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
 
         .btn-autofix {
             background: linear-gradient(135deg, #22c55e, #16a34a);
@@ -352,12 +327,24 @@
             font-weight: 700;
             cursor: pointer;
             width: auto;
-            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
-            white-space: nowrap;
         }
 
-        .btn-autofix:hover {
-            transform: scale(1.05);
+        .btn-manualguide {
+            background: rgba(234, 179, 8, 0.2);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: #fde047;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            width: auto;
+        }
+
+        /* HIGHLIGHT CLASS FOR MANUAL TARGETING */
+        .highlight-field {
+            border: 2px solid #ef4444 !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4) !important;
         }
 
         .toolbar {
@@ -451,32 +438,27 @@
             <!-- CREATE / EDIT POST TAB -->
             <div id="createTab" class="tab-content active">
                 
-                <!-- INTEGRATED SEO AUDIT TOOL CARD -->
+                <!-- SEO AUDIT TOOL CARD -->
                 <div class="seo-audit-card">
                     <div class="seo-audit-info">
-                        <span class="badge-popular">🔥 MOST POPULAR</span>
-                        <h3>SEO Audit Tool</h3>
-                        <p>Analyze your website's & article's SEO issues and discover opportunities for higher rankings.</p>
-                        <ul class="seo-check-list">
-                            <li>Technical SEO Analysis</li>
-                            <li>On-Page Recommendations</li>
-                            <li>Instant Results & Auto Fix</li>
-                        </ul>
-                        <button type="button" class="btn-audit" id="auditBtn" onclick="runLiveSeoAudit(true)">Run SEO Audit →</button>
+                        <span class="badge-popular">🔥 PROFESSIONAL SEO SUITE</span>
+                        <h3>Advanced SEO & Ranking Analyzer</h3>
+                        <p>High-accuracy technical analysis, automatic fix capability, and manual highlight tools for top Google rankings.</p>
+                        <button type="button" class="btn-audit" id="auditBtn" onclick="runLiveSeoAudit(true)">Run Full SEO Audit →</button>
                     </div>
                     <div class="score-box">
                         <div class="score-circle" id="scoreCircle">
                             <span>SEO Score</span>
                             <h2 id="liveSeoScore">30</h2>
                         </div>
-                        <span id="auditStatus" style="font-size: 11px; font-weight: 700; color: #ef4444;">Needs Improvement</span>
+                        <span id="auditStatus" style="font-size: 11px; font-weight: 700; color: #ef4444;">Needs Attention</span>
                     </div>
                 </div>
 
-                <!-- AUDIT REPORT BOX WITH AUTO FIX -->
+                <!-- AUDIT REPORT BOX WITH AUTO & MANUAL FIX -->
                 <div class="audit-results-modal" id="auditReportBox">
                     <h4>
-                        <span>🔍 Live On-Page Audit Checklist & Auto Fix</span>
+                        <span>🔍 Detailed SEO Audit & Fix Center</span>
                         <button style="width:auto; padding:4px 10px; font-size:11px;" onclick="document.getElementById('auditReportBox').style.display='none'">Close</button>
                     </h4>
                     <div id="auditReportList"></div>
@@ -487,8 +469,8 @@
                 
                 <div style="display: flex; gap: 15px;">
                     <div class="input-group" style="flex: 2;">
-                        <label>Article Title (SEO Title)</label>
-                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review / How to Edit Videos" oninput="runLiveSeoAudit(false)">
+                        <label id="lblTitle">Article Title (SEO Title)</label>
+                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review / How to Edit Videos" oninput="clearHighlights(); runLiveSeoAudit(false);">
                     </div>
                     <div class="input-group" style="flex: 1;">
                         <label>Article Type</label>
@@ -502,15 +484,15 @@
                 </div>
 
                 <div class="input-group">
-                    <label>URL Slug</label>
+                    <label id="lblSlug">URL Slug</label>
                     <input type="text" id="postSlug" placeholder="e.g. kinemaster-pro-review-guide">
                 </div>
                 <div class="input-group">
-                    <label>SEO Meta Description</label>
-                    <input type="text" id="metaDesc" placeholder="Short summary for Google search snippet" oninput="runLiveSeoAudit(false)">
+                    <label id="lblMeta">SEO Meta Description</label>
+                    <input type="text" id="metaDesc" placeholder="Short summary for Google search snippet" oninput="clearHighlights(); runLiveSeoAudit(false);">
                 </div>
                 <div class="input-group">
-                    <label>Article Content & Formatting</label>
+                    <label id="lblContent">Article Content & Formatting</label>
                     
                     <div class="toolbar">
                         <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Fast Formats:</span>
@@ -522,10 +504,10 @@
                         <button type="button" class="btn-tool" onclick="insertDownloadBtn()">+ Add Download Button</button>
                     </div>
 
-                    <textarea id="postContent" rows="12" placeholder="Write your Review, Guide, or Educational Article here..." oninput="runLiveSeoAudit(false)"></textarea>
+                    <textarea id="postContent" rows="12" placeholder="Write your Review, Guide, or Educational Article here..." oninput="clearHighlights(); runLiveSeoAudit(false);"></textarea>
                 </div>
 
-                <!-- VIDEO SEO METADATA (OPTIONAL) -->
+                <!-- VIDEO SEO SCHEMA (OPTIONAL) -->
                 <div style="background: rgba(15, 23, 42, 0.3); border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                     <h4 style="font-size: 14px; margin-bottom: 10px; color: #c084fc;">🎬 Video SEO Schema (Optional)</h4>
                     <div style="display: flex; gap: 10px;">
@@ -594,6 +576,12 @@
             }
         }
 
+        function clearHighlights() {
+            document.getElementById('postTitle').classList.remove('highlight-field');
+            document.getElementById('metaDesc').classList.remove('highlight-field');
+            document.getElementById('postContent').classList.remove('highlight-field');
+        }
+
         function runLiveSeoAudit(showModal = false) {
             const title = document.getElementById('postTitle').value.trim();
             const desc = document.getElementById('metaDesc').value.trim();
@@ -611,41 +599,71 @@
                 // 1. TITLE CHECK
                 if (title.length >= 20 && title.length <= 70) {
                     score += 20;
-                    report.push('<div class="audit-item audit-pass"><span>✓ Article Title length is optimal for Google Search.</span></div>');
+                    report.push('<div class="audit-item audit-pass">✓ Article Title length is optimal for Google Search (20-70 chars).</div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail"><span>✗ Title should be between 20 to 70 characters.</span> <button class="btn-autofix" onclick="autoFix(\'title\')">Auto Fix ⚡</button></div>');
+                    report.push(`<div class="audit-item audit-fail">
+                        <div><strong>✗ Title Issue:</strong> Must be 20 to 70 characters (Current: ${title.length}).</div>
+                        <div class="audit-actions-group">
+                            <button class="btn-autofix" onclick="autoFix('title')">Auto Fix ⚡</button>
+                            <button class="btn-manualguide" onclick="highlightField('title')">Manual Highlight 🔍</button>
+                        </div>
+                    </div>`);
                 }
 
                 // 2. META DESC CHECK
                 if (desc.length >= 50 && desc.length <= 160) {
                     score += 20;
-                    report.push('<div class="audit-item audit-pass"><span>✓ Meta Description is well optimized.</span></div>');
+                    report.push('<div class="audit-item audit-pass">✓ Meta Description is well optimized for snippets.</div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail"><span>✗ Add a Meta Description between 50 to 160 characters.</span> <button class="btn-autofix" onclick="autoFix(\'meta\')">Auto Fix ⚡</button></div>');
+                    report.push(`<div class="audit-item audit-fail">
+                        <div><strong>✗ Meta Description Issue:</strong> Must be 50 to 160 characters (Current: ${desc.length}).</div>
+                        <div class="audit-actions-group">
+                            <button class="btn-autofix" onclick="autoFix('meta')">Auto Fix ⚡</button>
+                            <button class="btn-manualguide" onclick="highlightField('meta')">Manual Highlight 🔍</button>
+                        </div>
+                    </div>`);
                 }
 
                 // 3. CONTENT LENGTH CHECK
                 if (content.length > 250) {
                     score += 20;
-                    report.push('<div class="audit-item audit-pass"><span>✓ Good article content length.</span></div>');
+                    report.push('<div class="audit-item audit-pass">✓ Good article content length for ranking.</div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail"><span>✗ Article content is too short (aim for 250+ words).</span> <button class="btn-autofix" onclick="autoFix(\'content\')">Auto Fix ⚡</button></div>');
+                    report.push(`<div class="audit-item audit-fail">
+                        <div><strong>✗ Content Length Issue:</strong> Too short, aim for 250+ words.</div>
+                        <div class="audit-actions-group">
+                            <button class="btn-autofix" onclick="autoFix('content')">Auto Fix ⚡</button>
+                            <button class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                        </div>
+                    </div>`);
                 }
 
                 // 4. HEADINGS CHECK
                 if (content.includes('## ') || content.includes('### ')) {
                     score += 10;
-                    report.push('<div class="audit-item audit-pass"><span>✓ Proper Headings (H2 / H3) utilized.</span></div>');
+                    report.push('<div class="audit-item audit-pass">✓ Proper Headings (H2 / H3) utilized for structure.</div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail"><span>✗ Use H2 / H3 Headings to structure your content.</span> <button class="btn-autofix" onclick="autoFix(\'heading\')">Auto Fix ⚡</button></div>');
+                    report.push(`<div class="audit-item audit-fail">
+                        <div><strong>✗ Headings Issue:</strong> Missing H2 or H3 structure for Google crawlers.</div>
+                        <div class="audit-actions-group">
+                            <button class="btn-autofix" onclick="autoFix('heading')">Auto Fix ⚡</button>
+                            <button class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                        </div>
+                    </div>`);
                 }
 
                 // 5. DOWNLOAD LINK CHECK
                 if (content.includes('Download') || content.includes('http')) {
                     score += 10;
-                    report.push('<div class="audit-item audit-pass"><span>✓ Download link or external resources added.</span></div>');
+                    report.push('<div class="audit-item audit-pass">✓ Download button or valid link included.</div>');
                 } else {
-                    report.push('<div class="audit-item audit-fail"><span>✗ Add an APK Download Button or link.</span> <button class="btn-autofix" onclick="autoFix(\'download\')">Auto Fix ⚡</button></div>');
+                    report.push(`<div class="audit-item audit-fail">
+                        <div><strong>✗ Conversion Issue:</strong> Missing APK Download button or target link.</div>
+                        <div class="audit-actions-group">
+                            <button class="btn-autofix" onclick="autoFix('download')">Auto Fix ⚡</button>
+                            <button class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                        </div>
+                    </div>`);
                 }
 
                 score = Math.min(score, 100);
@@ -658,7 +676,7 @@
 
                 if (score < 60) {
                     circleEl.style.borderColor = "#ef4444";
-                    statusEl.innerText = "Needs Improvement";
+                    statusEl.innerText = "Needs Attention";
                     statusEl.style.color = "#ef4444";
                 } else if (score < 80) {
                     circleEl.style.borderColor = "#eab308";
@@ -666,16 +684,34 @@
                     statusEl.style.color = "#eab308";
                 } else {
                     circleEl.style.borderColor = "#22c55e";
-                    statusEl.innerText = "Highly Optimized";
+                    statusEl.innerText = "Fully Optimized";
                     statusEl.style.color = "#16a34a";
                 }
 
                 if(showModal) {
-                    auditBtn.innerText = "Run SEO Audit →";
+                    auditBtn.innerText = "Run Full SEO Audit →";
                     document.getElementById('auditReportList').innerHTML = report.join('');
                     document.getElementById('auditReportBox').style.display = 'block';
                 }
             }, showModal ? 300 : 0);
+        }
+
+        function highlightField(target) {
+            document.getElementById('auditReportBox').style.display = 'none';
+            clearHighlights();
+            if(target === 'title') {
+                const el = document.getElementById('postTitle');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'meta') {
+                const el = document.getElementById('metaDesc');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'content') {
+                const el = document.getElementById('postContent');
+                el.classList.add('highlight-field');
+                el.focus();
+            }
         }
 
         function autoFix(type) {
@@ -686,12 +722,13 @@
                 const title = document.getElementById('postTitle').value.trim() || 'this app';
                 document.getElementById('metaDesc').value = `Download ${title} latest version with unlocked premium features, no watermark, fast download links and high performance guide.`;
             } else if(type === 'content') {
-                document.getElementById('postContent').value += `\n\n## Comprehensive Overview\nThis application offers cutting-edge features designed to provide smooth functionality and enhanced user experience. Users can enjoy ad-free interaction, optimized responsiveness, and continuous updates. Follow our step-by-step installation instructions to set up the APK safely on your device.\n`;
+                document.getElementById('postContent').value += `\n\n## Comprehensive Overview\nThis application offers cutting-edge features designed to provide smooth functionality and enhanced user experience. Users can enjoy ad-free interaction, optimized responsiveness, and continuous updates. Follow our step-by-step instructions to set up the APK safely.\n`;
             } else if(type === 'heading') {
-                document.getElementById('postContent').value += `\n\n## Key Features & Highlights\n* **High Performance:** Smooth and lag-free UI.\n* **Unlocked Access:** Premium options included.\n* **Regular Updates:** Stay up to date with new features.\n`;
+                document.getElementById('postContent').value += `\n\n## Key Features & Highlights\n* **High Performance:** Smooth and lag-free UI.\n* **Unlocked Access:** Premium options included.\n`;
             } else if(type === 'download') {
                 document.getElementById('postContent').value += `\n<div style="text-align:center;margin:25px 0;"><a href="https://proeditsapk.com" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
             }
+            clearHighlights();
             runLiveSeoAudit(true);
         }
 
@@ -706,13 +743,13 @@
         }
 
         function insertGuideBox() {
-            const guideHtml = `\n### Step-by-Step Guide:\n1. **Step 1:** Download the application file from the link below.\n2. **Step 2:** Enable 'Unknown Sources' in device security settings.\n3. **Step 3:** Install and open to enjoy full features.\n`;
+            const guideHtml = `\n### Step-by-Step Guide:\n1. **Step 1:** Download application.\n2. **Step 2:** Enable unknown sources.\n3. **Step 3:** Install and enjoy.\n`;
             document.getElementById('postContent').value += guideHtml;
             runLiveSeoAudit(false);
         }
 
         function insertReviewBox() {
-            const reviewHtml = `\n### App Review & Rating Summary:\n* **Performance:** 4.8/5\n* **User Interface:** Easy & Intuitive\n* **Pros:** No Ads, Unlock Premium Features\n* **Cons:** Requires Android 8.0 or higher\n`;
+            const reviewHtml = `\n### App Review Summary:\n* **Performance:** 4.8/5\n* **Pros:** No Ads, Premium Unlocked\n`;
             document.getElementById('postContent').value += reviewHtml;
             runLiveSeoAudit(false);
         }
@@ -728,8 +765,7 @@
                 const videoId = url.split("youtu.be/")[1].split("?")[0];
                 embedUrl = `https://www.youtube.com/embed/${videoId}`;
             }
-
-            const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;box-shadow:0 10px 25px rgba(0,0,0,0.5);"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
+            const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
             document.getElementById('postContent').value += videoHtml;
             runLiveSeoAudit(false);
         }
@@ -737,7 +773,7 @@
         function insertDownloadBtn() {
             const url = prompt("Enter Direct Download APK Link:");
             if(!url) return;
-            const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);transition:transform 0.2s;">⚡ Download APK (Latest Version)</a></div>\n`;
+            const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
             document.getElementById('postContent').value += btnHtml;
             runLiveSeoAudit(false);
         }
