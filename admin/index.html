@@ -787,15 +787,13 @@
             listDiv.innerHTML = "Fetching articles...";
             try {
                 let html = '';
-
-                // Fetch Posts
-                const resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
 
-                if(resPosts.ok) {
-                    const posts = await resPosts.json();
-                    for(let file of posts) {
+                if(res.ok) {
+                    const files = await res.json();
+                    for(let file of files) {
                         if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
                             const isDraftFile = file.name.startsWith('draft-');
                             html += `
@@ -805,33 +803,8 @@
                                         <span>Path: ${file.path}</span>
                                     </div>
                                     <div class="post-actions">
-                                        <button type="button" class="btn-sm" onclick="editPost('_posts/${file.name}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
-                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('_posts/${file.name}', '${file.sha}')">Delete</button>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
-
-                // Fetch Drafts
-                const resDrafts = await fetch(`https://api.github.com/repos/${REPO}/contents/drafts`, {
-                    headers: { 'Authorization': `token ${authData.token}` }
-                });
-
-                if(resDrafts.ok) {
-                    const drafts = await resDrafts.json();
-                    for(let file of drafts) {
-                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
-                            html += `
-                                <div class="post-card" style="border-color: rgba(234, 179, 8, 0.4);">
-                                    <div class="post-info">
-                                        <h4>${file.name} <span class="badge-draft">Draft</span></h4>
-                                        <span>Path: ${file.path}</span>
-                                    </div>
-                                    <div class="post-actions">
-                                        <button type="button" class="btn-sm" onclick="editPost('drafts/${file.name}')">Review & Publish</button>
-                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('drafts/${file.name}', '${file.sha}')">Delete</button>
+                                        <button type="button" class="btn-sm" onclick="editPost('${file.name}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
+                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}')">Delete</button>
                                     </div>
                                 </div>
                             `;
@@ -881,9 +854,8 @@
             }
 
             let cleanSlug = slug.replace(/^draft-/, '');
-            let targetFolder = isDraft ? "drafts" : "_posts";
-            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
-            let finalFilePath = `${targetFolder}/${fileNameOnly}`;
+            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `post-${cleanSlug}.md`;
+            let finalFilePath = fileNameOnly;
 
             const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
@@ -892,7 +864,6 @@
             msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
 
             try {
-                // 1. Fetch SHA if file exists to overwrite cleanly
                 let existingSha = null;
                 try {
                     const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
@@ -915,7 +886,6 @@
                     bodyData.sha = editSha;
                 }
 
-                // 2. Put / Commit File
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
                     method: 'PUT',
                     headers: {
@@ -962,7 +932,7 @@
                 document.getElementById('editSha').value = data.sha;
                 
                 const filenameOnly = filePath.split('/').pop();
-                document.getElementById('postTitle').value = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                document.getElementById('postTitle').value = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^post-/, '');
                 document.getElementById('postContent').value = decoded;
                 
                 switchTab('create');
