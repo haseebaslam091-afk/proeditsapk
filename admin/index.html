@@ -314,7 +314,7 @@
                 <label>GitHub Personal Access Token</label>
                 <input type="password" id="token" placeholder="Paste GitHub token">
             </div>
-            <button type="button" onclick="handleLogin()">Login to Dashboard</button>
+            <button type="button" id="loginBtn">Login to Dashboard</button>
             <div id="loginMsg" class="msg" style="color: var(--danger);"></div>
         </div>
 
@@ -322,12 +322,12 @@
         <div id="dashboardView" style="display: none;">
             <div class="dashboard-header">
                 <h2>ProEditsAPK Control Center</h2>
-                <button class="btn-logout" onclick="handleLogout()">Logout</button>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
             </div>
 
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('create')">New Article / SEO Audit</button>
-                <button class="tab-btn" onclick="switchTab('manage')">Manage Articles & Drafts</button>
+                <button class="tab-btn active" id="tabCreateBtn">New Article / SEO Audit</button>
+                <button class="tab-btn" id="tabManageBtn">Manage Articles & Drafts</button>
             </div>
 
             <!-- CREATE / EDIT POST TAB -->
@@ -339,7 +339,7 @@
                         <span class="badge-popular">🔥 MOST POPULAR</span>
                         <h3>SEO Audit Tool</h3>
                         <p>Analyze your website's & article's SEO issues and discover opportunities for higher rankings.</p>
-                        <button type="button" class="btn-audit" id="auditBtn" onclick="runLiveSeoAudit(true)">Run SEO Audit →</button>
+                        <button type="button" class="btn-audit" id="auditBtn">Run SEO Audit →</button>
                     </div>
                     <div class="score-box">
                         <div class="score-circle" id="scoreCircle">
@@ -356,7 +356,7 @@
                         <span class="badge-trending">📈 TRENDING TOOL</span>
                         <h3 style="color: #064e3b;">Keyword Density Checker</h3>
                         <p style="color: #047857;">Check keyword usage in your content and avoid over-optimization (Target: 1% - 3%).</p>
-                        <button type="button" class="btn-density" onclick="runKeywordDensityCheck(true)">Open Tool →</button>
+                        <button type="button" class="btn-density" id="densityBtn">Open Tool →</button>
                     </div>
                     <div class="score-box" style="min-width: 200px;">
                         <h4 style="font-size: 13px; color: #0f172a; margin-bottom: 8px;">Target Keyword Density</h4>
@@ -367,31 +367,30 @@
 
                 <!-- QUICK ACTIONS BAR -->
                 <div class="quick-tools-bar">
-                    <button type="button" class="btn-quick-tool" onclick="runContentAnalyzer(true)">📊 Content & Readability Analyzer</button>
-                    <button type="button" class="btn-quick-tool" onclick="generateMetaTags(true)">🏷️ Meta Title & Description Generator</button>
+                    <button type="button" class="btn-quick-tool" id="contentAnalyzerBtn">📊 Content & Readability Analyzer</button>
+                    <button type="button" class="btn-quick-tool" id="metaGeneratorBtn">🏷️ Meta Title & Description Generator</button>
                 </div>
 
                 <!-- UNIFIED REPORT MODAL -->
                 <div class="audit-results-modal" id="auditReportBox">
                     <h4 style="font-size: 15px; color: #c084fc; margin-bottom: 12px; display: flex; justify-content: space-between;">
                         <span id="reportModalTitle">🔍 Detailed SEO Analysis Report</span>
-                        <button style="width:auto; padding:4px 10px; font-size:11px;" onclick="document.getElementById('auditReportBox').style.display='none'">Close</button>
+                        <button style="width:auto; padding:4px 10px; font-size:11px;" id="closeModalBtn">Close</button>
                     </h4>
                     <div id="auditReportList"></div>
                 </div>
 
                 <input type="hidden" id="editSha" value="">
                 <input type="hidden" id="editFilename" value="">
-                <input type="hidden" id="editIsDraft" value="false">
                 
                 <div style="display: flex; gap: 15px;">
                     <div class="input-group" style="flex: 2;">
                         <label>Article Title (SEO Title)</label>
-                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review / How to Edit Videos" oninput="clearHighlights(); updateAllSeoTools();">
+                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review / How to Edit Videos">
                     </div>
                     <div class="input-group" style="flex: 1;">
                         <label>Focus Target Keyword</label>
-                        <input type="text" id="targetKeyword" placeholder="e.g. Kinemaster Pro" oninput="updateAllSeoTools();">
+                        <input type="text" id="targetKeyword" placeholder="e.g. Kinemaster Pro">
                     </div>
                 </div>
 
@@ -401,22 +400,22 @@
                 </div>
                 <div class="input-group">
                     <label>SEO Meta Description</label>
-                    <input type="text" id="metaDesc" placeholder="Short summary for Google search snippet" oninput="clearHighlights(); updateAllSeoTools();">
+                    <input type="text" id="metaDesc" placeholder="Short summary for Google search snippet">
                 </div>
                 <div class="input-group">
                     <label>Article Content & Formatting</label>
                     
                     <div class="toolbar">
                         <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Fast Formats:</span>
-                        <button type="button" class="btn-tool" onclick="insertTag('## ', '')">H2 Heading</button>
-                        <button type="button" class="btn-tool" onclick="insertTag('### ', '')">H3 Heading</button>
-                        <button type="button" class="btn-tool" onclick="insertGuideBox()">+ Add Guide Steps</button>
-                        <button type="button" class="btn-tool" onclick="insertReviewBox()">+ Add Pros/Cons Box</button>
-                        <button type="button" class="btn-tool" onclick="insertVideoEmbed()">+ Add Video Tutorial</button>
-                        <button type="button" class="btn-tool" onclick="insertDownloadBtn()">+ Add Download Button</button>
+                        <button type="button" class="btn-tool" id="fmtH2Btn">H2 Heading</button>
+                        <button type="button" class="btn-tool" id="fmtH3Btn">H3 Heading</button>
+                        <button type="button" class="btn-tool" id="fmtGuideBtn">+ Add Guide Steps</button>
+                        <button type="button" class="btn-tool" id="fmtReviewBtn">+ Add Pros/Cons Box</button>
+                        <button type="button" class="btn-tool" id="fmtVideoBtn">+ Add Video Tutorial</button>
+                        <button type="button" class="btn-tool" id="fmtDownloadBtn">+ Add Download Button</button>
                     </div>
 
-                    <textarea id="postContent" rows="12" placeholder="Write your Review, Guide, or Educational Article here..." oninput="clearHighlights(); updateAllSeoTools();"></textarea>
+                    <textarea id="postContent" rows="12" placeholder="Write your Review, Guide, or Educational Article here..."></textarea>
                 </div>
 
                 <!-- VIDEO SEO SCHEMA -->
@@ -430,8 +429,8 @@
 
                 <!-- PUBLISH & DRAFT ACTION BUTTONS -->
                 <div class="action-buttons-group">
-                    <button type="button" class="btn-draft" onclick="publishPost(true)">💾 Save as Draft</button>
-                    <button type="button" onclick="publishPost(false)">⚡ Publish Live Article</button>
+                    <button type="button" class="btn-draft" id="saveDraftBtn">💾 Save as Draft</button>
+                    <button type="button" id="publishLiveBtn">⚡ Publish Live Article</button>
                 </div>
                 <div id="actionMsg" class="msg"></div>
             </div>
@@ -450,9 +449,41 @@
 
         let authData = JSON.parse(localStorage.getItem('proedits_auth') || 'null');
 
-        if (authData) {
-            showDashboard();
-        }
+        document.addEventListener("DOMContentLoaded", () => {
+            if (authData) {
+                showDashboard();
+            }
+
+            // Event Listeners for safe execution
+            document.getElementById('loginBtn').addEventListener('click', handleLogin);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            
+            document.getElementById('tabCreateBtn').addEventListener('click', () => switchTab('create'));
+            document.getElementById('tabManageBtn').addEventListener('click', () => switchTab('manage'));
+
+            document.getElementById('auditBtn').addEventListener('click', () => runLiveSeoAudit(true));
+            document.getElementById('densityBtn').addEventListener('click', () => runKeywordDensityCheck(true));
+            document.getElementById('contentAnalyzerBtn').addEventListener('click', () => runContentAnalyzer(true));
+            document.getElementById('metaGeneratorBtn').addEventListener('click', () => generateMetaTags(true));
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                document.getElementById('auditReportBox').style.display = 'none';
+            });
+
+            document.getElementById('postTitle').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
+            document.getElementById('targetKeyword').addEventListener('input', () => { updateAllSeoTools(); });
+            document.getElementById('metaDesc').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
+            document.getElementById('postContent').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
+
+            document.getElementById('fmtH2Btn').addEventListener('click', () => insertTag('## ', ''));
+            document.getElementById('fmtH3Btn').addEventListener('click', () => insertTag('### ', ''));
+            document.getElementById('fmtGuideBtn').addEventListener('click', insertGuideBox);
+            document.getElementById('fmtReviewBtn').addEventListener('click', insertReviewBox);
+            document.getElementById('fmtVideoBtn').addEventListener('click', insertVideoEmbed);
+            document.getElementById('fmtDownloadBtn').addEventListener('click', insertDownloadBtn);
+
+            document.getElementById('saveDraftBtn').addEventListener('click', () => publishPost(true));
+            document.getElementById('publishLiveBtn').addEventListener('click', () => publishPost(false));
+        });
 
         function handleLogin() {
             const ans = document.getElementById('secAnswer').value.trim();
@@ -463,6 +494,7 @@
                 localStorage.setItem('proedits_auth', JSON.stringify(authData));
                 showDashboard();
             } else {
+                document.getElementById('loginMsginnerText', "Ghalat jawab ya token! Dobara koshish karein.");
                 document.getElementById('loginMsg').innerText = "Ghalat jawab ya token! Dobara koshish karein.";
             }
         }
@@ -483,10 +515,10 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             if(tab === 'create') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tabCreateBtn').classList.add('active');
                 document.getElementById('createTab').classList.add('active');
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tabManageBtn').classList.add('active');
                 document.getElementById('manageTab').classList.add('active');
                 loadPosts();
             }
@@ -523,20 +555,20 @@
                 document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
                 if (focusKw) {
                     if (density >= 1.0 && density <= 3.0) {
-                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at${density}% (Safe 1% to 3% range).</div>`);
+                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Safe 1% to 3% range).</div>`);
                     } else if (density > 3.0) {
                         report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is${density}%. Reduce repetitions to prevent penalties.</div>
+                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Reduce repetitions to prevent penalties.</div>
                             <div style="margin-top:8px;" class="audit-actions-group">
-                                <button class="btn-autofix" onclick="autoFixKeywordDensity('${focusKw}')">Auto Reduce ⚡</button>
-                                <button class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                                <button type="button" class="btn-autofix" onclick="autoFixKeywordDensity('${focusKw}')">Auto Reduce ⚡</button>
+                                <button type="button" class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
                             </div>
                         </div>`);
                     } else {
                         report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is${density}%. Aim for 1% - 3%.</div>
+                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1% - 3%.</div>
                             <div style="margin-top:8px;" class="audit-actions-group">
-                                <button class="btn-autofix" onclick="autoIncreaseDensity('${focusKw}')">Auto Insert ⚡</button>
+                                <button type="button" class="btn-autofix" onclick="autoIncreaseDensity('${focusKw}')">Auto Insert ⚡</button>
                             </div>
                         </div>`);
                     }
@@ -578,4 +610,400 @@
                 document.getElementById('reportModalTitle').innerText = "🏷️ Meta Title & Description Generator Output";
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
-                        <div><strong>Generated HTML Tags Snippet:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5
+                        <div><strong>Generated HTML Tags Snippet:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5fd;">${htmlSnippet}</pre></div>
+                    </div>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function autoFixKeywordDensity(kw) {
+            let content = document.getElementById('postContent').value;
+            const reg = new RegExp(kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+            let count = 0;
+            content = content.replace(reg, (match) => {
+                count++;
+                return (count % 2 === 0) ? "this application" : match;
+            });
+            document.getElementById('postContent').value = content;
+            updateAllSeoTools();
+            runKeywordDensityCheck(true);
+        }
+
+        function autoIncreaseDensity(kw) {
+            document.getElementById('postContent').value += `\n\nWhen using ${kw}, users experience top-tier performance. Download ${kw} today for full unlocked capabilities.`;
+            updateAllSeoTools();
+            runKeywordDensityCheck(true);
+        }
+
+        function runLiveSeoAudit(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim();
+            const desc = document.getElementById('metaDesc').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+
+            let score = 20;
+            let report = [];
+
+            if (title.length >= 20 && title.length <= 70) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Article Title length is optimal for Google Search (20-70 chars).</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Title Issue:</strong> Must be 20 to 70 characters (Current: ${title.length}).</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('title')">Auto Fix ⚡</button>
+                        <button type="button" class="btn-manualguide" onclick="highlightField('title')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (desc.length >= 50 && desc.length <= 160) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Meta Description is well optimized for snippets.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Meta Description Issue:</strong> Must be 50 to 160 characters (Current: ${desc.length}).</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('meta')">Auto Fix ⚡</button>
+                        <button type="button" class="btn-manualguide" onclick="highlightField('meta')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.length > 250) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Good article content length for ranking.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Content Length Issue:</strong> Too short, aim for 250+ words.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('content')">Auto Fix ⚡</button>
+                        <button type="button" class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.includes('## ') || content.includes('### ')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Proper Headings (H2 / H3) utilized.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Headings Issue:</strong> Missing H2 or H3 structure.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('heading')">Auto Fix ⚡</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.includes('Download') || content.includes('http')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Download button or valid link included.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Conversion Issue:</strong> Missing APK Download button.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('download')">Auto Fix ⚡</button>
+                    </div>
+                </div>`);
+            }
+
+            score = Math.min(score, 100);
+            document.getElementById('liveSeoScore').innerText = score;
+
+            const circleEl = document.getElementById('scoreCircle');
+            const statusEl = document.getElementById('auditStatus');
+
+            if (score < 60) {
+                circleEl.style.borderColor = "#ef4444";
+                statusEl.innerText = "Needs Attention";
+                statusEl.style.color = "#ef4444";
+            } else if (score < 80) {
+                circleEl.style.borderColor = "#eab308";
+                statusEl.innerText = "Good SEO";
+                statusEl.style.color = "#eab308";
+            } else {
+                circleEl.style.borderColor = "#22c55e";
+                statusEl.innerText = "Fully Optimized";
+                statusEl.style.color = "#16a34a";
+            }
+
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🔍 Technical SEO On-Page Checklist";
+                document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function highlightField(target) {
+            document.getElementById('auditReportBox').style.display = 'none';
+            clearHighlights();
+            if(target === 'title') {
+                const el = document.getElementById('postTitle');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'meta') {
+                const el = document.getElementById('metaDesc');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'content') {
+                const el = document.getElementById('postContent');
+                el.classList.add('highlight-field');
+                el.focus();
+            }
+        }
+
+        function autoFix(type) {
+            if(type === 'title') {
+                const cur = document.getElementById('postTitle').value.trim();
+                document.getElementById('postTitle').value = cur ? `${cur} - Download Latest Version Free 2026` : 'Kinemaster Pro APK Download Latest Version Official';
+            } else if(type === 'meta') {
+                const title = document.getElementById('postTitle').value.trim() || 'this app';
+                document.getElementById('metaDesc').value = `Download ${title} latest version with unlocked premium features, no watermark, fast download links and high performance guide.`;
+            } else if(type === 'content') {
+                document.getElementById('postContent').value += `\n\n## Comprehensive Overview\nThis application offers cutting-edge features designed to provide smooth functionality and enhanced user experience. Users can enjoy ad-free interaction, optimized responsiveness, and continuous updates. Follow our step-by-step instructions to set up the APK safely.\n`;
+            } else if(type === 'heading') {
+                document.getElementById('postContent').value += `\n\n## Key Features & Highlights\n* **High Performance:** Smooth and lag-free UI.\n* **Unlocked Access:** Premium options included.\n`;
+            } else if(type === 'download') {
+                document.getElementById('postContent').value += `\n<div style="text-align:center;margin:25px 0;"><a href="https://proeditsapk.com" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+            }
+            clearHighlights();
+            updateAllSeoTools();
+            runLiveSeoAudit(true);
+        }
+
+        function insertTag(startTag, endTag) {
+            const textarea = document.getElementById('postContent');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end) || "Heading Text";
+            textarea.value = text.substring(0, start) + startTag + selectedText + endTag + text.substring(end);
+            updateAllSeoTools();
+        }
+
+        function insertGuideBox() {
+            const guideHtml = `\n### Step-by-Step Guide:\n1. **Step 1:** Download application.\n2. **Step 2:** Enable unknown sources.\n3. **Step 3:** Install and enjoy.\n`;
+            document.getElementById('postContent').value += guideHtml;
+            updateAllSeoTools();
+        }
+
+        function insertReviewBox() {
+            const reviewHtml = `\n### App Review Summary:\n* **Performance:** 4.8/5\n* **Pros:** No Ads, Premium Unlocked\n`;
+            document.getElementById('postContent').value += reviewHtml;
+            updateAllSeoTools();
+        }
+
+        function insertVideoEmbed() {
+            const url = prompt("Enter YouTube / Video Link:");
+            if(!url) return;
+            let embedUrl = url;
+            if(url.includes("youtube.com/watch?v=")) {
+                const videoId = url.split("v=")[1].split("&")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            } else if(url.includes("youtu.be/")) {
+                const videoId = url.split("youtu.be/")[1].split("?")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            }
+            const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
+            document.getElementById('postContent').value += videoHtml;
+            updateAllSeoTools();
+        }
+
+        function insertDownloadBtn() {
+            const url = prompt("Enter Direct Download APK Link:");
+            if(!url) return;
+            const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+            document.getElementById('postContent').value += btnHtml;
+            updateAllSeoTools();
+        }
+
+        async function loadPosts() {
+            const listDiv = document.getElementById('postsList');
+            listDiv.innerHTML = "Fetching articles...";
+            try {
+                let html = '';
+                const resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+
+                if(resPosts.ok) {
+                    const posts = await resPosts.json();
+                    for(let file of posts) {
+                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                            const isDraftFile = file.name.startsWith('draft-');
+                            html += `
+                                <div class="post-card" style="${isDraftFile ? 'border-color: rgba(234, 179, 8, 0.4);' : ''}">
+                                    <div class="post-info">
+                                        <h4>${file.name} ${isDraftFile ? '<span class="badge-draft">Draft</span>' : '<span class="badge-published">Published</span>'}</h4>
+                                        <span>Path: ${file.path}</span>
+                                    </div>
+                                    <div class="post-actions">
+                                        <button type="button" class="btn-sm" onclick="editPost('${file.name}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
+                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}')">Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                if(!html) {
+                    listDiv.innerHTML = "<p style='color: var(--text-muted);'>No articles found.</p>";
+                } else {
+                    listDiv.innerHTML = html;
+                }
+            } catch(e) {
+                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading list: ${e.message}</p>`;
+            }
+        }
+
+        async function publishPost(isDraft = false) {
+            const title = document.getElementById('postTitle').value.trim();
+            const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const desc = document.getElementById('metaDesc').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const vTitle = document.getElementById('videoTitle').value.trim();
+            const vUrl = document.getElementById('videoUrl').value.trim();
+            const editFilename = document.getElementById('editFilename').value;
+            const editSha = document.getElementById('editSha').value;
+            const msgEl = document.getElementById('actionMsg');
+
+            if(!title || !content) {
+                msgEl.style.color = "var(--danger)";
+                msgEl.innerText = "Please fill in title and content!";
+                return;
+            }
+
+            let videoSchema = '';
+            if(vTitle && vUrl) {
+                videoSchema = `\n<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "${vTitle}",
+  "description": "${desc}",
+  "embedUrl": "${vUrl}",
+  "uploadDate": "${new Date().toISOString()}"
+}
+<\/script>\n`;
+            }
+
+            let cleanSlug = slug.replace(/^draft-/, '');
+            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
+            let finalFilePath = `_posts/${fileNameOnly}`;
+            
+            if(editFilename) {
+                if(isDraft && editFilename.includes('draft-')) {
+                    finalFilePath = editFilename;
+                } else if(!isDraft && !editFilename.includes('draft-')) {
+                    finalFilePath = editFilename;
+                }
+            }
+
+            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
+            const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
+
+            msgEl.style.color = "var(--text-muted)";
+            msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
+
+            try {
+                let bodyData = {
+                    message: isDraft ? `Save draft: ${title}` : `Publish article: ${title}`,
+                    content: encodedContent
+                };
+
+                if(editSha && editFilename === finalFilePath) {
+                    bodyData.sha = editSha;
+                }
+
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${authData.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                if(res.ok) {
+                    if(!isDraft && editFilename && editFilename.includes('draft-')) {
+                        await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `token ${authData.token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ message: `Promoted draft to published article: ${title}`, sha: editSha })
+                        });
+                    }
+
+                    msgEl.style.color = "var(--success)";
+                    msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article successfully published live!";
+                    setTimeout(() => {
+                        document.getElementById('postTitle').value = '';
+                        document.getElementById('postSlug').value = '';
+                        document.getElementById('metaDesc').value = '';
+                        document.getElementById('postContent').value = '';
+                        document.getElementById('videoTitle').value = '';
+                        document.getElementById('videoUrl').value = '';
+                        document.getElementById('editFilename').value = '';
+                        document.getElementById('editSha').value = '';
+                        msgEl.innerText = '';
+                        switchTab('manage');
+                    }, 1200);
+                } else {
+                    const err = await res.json();
+                    throw new Error(err.message || "Operation failed");
+                }
+            } catch(e) {
+                msgEl.style.color = "var(--danger)";
+                msgEl.innerText = "Error: " + e.message;
+            }
+        }
+
+        async function editPost(filename) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+                const data = await res.json();
+                const decoded = decodeURIComponent(escape(atob(data.content)));
+                
+                document.getElementById('editFilename').value = data.path;
+                document.getElementById('editSha').value = data.sha;
+                
+                document.getElementById('postTitle').value = filename.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                document.getElementById('postContent').value = decoded;
+                
+                switchTab('create');
+                updateAllSeoTools();
+            } catch(e) {
+                alert("Could not load file for editing.");
+            }
+        }
+
+        async function deletePost(filename, sha) {
+            if(!confirm(`Are you sure you want to delete ${filename}?`)) return;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `token ${authData.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Delete file: ${filename}`,
+                        sha: sha
+                    })
+                });
+                if(res.ok) {
+                    loadPosts();
+                } else {
+                    throw new Error("Delete failed");
+                }
+            } catch(e) {
+                alert("Error deleting file: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
