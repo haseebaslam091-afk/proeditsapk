@@ -2,9 +2,8 @@ backend:
   name: github
   repo: haseebasam091/proeditsapk
   branch: main
-  client_id: Ov23libR0ZhPUsKrDZPn
-  base_url: https://decap-oauth-provider-node.vercel.app
-  auth_endpoint: /auth
+  auth_type: pkce
+  app_id: Ov23libR0ZhPUsKrDZPn
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
