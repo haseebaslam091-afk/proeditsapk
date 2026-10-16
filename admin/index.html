@@ -52,6 +52,8 @@
 
         .login-box {
             text-align: center;
+            max-width: 450px;
+            margin: 0 auto;
         }
 
         .login-box h1 {
@@ -174,7 +176,6 @@
             display: block;
         }
 
-        /* FULL VISUAL CARDS FOR MAIN TOOLS */
         .full-card {
             background: rgba(240, 246, 255, 0.95);
             color: #1e293b;
@@ -295,7 +296,6 @@
         .score-circle span { font-size: 10px; font-weight: 600; color: #64748b; }
         .score-circle h2 { font-size: 26px; color: #0f172a; font-weight: 800; }
 
-        /* MINI QUICK ACTIONS FOR CONTENT & META GENERATOR */
         .quick-tools-bar {
             display: flex;
             gap: 12px;
@@ -320,7 +320,6 @@
             color: white;
         }
 
-        /* MODAL REPORT BOX */
         .audit-results-modal {
             display: none;
             background: rgba(15, 23, 42, 0.95);
@@ -437,9 +436,9 @@
             </div>
             <div class="input-group">
                 <label>GitHub Personal Access Token</label>
-                <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx">
+                <input type="password" id="token" placeholder="Paste GitHub token">
             </div>
-            <button onclick="handleLogin()">Login to Dashboard</button>
+            <button type="button" onclick="handleLogin()">Login to Dashboard</button>
             <div id="loginMsg" class="msg" style="color: var(--danger);"></div>
         </div>
 
@@ -578,7 +577,7 @@
             const ans = document.getElementById('secAnswer').value.trim();
             const t = document.getElementById('token').value.trim();
 
-            if (ans.toLowerCase() === SECURITY_ANSWER.toLowerCase() && t.startsWith('ghp_')) {
+            if (ans.toLowerCase() === SECURITY_ANSWER.toLowerCase() && t.length > 5) {
                 authData = { token: t };
                 localStorage.setItem('proedits_auth', JSON.stringify(authData));
                 showDashboard();
@@ -643,10 +642,10 @@
                 document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
                 if (focusKw) {
                     if (density >= 1.0 && density <= 3.0) {
-                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at${density}% (Safe 1% to 3% range).</div>`);
+                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Safe 1% to 3% range).</div>`);
                     } else if (density > 3.0) {
                         report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is${density}%. Reduce repetitions to prevent penalties.</div>
+                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Reduce repetitions to prevent penalties.</div>
                             <div style="margin-top:8px;" class="audit-actions-group">
                                 <button class="btn-autofix" onclick="autoFixKeywordDensity('${focusKw}')">Auto Reduce ⚡</button>
                                 <button class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
@@ -654,7 +653,7 @@
                         </div>`);
                     } else {
                         report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is${density}%. Aim for 1% - 3%.</div>
+                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1% - 3%.</div>
                             <div style="margin-top:8px;" class="audit-actions-group">
                                 <button class="btn-autofix" onclick="autoIncreaseDensity('${focusKw}')">Auto Insert ⚡</button>
                             </div>
@@ -736,4 +735,335 @@
                 report.push('<div class="audit-item audit-pass">✓ Article Title length is optimal for Google Search (20-70 chars).</div>');
             } else {
                 report.push(`<div class="audit-item audit-fail">
-                    <div><strong>✗ Title Issue:</strong> Must be 20 to
+                    <div><strong>✗ Title Issue:</strong> Must be 20 to 70 characters (Current: ${title.length}).</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button class="btn-autofix" onclick="autoFix('title')">Auto Fix ⚡</button>
+                        <button class="btn-manualguide" onclick="highlightField('title')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (desc.length >= 50 && desc.length <= 160) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Meta Description is well optimized for snippets.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Meta Description Issue:</strong> Must be 50 to 160 characters (Current: ${desc.length}).</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button class="btn-autofix" onclick="autoFix('meta')">Auto Fix ⚡</button>
+                        <button class="btn-manualguide" onclick="highlightField('meta')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.length > 250) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Good article content length for ranking.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Content Length Issue:</strong> Too short, aim for 250+ words.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button class="btn-autofix" onclick="autoFix('content')">Auto Fix ⚡</button>
+                        <button class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.includes('## ') || content.includes('### ')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Proper Headings (H2 / H3) utilized.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Headings Issue:</strong> Missing H2 or H3 structure.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button class="btn-autofix" onclick="autoFix('heading')">Auto Fix ⚡</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.includes('Download') || content.includes('http')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Download button or valid link included.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Conversion Issue:</strong> Missing APK Download button.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button class="btn-autofix" onclick="autoFix('download')">Auto Fix ⚡</button>
+                    </div>
+                </div>`);
+            }
+
+            score = Math.min(score, 100);
+            document.getElementById('liveSeoScore').innerText = score;
+
+            const circleEl = document.getElementById('scoreCircle');
+            const statusEl = document.getElementById('auditStatus');
+
+            if (score < 60) {
+                circleEl.style.borderColor = "#ef4444";
+                statusEl.innerText = "Needs Attention";
+                statusEl.style.color = "#ef4444";
+            } else if (score < 80) {
+                circleEl.style.borderColor = "#eab308";
+                statusEl.innerText = "Good SEO";
+                statusEl.style.color = "#eab308";
+            } else {
+                circleEl.style.borderColor = "#22c55e";
+                statusEl.innerText = "Fully Optimized";
+                statusEl.style.color = "#16a34a";
+            }
+
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🔍 Technical SEO On-Page Checklist";
+                document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function highlightField(target) {
+            document.getElementById('auditReportBox').style.display = 'none';
+            clearHighlights();
+            if(target === 'title') {
+                const el = document.getElementById('postTitle');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'meta') {
+                const el = document.getElementById('metaDesc');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'content') {
+                const el = document.getElementById('postContent');
+                el.classList.add('highlight-field');
+                el.focus();
+            }
+        }
+
+        function autoFix(type) {
+            if(type === 'title') {
+                const cur = document.getElementById('postTitle').value.trim();
+                document.getElementById('postTitle').value = cur ? `${cur} - Download Latest Version Free 2026` : 'Kinemaster Pro APK Download Latest Version Official';
+            } else if(type === 'meta') {
+                const title = document.getElementById('postTitle').value.trim() || 'this app';
+                document.getElementById('metaDesc').value = `Download ${title} latest version with unlocked premium features, no watermark, fast download links and high performance guide.`;
+            } else if(type === 'content') {
+                document.getElementById('postContent').value += `\n\n## Comprehensive Overview\nThis application offers cutting-edge features designed to provide smooth functionality and enhanced user experience. Users can enjoy ad-free interaction, optimized responsiveness, and continuous updates. Follow our step-by-step instructions to set up the APK safely.\n`;
+            } else if(type === 'heading') {
+                document.getElementById('postContent').value += `\n\n## Key Features & Highlights\n* **High Performance:** Smooth and lag-free UI.\n* **Unlocked Access:** Premium options included.\n`;
+            } else if(type === 'download') {
+                document.getElementById('postContent').value += `\n<div style="text-align:center;margin:25px 0;"><a href="https://proeditsapk.com" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+            }
+            clearHighlights();
+            updateAllSeoTools();
+            runLiveSeoAudit(true);
+        }
+
+        function insertTag(startTag, endTag) {
+            const textarea = document.getElementById('postContent');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end) || "Heading Text";
+            textarea.value = text.substring(0, start) + startTag + selectedText + endTag + text.substring(end);
+            updateAllSeoTools();
+        }
+
+        function insertGuideBox() {
+            const guideHtml = `\n### Step-by-Step Guide:\n1. **Step 1:** Download application.\n2. **Step 2:** Enable unknown sources.\n3. **Step 3:** Install and enjoy.\n`;
+            document.getElementById('postContent').value += guideHtml;
+            updateAllSeoTools();
+        }
+
+        function insertReviewBox() {
+            const reviewHtml = `\n### App Review Summary:\n* **Performance:** 4.8/5\n* **Pros:** No Ads, Premium Unlocked\n`;
+            document.getElementById('postContent').value += reviewHtml;
+            updateAllSeoTools();
+        }
+
+        function insertVideoEmbed() {
+            const url = prompt("Enter YouTube / Video Link:");
+            if(!url) return;
+            let embedUrl = url;
+            if(url.includes("youtube.com/watch?v=")) {
+                const videoId = url.split("v=")[1].split("&")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            } else if(url.includes("youtu.be/")) {
+                const videoId = url.split("youtu.be/")[1].split("?")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            }
+            const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
+            document.getElementById('postContent').value += videoHtml;
+            updateAllSeoTools();
+        }
+
+        function insertDownloadBtn() {
+            const url = prompt("Enter Direct Download APK Link:");
+            if(!url) return;
+            const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+            document.getElementById('postContent').value += btnHtml;
+            updateAllSeoTools();
+        }
+
+        async function loadPosts() {
+            const listDiv = document.getElementById('postsList');
+            listDiv.innerHTML = "Fetching articles...";
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+                if(!res.ok) throw new Error("Could not fetch posts");
+                const files = await res.json();
+                
+                if(files.length === 0) {
+                    listDiv.innerHTML = "<p style='color: var(--text-muted);'>No articles found.</p>";
+                    return;
+                }
+
+                let html = '';
+                for(let file of files) {
+                    if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                        html += `
+                            <div class="post-card">
+                                <div class="post-info">
+                                    <h4>${file.name}</h4>
+                                    <span>Path: ${file.path}</span>
+                                </div>
+                                <div class="post-actions">
+                                    <button class="btn-sm" onclick="editPost('${file.name}')">Edit</button>
+                                    <button class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}')">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                listDiv.innerHTML = html;
+            } catch(e) {
+                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading posts: ${e.message}</p>`;
+            }
+        }
+
+        async function publishPost() {
+            const title = document.getElementById('postTitle').value.trim();
+            const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const desc = document.getElementById('metaDesc').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+            const vTitle = document.getElementById('videoTitle').value.trim();
+            const vUrl = document.getElementById('videoUrl').value.trim();
+            const editFilename = document.getElementById('editFilename').value;
+            const editSha = document.getElementById('editSha').value;
+            const msgEl = document.getElementById('actionMsg');
+
+            if(!title || !content) {
+                msgEl.style.color = "var(--danger)";
+                msgEl.innerText = "Please fill in title and content!";
+                return;
+            }
+
+            let videoSchema = '';
+            if(vTitle && vUrl) {
+                videoSchema = `\n<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "${vTitle}",
+  "description": "${desc}",
+  "embedUrl": "${vUrl}",
+  "uploadDate": "${new Date().toISOString()}"
+}
+<\/script>\n`;
+            }
+
+            const filename = editFilename ? editFilename : `_posts/${new Date().toISOString().split('T')[0]}-${slug}.md`;
+            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
+            const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
+
+            msgEl.style.color = "var(--text-muted)";
+            msgEl.innerText = "Publishing to GitHub...";
+
+            try {
+                let bodyData = {
+                    message: editFilename ? `Update article: ${title}` : `Create article: ${title}`,
+                    content: encodedContent
+                };
+                if(editSha) bodyData.sha = editSha;
+
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${authData.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                if(res.ok) {
+                    msgEl.style.color = "var(--success)";
+                    msgEl.innerText = "Article successfully published!";
+                    setTimeout(() => {
+                        document.getElementById('postTitle').value = '';
+                        document.getElementById('postSlug').value = '';
+                        document.getElementById('metaDesc').value = '';
+                        document.getElementById('postContent').value = '';
+                        document.getElementById('videoTitle').value = '';
+                        document.getElementById('videoUrl').value = '';
+                        document.getElementById('editFilename').value = '';
+                        document.getElementById('editSha').value = '';
+                        msgEl.innerText = '';
+                        switchTab('manage');
+                    }, 1200);
+                } else {
+                    const err = await res.json();
+                    throw new Error(err.message || "Publish failed");
+                }
+            } catch(e) {
+                msgEl.style.color = "var(--danger)";
+                msgEl.innerText = "Error: " + e.message;
+            }
+        }
+
+        async function editPost(filename) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+                const data = await res.json();
+                const decoded = decodeURIComponent(escape(atob(data.content)));
+                
+                document.getElementById('editFilename').value = data.path;
+                document.getElementById('editSha').value = data.sha;
+                
+                document.getElementById('postTitle').value = filename.replace('.md','');
+                document.getElementById('postContent').value = decoded;
+                
+                switchTab('create');
+                updateAllSeoTools();
+            } catch(e) {
+                alert("Could not load post for editing.");
+            }
+        }
+
+        async function deletePost(filename, sha) {
+            if(!confirm(`Are you sure you want to delete ${filename}?`)) return;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `token ${authData.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Delete article: ${filename}`,
+                        sha: sha
+                    })
+                });
+                if(res.ok) {
+                    loadPosts();
+                } else {
+                    throw new Error("Delete failed");
+                }
+            } catch(e) {
+                alert("Error deleting post: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
