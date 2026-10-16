@@ -3,30 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Direct Admin Panel</title>
+    <title>ProEditsAPK - Admin Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; padding: 20px; margin: 0; }
-        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        input, textarea { width: 100%; padding: 10px; margin: 10px 0; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; box-sizing: border-box; }
-        button { background: #3b82f6; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; }
-        button:hover { background: #2563eb; }
-        .status { margin-top: 15px; font-weight: bold; text-align: center; }
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.1);
+            transform: perspective(1000px) rotateX(2deg);
+            transition: all 0.4s ease;
+            padding: 30px;
+        }
+        .container:hover {
+            transform: perspective(1000px) rotateX(0deg) translateY(-3px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(59, 130, 246, 0.2);
+        }
+
+        h2 { font-size: 26px; margin-bottom: 8px; font-weight: 700; background: linear-gradient(to right, #60a5fa, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p.subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
+
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .status { margin-top: 15px; font-weight: 600; text-align: center; font-size: 14px; }
+        .logout-btn { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); margin-top: 15px; box-shadow: none; }
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.4); color: #fff; box-shadow: none; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Simple GitHub Admin Panel</h2>
-        <div id="auth-section">
-            <p>Apna GitHub Personal Access Token enter karein:</p>
-            <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx">
-            <button onclick="saveToken()">Save Token</button>
+    <div class="container" id="app">
+        <!-- Login Section -->
+        <div id="login-section">
+            <h2>WordPress Style Login</h2>
+            <p class="subtitle">Apna admin credentials aur GitHub token darj karein</p>
+            <div class="form-group">
+                <label>Admin Username</label>
+                <input type="text" id="username" placeholder="e.g. admin">
+            </div>
+            <div class="form-group">
+                <label>Admin Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>GitHub Personal Access Token</label>
+                <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx">
+            </div>
+            <button onclick="handleLogin()">Login to Dashboard</button>
+            <div class="status" id="login-status"></div>
         </div>
-        <div id="cms-section" style="display:none;">
-            <p>New Post Create Karein:</p>
-            <input type="text" id="title" placeholder="Post Title">
-            <textarea id="content" rows="6" placeholder="Markdown Content..."></textarea>
-            <button onclick="publishPost()">Publish to GitHub</button>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="hidden">
+            <h2>ProEditsAPK CMS</h2>
+            <p class="subtitle">Nayi APK Post publish karein</p>
+            <div class="form-group">
+                <label>Post Title</label>
+                <input type="text" id="title" placeholder="App Name & Version">
+            </div>
+            <div class="form-group">
+                <label>Markdown Content</label>
+                <textarea id="content" rows="6" placeholder="Write post details here..."></textarea>
+            </div>
+            <button onclick="publishPost()">Publish Post</button>
             <div class="status" id="status"></div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
     </div>
 
@@ -34,19 +136,42 @@
         const repo = "haseebasam091/proeditsapk";
         const branch = "main";
 
-        function saveToken() {
-            const token = document.getElementById('token').value.trim();
-            if(token) {
-                localStorage.setItem('gh_token', token);
-                checkAuth();
+        function checkAuth() {
+            const savedToken = localStorage.getItem('gh_token');
+            const savedUser = localStorage.getItem('admin_user');
+            if(savedToken && savedUser) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
             }
         }
 
-        function checkAuth() {
-            if(localStorage.getItem('gh_token')) {
-                document.getElementById('auth-section').style.display = 'none';
-                document.getElementById('cms-section').style.display = 'block';
+        function handleLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const token = document.getElementById('token').value.trim();
+            const status = document.getElementById('login-status');
+
+            if(!user || !pass || !token) {
+                status.style.color = '#ef4444';
+                status.innerText = "Tamam fields lazmi hain!";
+                return;
             }
+
+            // Aap yahan apni marzi ka username/password set kar sakte hain (e.g. admin / admin123)
+            if(user === "admin" && pass === "admin123") {
+                localStorage.setItem('gh_token', token);
+                localStorage.setItem('admin_user', user);
+                checkAuth();
+            } else {
+                status.style.color = '#ef4444';
+                status.innerText = "Ghalat username ya password!";
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('gh_token');
+            localStorage.removeItem('admin_user');
+            location.reload();
         }
 
         async function publishPost() {
@@ -62,7 +187,7 @@
             }
 
             status.style.color = '#38bdf8';
-            status.innerText = "Publishing...";
+            status.innerText = "Publishing to GitHub...";
 
             const filename = `_posts/${Date.now()}-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}.md`;
             const fileContent = `---\ntitle: "${title}"\ndate: "${new Date().toISOString()}"\n---\n\n${content}`;
@@ -84,7 +209,7 @@
 
                 if(response.ok) {
                     status.style.color = '#22c55e';
-                    status.innerText = "Kamyabi se publish ho gaya!";
+                    status.innerText = "Post kamyabi se publish ho gayi!";
                     document.getElementById('title').value = '';
                     document.getElementById('content').value = '';
                 } else {
