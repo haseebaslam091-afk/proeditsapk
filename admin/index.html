@@ -204,51 +204,23 @@
             gap: 20px;
         }
 
-        .card-info {
-            flex: 1;
-            min-width: 250px;
-        }
+        .card-info { flex: 1; min-width: 250px; }
 
         .badge-popular {
-            display: inline-flex;
-            align-items: center;
-            background: #ffedd5;
-            color: #c2410c;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            display: inline-flex; align-items: center; background: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
         }
 
         .badge-trending {
-            display: inline-flex;
-            align-items: center;
-            background: #d1fae5;
-            color: #047857;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            display: inline-flex; align-items: center; background: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
         }
 
         .card-info h3 { font-size: 22px; color: #0f172a; margin-bottom: 8px; }
         .card-info p { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
 
-        .btn-audit {
-            background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
+        .btn-audit { background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .btn-density { background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
 
-        .btn-density {
-            background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-        }
-
-        .score-box {
-            background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); min-width: 160px;
-        }
+        .score-box { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); min-width: 160px; }
 
         .score-circle {
             width: 90px; height: 90px; border-radius: 50%; border: 8px solid #ef4444; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0 auto 10px auto;
@@ -275,12 +247,8 @@
         .btn-manualguide { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; width: auto; }
         .highlight-field { border: 2px solid #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4) !important; }
 
-        .action-buttons-group {
-            display: flex; gap: 10px; margin-top: 15px;
-        }
-        .btn-draft {
-            background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fde047; flex: 1;
-        }
+        .action-buttons-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-draft { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fde047; flex: 1; }
         .btn-draft:hover { background: rgba(234, 179, 8, 0.4); }
 
         .toolbar {
@@ -454,10 +422,9 @@
                 showDashboard();
             }
 
-            // Event Listeners for safe execution
             document.getElementById('loginBtn').addEventListener('click', handleLogin);
             document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-            
+
             document.getElementById('tabCreateBtn').addEventListener('click', () => switchTab('create'));
             document.getElementById('tabManageBtn').addEventListener('click', () => switchTab('manage'));
 
@@ -494,7 +461,6 @@
                 localStorage.setItem('proedits_auth', JSON.stringify(authData));
                 showDashboard();
             } else {
-                document.getElementById('loginMsginnerText', "Ghalat jawab ya token! Dobara koshish karein.");
                 document.getElementById('loginMsg').innerText = "Ghalat jawab ya token! Dobara koshish karein.";
             }
         }
@@ -821,6 +787,8 @@
             listDiv.innerHTML = "Fetching articles...";
             try {
                 let html = '';
+
+                // Fetch Posts
                 const resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
@@ -837,8 +805,33 @@
                                         <span>Path: ${file.path}</span>
                                     </div>
                                     <div class="post-actions">
-                                        <button type="button" class="btn-sm" onclick="editPost('${file.name}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
-                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}')">Delete</button>
+                                        <button type="button" class="btn-sm" onclick="editPost('_posts/${file.name}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
+                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('_posts/${file.name}', '${file.sha}')">Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                // Fetch Drafts
+                const resDrafts = await fetch(`https://api.github.com/repos/${REPO}/contents/drafts`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+
+                if(resDrafts.ok) {
+                    const drafts = await resDrafts.json();
+                    for(let file of drafts) {
+                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                            html += `
+                                <div class="post-card" style="border-color: rgba(234, 179, 8, 0.4);">
+                                    <div class="post-info">
+                                        <h4>${file.name} <span class="badge-draft">Draft</span></h4>
+                                        <span>Path: ${file.path}</span>
+                                    </div>
+                                    <div class="post-actions">
+                                        <button type="button" class="btn-sm" onclick="editPost('drafts/${file.name}')">Review & Publish</button>
+                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('drafts/${file.name}', '${file.sha}')">Delete</button>
                                     </div>
                                 </div>
                             `;
@@ -888,16 +881,9 @@
             }
 
             let cleanSlug = slug.replace(/^draft-/, '');
+            let targetFolder = isDraft ? "drafts" : "_posts";
             let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
-            let finalFilePath = `_posts/${fileNameOnly}`;
-            
-            if(editFilename) {
-                if(isDraft && editFilename.includes('draft-')) {
-                    finalFilePath = editFilename;
-                } else if(!isDraft && !editFilename.includes('draft-')) {
-                    finalFilePath = editFilename;
-                }
-            }
+            let finalFilePath = `${targetFolder}/${fileNameOnly}`;
 
             const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
@@ -906,15 +892,30 @@
             msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
 
             try {
+                // 1. Fetch SHA if file exists to overwrite cleanly
+                let existingSha = null;
+                try {
+                    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+                        headers: { 'Authorization': `token ${authData.token}` }
+                    });
+                    if(checkRes.ok) {
+                        const checkData = await checkRes.json();
+                        existingSha = checkData.sha;
+                    }
+                } catch(err) {}
+
                 let bodyData = {
                     message: isDraft ? `Save draft: ${title}` : `Publish article: ${title}`,
                     content: encodedContent
                 };
 
-                if(editSha && editFilename === finalFilePath) {
+                if(existingSha) {
+                    bodyData.sha = existingSha;
+                } else if(editSha && editFilename === finalFilePath) {
                     bodyData.sha = editSha;
                 }
 
+                // 2. Put / Commit File
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
                     method: 'PUT',
                     headers: {
@@ -925,17 +926,6 @@
                 });
 
                 if(res.ok) {
-                    if(!isDraft && editFilename && editFilename.includes('draft-')) {
-                        await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `token ${authData.token}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ message: `Promoted draft to published article: ${title}`, sha: editSha })
-                        });
-                    }
-
                     msgEl.style.color = "var(--success)";
                     msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article successfully published live!";
                     setTimeout(() => {
@@ -960,9 +950,9 @@
             }
         }
 
-        async function editPost(filename) {
+        async function editPost(filePath) {
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
                 const data = await res.json();
@@ -971,7 +961,8 @@
                 document.getElementById('editFilename').value = data.path;
                 document.getElementById('editSha').value = data.sha;
                 
-                document.getElementById('postTitle').value = filename.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                const filenameOnly = filePath.split('/').pop();
+                document.getElementById('postTitle').value = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
                 document.getElementById('postContent').value = decoded;
                 
                 switchTab('create');
@@ -981,17 +972,17 @@
             }
         }
 
-        async function deletePost(filename, sha) {
-            if(!confirm(`Are you sure you want to delete ${filename}?`)) return;
+        async function deletePost(filePath, sha) {
+            if(!confirm(`Are you sure you want to delete ${filePath}?`)) return;
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts/${filename.replace('_posts/', '')}`, {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `token ${authData.token}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: `Delete file: ${filename}`,
+                        message: `Delete file: ${filePath}`,
                         sha: sha
                     })
                 });
