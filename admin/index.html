@@ -38,7 +38,7 @@
 
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 950px;
             background: var(--glass-bg);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -218,9 +218,9 @@
 
         .toolbar {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 10px;
-            background: rgba(15, 23, 42, 0.4);
+            background: rgba(15, 23, 42, 0.5);
             padding: 10px;
             border-radius: 12px;
             border: 1px solid var(--glass-border);
@@ -231,14 +231,15 @@
         .btn-tool {
             width: auto;
             padding: 6px 12px;
-            font-size: 13px;
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid rgba(99, 102, 241, 0.4);
+            font-size: 12px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
             color: #c7d2fe;
+            border-radius: 8px;
         }
 
         .btn-tool:hover {
-            background: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.35);
         }
 
         .msg {
@@ -275,7 +276,7 @@
             </div>
 
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('create')">New Article / APK</button>
+                <button class="tab-btn active" onclick="switchTab('create')">New Article / Review / Guide</button>
                 <button class="tab-btn" onclick="switchTab('manage')">Manage Articles</button>
             </div>
 
@@ -284,29 +285,45 @@
                 <input type="hidden" id="editSha" value="">
                 <input type="hidden" id="editFilename" value="">
                 
-                <div class="input-group">
-                    <label>Post Title & Version (SEO Title)</label>
-                    <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro APK v6.5 Latest">
+                <div style="display: flex; gap: 15px;">
+                    <div class="input-group" style="flex: 2;">
+                        <label>Article Title (SEO Title)</label>
+                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review / How to Edit Videos">
+                    </div>
+                    <div class="input-group" style="flex: 1;">
+                        <label>Article Type</label>
+                        <select id="articleType">
+                            <option value="review">App Review</option>
+                            <option value="guide">How-To Guide / Tutorial</option>
+                            <option value="info">Informational / News</option>
+                            <option value="learning">Educational / Tips</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div class="input-group">
                     <label>URL Slug</label>
-                    <input type="text" id="postSlug" placeholder="e.g. kinemaster-pro-apk">
+                    <input type="text" id="postSlug" placeholder="e.g. kinemaster-pro-review-guide">
                 </div>
                 <div class="input-group">
                     <label>SEO Meta Description</label>
-                    <input type="text" id="metaDesc" placeholder="Short description for Google search results">
+                    <input type="text" id="metaDesc" placeholder="Short summary for Google search snippet">
                 </div>
                 <div class="input-group">
-                    <label>Article Content & Downloads</label>
+                    <label>Article Content & Formatting</label>
                     
-                    <!-- TOOLBAR FOR VIDEO & MEDIA -->
+                    <!-- TOOLBAR FOR REVIEWS, GUIDES & MEDIA -->
                     <div class="toolbar">
-                        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">SEO Tools:</span>
-                        <button type="button" class="btn-tool" onclick="insertVideoEmbed()">+ Add HD SEO Video</button>
-                        <button type="button" class="btn-tool" onclick="insertDownloadBtn()">+ Add APK Download Button</button>
+                        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Fast Formats:</span>
+                        <button type="button" class="btn-tool" onclick="insertTag('## ', '')">H2 Heading</button>
+                        <button type="button" class="btn-tool" onclick="insertTag('### ', '')">H3 Heading</button>
+                        <button type="button" class="btn-tool" onclick="insertGuideBox()">+ Add Guide Steps</button>
+                        <button type="button" class="btn-tool" onclick="insertReviewBox()">+ Add Pros/Cons Box</button>
+                        <button type="button" class="btn-tool" onclick="insertVideoEmbed()">+ Add Video Tutorial</button>
+                        <button type="button" class="btn-tool" onclick="insertDownloadBtn()">+ Add Download Button</button>
                     </div>
 
-                    <textarea id="postContent" rows="12" placeholder="Write detailed review, features, and insert HD Videos or Download Buttons using the toolbar above..."></textarea>
+                    <textarea id="postContent" rows="14" placeholder="Write your Review, Guide, or Educational Article here..."></textarea>
                 </div>
 
                 <!-- VIDEO SEO METADATA (OPTIONAL) -->
@@ -377,6 +394,25 @@
             }
         }
 
+        function insertTag(startTag, endTag) {
+            const textarea = document.getElementById('postContent');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end) || "Heading Text";
+            textarea.value = text.substring(0, start) + startTag + selectedText + endTag + text.substring(end);
+        }
+
+        function insertGuideBox() {
+            const guideHtml = `\n### Step-by-Step Guide:\n1. **Step 1:** Download the application file from the link below.\n2. **Step 2:** Enable 'Unknown Sources' in device security settings.\n3. **Step 3:** Install and open to enjoy full features.\n`;
+            document.getElementById('postContent').value += guideHtml;
+        }
+
+        function insertReviewBox() {
+            const reviewHtml = `\n### App Review & Rating Summary:\n* **Performance:** 4.8/5\n* **User Interface:** Easy & Intuitive\n* **Pros:** No Ads, Unlock Premium Features\n* **Cons:** Requires Android 8.0 or higher\n`;
+            document.getElementById('postContent').value += reviewHtml;
+        }
+
         function insertVideoEmbed() {
             const url = prompt("Enter YouTube / Video Link (e.g. https://www.youtube.com/watch?v=XYZ123):");
             if(!url) return;
@@ -390,18 +426,14 @@
             }
 
             const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;box-shadow:0 10px 25px rgba(0,0,0,0.5);"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
-            
-            const textarea = document.getElementById('postContent');
-            textarea.value += videoHtml;
+            document.getElementById('postContent').value += videoHtml;
         }
 
         function insertDownloadBtn() {
             const url = prompt("Enter Direct Download APK Link:");
             if(!url) return;
             const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);transition:transform 0.2s;">⚡ Download APK (Latest Version)</a></div>\n`;
-            
-            const textarea = document.getElementById('postContent');
-            textarea.value += btnHtml;
+            document.getElementById('postContent').value += btnHtml;
         }
 
         async function loadPosts() {
@@ -444,6 +476,7 @@
 
         async function publishPost() {
             const title = document.getElementById('postTitle').value.trim();
+            const category = document.getElementById('articleType').value;
             const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
             const desc = document.getElementById('metaDesc').value.trim();
             const content = document.getElementById('postContent').value.trim();
@@ -474,7 +507,7 @@
             }
 
             const filename = editFilename ? editFilename : `_posts/${new Date().toISOString().split('T')[0]}-${slug}.md`;
-            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
+            const fileContent = `---\ntitle: "${title}"\ncategory: "${category}"\ndescription: "${desc}"\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
 
             msgEl.style.color = "var(--text-muted)";
@@ -498,7 +531,7 @@
 
                 if(res.ok) {
                     msgEl.style.color = "var(--success)";
-                    msgEl.innerText = "Article & Video SEO successfully published!";
+                    msgEl.innerText = "Article successfully published!";
                     setTimeout(() => {
                         document.getElementById('postTitle').value = '';
                         document.getElementById('postSlug').value = '';
