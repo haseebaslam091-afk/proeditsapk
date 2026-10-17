@@ -3,10 +3,6 @@ async function publishPost(isDraft = false) {
     const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const desc = document.getElementById('metaDesc').value.trim();
     const content = document.getElementById('postContent').value.trim();
-    const vTitle = document.getElementById('videoTitle').value.trim();
-    const vUrl = document.getElementById('videoUrl').value.trim();
-    const editFilename = document.getElementById('editFilename').value;
-    const editSha = document.getElementById('editSha').value;
     const msgEl = document.getElementById('actionMsg');
 
     if(!title || !content) {
@@ -15,103 +11,49 @@ async function publishPost(isDraft = false) {
         return;
     }
 
-    let videoSchema = '';
-    if(vTitle && vUrl) {
-        videoSchema = `\n<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "VideoObject",
-  "name": "${vTitle}",
-  "description": "${desc}",
-  "embedUrl": "${vUrl}",
-  "uploadDate": "${new Date().toISOString()}"
-}
-<\/script>\n`;
-    }
-
-    let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '');
-    // Direct root ya simple naming rakhte hain taake 404 ka chance hi na rahe
-    let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
-    let finalFilePath = fileNameOnly; // Seedha root mein save karenge taake folder 404 khatam ho
-
-    const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
-    const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
+    let fileNameOnly = isDraft ? `draft-${slug}.md` : `${new Date().toISOString().split('T')[0]}-${slug}.md`;
+    let fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\n---\n\n${content}`;
+    let encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
 
     msgEl.style.color = "var(--text-muted)";
-    msgEl.innerText = "Saving directly to GitHub...";
+    msgEl.innerText = "Saving to GitHub...";
 
     try {
-        let existingSha = null;
-        try {
-            const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
-                headers: { 
-                    'Authorization': `Bearer ${authData.token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-            if(checkRes.ok) {
-                const checkData = await checkRes.json();
-                existingSha = checkData.sha;
-            }
-        } catch(err) {}
-
-        let bodyData = {
-            message: isDraft ? `Save draft: ${title}` : `Publish article: ${title}`,
-            content: encodedContent
-        };
-
-        if(existingSha) {
-            bodyData.sha = existingSha;
-        } else if(editSha && editFilename === finalFilePath) {
-            bodyData.sha = editSha;
+        let checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileNameOnly}`, {
+            headers: { 'Authorization': `Bearer ${authData.token}` }
+        });
+        
+        let sha = null;
+        if(checkRes.ok) {
+            let fileData = await checkRes.json();
+            sha = fileData.sha;
         }
 
-        let res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+        let bodyData = {
+            message: `CMS Update: ${title}`,
+            content: encodedContent
+        };
+        if(sha) bodyData.sha = sha;
+
+        let res = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileNameOnly}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${authData.token}`,
-                'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(bodyData)
         });
 
         if(res.ok) {
-            if(!isDraft && editFilename && editFilename.includes('draft-')) {
-                try {
-                    await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${authData.token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ message: `Remove draft after publishing`, sha: editSha })
-                    });
-                } catch(e) {}
-            }
-
             msgEl.style.color = "var(--success)";
-            msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article successfully published live!";
-            setTimeout(() => {
-                document.getElementById('postTitle').value = '';
-                document.getElementById('postSlug').value = '';
-                document.getElementById('metaDesc').value = '';
-                document.getElementById('postContent').value = '';
-                document.getElementById('videoTitle').value = '';
-                document.getElementById('videoUrl').value = '';
-                document.getElementById('editFilename').value = '';
-                document.getElementById('editSha').value = '';
-                msgEl.innerText = '';
-                switchTab('manage');
-            }, 1200);
+            msgEl.innerText = "Successfully saved!";
+            setTimeout(() => { location.reload(); }, 1200);
         } else {
-            const errJson = await res.json();
-            throw new Error(`GitHub Status ${res.status}: ${errJson.message || JSON.stringify(errJson)}`);
+            let err = await res.json();
+            throw new Error(err.message || "Failed");
         }
     } catch(e) {
         msgEl.style.color = "var(--danger)";
-        msgEl.innerText = "Error: " + e.message;
-        alert("Error details: " + e.message);
+        alert("Error: " + e.message);
     }
 }
