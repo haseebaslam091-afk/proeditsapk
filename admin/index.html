@@ -55,7 +55,7 @@
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text-muted); }
 
-        input, textarea {
+        input, textarea, select {
             width: 100%; padding: 14px 18px;
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--glass-border);
@@ -91,9 +91,55 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        .full-card {
+            background: rgba(240, 246, 255, 0.95); color: #1e293b; border-radius: 20px; padding: 24px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+        }
+        .density-full-card {
+            background: rgba(236, 253, 245, 0.95); color: #064e3b; border-radius: 20px; padding: 24px; margin-bottom: 25px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+        }
+        .card-info { flex: 1; min-width: 250px; }
+        .badge-popular { display: inline-flex; background: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .badge-trending { display: inline-flex; background: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .card-info h3 { font-size: 22px; color: #0f172a; margin-bottom: 8px; }
+        .card-info p { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
+
+        .btn-audit { background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
+        .btn-density { background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
+
+        .score-box { background: white; border-radius: 16px; padding: 20px; text-align: center; min-width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .score-circle {
+            width: 90px; height: 90px; border-radius: 50%; border: 8px solid #ef4444; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0 auto 10px auto;
+        }
+        .score-circle span { font-size: 10px; font-weight: 600; color: #64748b; }
+        .score-circle h2 { font-size: 26px; color: #0f172a; font-weight: 800; }
+
+        .quick-tools-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+        .btn-quick-tool {
+            flex: 1; padding: 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); color: #c7d2fe; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .btn-quick-tool:hover { background: var(--primary); color: white; }
+
+        .audit-results-modal {
+            display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; margin-bottom: 25px;
+        }
+        .audit-item { font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
+        .audit-pass { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-left-color: #22c55e; }
+        .audit-fail { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-left-color: #ef4444; }
+
+        .btn-autofix { background: #22c55e; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .highlight-field { border: 2px solid #ef4444 !important; }
+
+        .toolbar { display: flex; gap: 8px; margin-bottom: 10px; background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); flex-wrap: wrap; align-items: center; }
+        .btn-tool { width: auto; padding: 6px 12px; font-size: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe; border-radius: 8px; }
+
         .action-buttons-group { display: flex; gap: 10px; margin-top: 15px; }
         .btn-draft { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fde047; flex: 1; }
         .msg { margin-top: 15px; font-size: 14px; text-align: center; }
+        .post-card { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 14px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; width: auto; border-radius: 8px; }
+        .btn-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
     </style>
 </head>
 <body>
@@ -123,29 +169,96 @@
             </div>
 
             <div class="tabs">
-                <button type="button" class="tab-btn active" id="tabCreateBtn">New Article</button>
+                <button type="button" class="tab-btn active" id="tabCreateBtn">New Article / SEO Audit</button>
                 <button type="button" class="tab-btn" id="tabManageBtn">Manage Articles</button>
             </div>
 
-            <!-- CREATE TAB -->
+            <!-- CREATE / EDIT POST TAB -->
             <div id="createTab" class="tab-content active">
-                <div class="input-group">
-                    <label>Article Title</label>
-                    <input type="text" id="postTitle" placeholder="Enter article title">
-                </div>
-                <div class="input-group">
-                    <label>URL Slug</label>
-                    <input type="text" id="postSlug" placeholder="enter-article-slug">
-                </div>
-                <div class="input-group">
-                    <label>Meta Description</label>
-                    <input type="text" id="metaDesc" placeholder="Short description">
-                </div>
-                <div class="input-group">
-                    <label>Article Content</label>
-                    <textarea id="postContent" rows="10" placeholder="Write content here..."></textarea>
+                
+                <!-- SEO AUDIT TOOL -->
+                <div class="full-card">
+                    <div class="card-info">
+                        <span class="badge-popular">🔥 MOST POPULAR</span>
+                        <h3>SEO Audit Tool</h3>
+                        <p>Analyze your website's & article's SEO issues and discover opportunities for higher rankings.</p>
+                        <button type="button" class="btn-audit" id="auditBtn">Run SEO Audit →</button>
+                    </div>
+                    <div class="score-box">
+                        <div class="score-circle" id="scoreCircle">
+                            <span>SEO Score</span>
+                            <h2 id="liveSeoScore">30</h2>
+                        </div>
+                        <span id="auditStatus" style="font-size: 11px; font-weight: 700; color: #ef4444;">Needs Attention</span>
+                    </div>
                 </div>
 
+                <!-- KEYWORD DENSITY CHECKER -->
+                <div class="density-full-card">
+                    <div class="card-info">
+                        <span class="badge-trending">📈 TRENDING TOOL</span>
+                        <h3 style="color: #064e3b;">Keyword Density Checker</h3>
+                        <p style="color: #047857;">Check keyword usage in your content and avoid over-optimization (Target: 1% - 3%).</p>
+                        <button type="button" class="btn-density" id="densityBtn">Open Tool →</button>
+                    </div>
+                    <div class="score-box" style="min-width: 200px;">
+                        <h4 style="font-size: 13px; color: #0f172a; margin-bottom: 8px;">Target Keyword Density</h4>
+                        <div style="font-size: 24px; font-weight: 800; color: #2563eb;" id="densityPercent">0%</div>
+                        <span style="font-size: 11px; color: #64748b;">(Pro Tip: Keep 1% - 3%)</span>
+                    </div>
+                </div>
+
+                <!-- QUICK TOOLS BAR -->
+                <div class="quick-tools-bar">
+                    <button type="button" class="btn-quick-tool" id="contentAnalyzerBtn">📊 Content & Readability Analyzer</button>
+                    <button type="button" class="btn-quick-tool" id="metaGeneratorBtn">🏷️ Meta Title & Description Generator</button>
+                </div>
+
+                <!-- REPORT MODAL -->
+                <div class="audit-results-modal" id="auditReportBox">
+                    <h4 style="font-size: 15px; color: #c084fc; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                        <span id="reportModalTitle">🔍 Detailed SEO Analysis Report</span>
+                        <button type="button" style="width:auto; padding:4px 10px; font-size:11px;" id="closeModalBtn">Close</button>
+                    </h4>
+                    <div id="auditReportList"></div>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <div class="input-group" style="flex: 2;">
+                        <label>Article Title (SEO Title)</label>
+                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review">
+                    </div>
+                    <div class="input-group" style="flex: 1;">
+                        <label>Focus Target Keyword</label>
+                        <input type="text" id="targetKeyword" placeholder="e.g. Kinemaster Pro">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>URL Slug</label>
+                    <input type="text" id="postSlug" placeholder="e.g. kinemaster-pro-review">
+                </div>
+                <div class="input-group">
+                    <label>SEO Meta Description</label>
+                    <input type="text" id="metaDesc" placeholder="Short summary for Google search snippet">
+                </div>
+                <div class="input-group">
+                    <label>Article Content & Formatting</label>
+                    
+                    <div class="toolbar">
+                        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Fast Formats:</span>
+                        <button type="button" class="btn-tool" id="fmtH2Btn">H2 Heading</button>
+                        <button type="button" class="btn-tool" id="fmtH3Btn">H3 Heading</button>
+                        <button type="button" class="btn-tool" id="fmtGuideBtn">+ Add Guide Steps</button>
+                        <button type="button" class="btn-tool" id="fmtReviewBtn">+ Add Pros/Cons Box</button>
+                        <button type="button" class="btn-tool" id="fmtVideoBtn">+ Add Video Tutorial</button>
+                        <button type="button" class="btn-tool" id="fmtDownloadBtn">+ Add Download Button</button>
+                    </div>
+
+                    <textarea id="postContent" rows="12" placeholder="Write your Review or Guide here..."></textarea>
+                </div>
+
+                <!-- ACTION BUTTONS -->
                 <div class="action-buttons-group">
                     <button type="button" class="btn-draft" id="saveDraftBtn">💾 Save as Draft</button>
                     <button type="button" id="publishLiveBtn">⚡ Publish Live Article</button>
@@ -155,8 +268,8 @@
 
             <!-- MANAGE TAB -->
             <div id="manageTab" class="tab-content">
-                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">All Files in Repository</h3>
-                <div id="postsList">Loading files...</div>
+                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Manage Articles & Drafts</h3>
+                <div id="postsList">Loading articles...</div>
             </div>
         </div>
     </div>
@@ -174,6 +287,26 @@
             document.getElementById('logoutBtn').addEventListener('click', handleLogout);
             document.getElementById('tabCreateBtn').addEventListener('click', () => switchTab('create'));
             document.getElementById('tabManageBtn').addEventListener('click', () => switchTab('manage'));
+
+            document.getElementById('auditBtn').addEventListener('click', () => runLiveSeoAudit(true));
+            document.getElementById('densityBtn').addEventListener('click', () => runKeywordDensityCheck(true));
+            document.getElementById('contentAnalyzerBtn').addEventListener('click', () => runContentAnalyzer(true));
+            document.getElementById('metaGeneratorBtn').addEventListener('click', () => generateMetaTags(true));
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                document.getElementById('auditReportBox').style.display = 'none';
+            });
+
+            document.getElementById('postTitle').addEventListener('input', () => { updateAllSeoTools(); });
+            document.getElementById('targetKeyword').addEventListener('input', () => { updateAllSeoTools(); });
+            document.getElementById('metaDesc').addEventListener('input', () => { updateAllSeoTools(); });
+            document.getElementById('postContent').addEventListener('input', () => { updateAllSeoTools(); });
+
+            document.getElementById('fmtH2Btn').addEventListener('click', () => insertTag('## ', ''));
+            document.getElementById('fmtH3Btn').addEventListener('click', () => insertTag('### ', ''));
+            document.getElementById('fmtGuideBtn').addEventListener('click', insertGuideBox);
+            document.getElementById('fmtReviewBtn').addEventListener('click', insertReviewBox);
+            document.getElementById('fmtVideoBtn').addEventListener('click', insertVideoEmbed);
+            document.getElementById('fmtDownloadBtn').addEventListener('click', insertDownloadBtn);
 
             document.getElementById('saveDraftBtn').addEventListener('click', () => publishPost(true));
             document.getElementById('publishLiveBtn').addEventListener('click', () => publishPost(false));
@@ -201,6 +334,7 @@
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'block';
             loadPosts();
+            updateAllSeoTools();
         }
 
         function switchTab(tab) {
@@ -216,6 +350,80 @@
             }
         }
 
+        function updateAllSeoTools() {
+            runLiveSeoAudit(false);
+            runKeywordDensityCheck(false);
+        }
+
+        function runKeywordDensityCheck(showModal = false) {
+            const content = document.getElementById('postContent').value.trim();
+            const focusKw = document.getElementById('targetKeyword').value.trim().toLowerCase();
+            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+            const totalWords = words.length;
+
+            let targetCount = 0;
+            if (focusKw && totalWords > 0) {
+                const matches = content.toLowerCase().match(new RegExp(focusKw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'));
+                targetCount = matches ? matches.length : 0;
+            }
+
+            const density = totalWords > 0 && focusKw ? ((targetCount / totalWords) * 100).toFixed(1) : 0;
+            document.getElementById('densityPercent').innerText = `${density}%`;
+
+            if (showModal) {
+                let report = [`<div class="audit-item audit-pass">✓ Keyword Density: ${density}% for '${focusKw}'</div>`];
+                document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Report";
+                document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function runContentAnalyzer(showModal = false) {
+            const content = document.getElementById('postContent').value.trim();
+            const totalWords = (content.match(/\b\w+\b/g) || []).length;
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "📊 Content Analyzer";
+                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass">✓ Total words: ${totalWords}</div>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateMetaTags(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim() || 'Title';
+            const desc = document.getElementById('metaDesc').value.trim() || 'Description';
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🏷️ Meta Tags";
+                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><pre>&lt;title&gt;${title}&lt;/title&gt;\n&lt;meta name="description" content="${desc}"&gt;</pre></div>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function runLiveSeoAudit(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim();
+            const desc = document.getElementById('metaDesc').value.trim();
+            let score = 50;
+            if (title.length >= 20) score += 25;
+            if (desc.length >= 50) score += 25;
+            document.getElementById('liveSeoScore').innerText = score;
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🔍 SEO Audit Report";
+                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass">✓ SEO Score evaluated: ${score}/100</div>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function insertTag(startTag, endTag) {
+            const ta = document.getElementById('postContent');
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            ta.value = ta.value.substring(0, start) + startTag + ta.value.substring(start, end) + endTag + ta.value.substring(end);
+        }
+
+        function insertGuideBox() { document.getElementById('postContent').value += `\n### Guide Steps:\n1. Step One\n2. Step Two\n`; }
+        function insertReviewBox() { document.getElementById('postContent').value += `\n### Review Summary:\n* Pros: Excellent\n* Cons: None\n`; }
+        function insertVideoEmbed() { document.getElementById('postContent').value += `\n[Video Embed Here]\n`; }
+        function insertDownloadBtn() { document.getElementById('postContent').value += `\n[Download APK Button]\n`; }
+
         async function loadPosts() {
             const listDiv = document.getElementById('postsList');
             listDiv.innerHTML = "Fetching files...";
@@ -223,17 +431,17 @@
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
-
-                if(!res.ok) throw new Error("Repository access failed");
+                if(!res.ok) throw new Error("Failed");
                 const files = await res.json();
-                
                 let html = '';
                 for(let file of files) {
-                    html += `<div class="post-card" style="padding:10px; margin-bottom:8px; background:rgba(255,255,255,0.05); border-radius:8px;">${file.name}</div>`;
+                    if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                        html += `<div class="post-card"><div class="post-info"><h4>${file.name}</h4><span>Path: ${file.path}</span></div></div>`;
+                    }
                 }
-                listDiv.innerHTML = html || "No files found.";
+                listDiv.innerHTML = html || "No articles found.";
             } catch(e) {
-                listDiv.innerHTML = `<p style="color: var(--danger);">Error: Repository nahi mili ya token ghalat hai.</p>`;
+                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading list.</p>`;
             }
         }
 
@@ -246,7 +454,7 @@
 
             if(!title || !content) {
                 msgEl.style.color = "var(--danger)";
-                msgEl.innerText = "Title aur content lazmi likhein!";
+                msgEl.innerText = "Title aur content lazmi fill karein!";
                 return;
             }
 
@@ -255,10 +463,9 @@
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
 
             msgEl.style.color = "var(--text-muted)";
-            msgEl.innerText = "Saving file to GitHub...";
+            msgEl.innerText = "Saving to GitHub...";
 
             try {
-                // Direct PUT request bina kisi check ke (Error 404 se bachne ke liye)
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
                     method: 'PUT',
                     headers: {
@@ -273,7 +480,7 @@
 
                 if(res.ok) {
                     msgEl.style.color = "var(--success)";
-                    msgEl.innerText = "Kamyabi se save ho gaya!";
+                    msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article published successfully!";
                     setTimeout(() => {
                         document.getElementById('postTitle').value = '';
                         document.getElementById('postSlug').value = '';
@@ -283,8 +490,8 @@
                         switchTab('manage');
                     }, 1500);
                 } else {
-                    const errData = await res.json();
-                    throw new Error(errData.message || "Save fail ho gaya");
+                    const err = await res.json();
+                    throw new Error(err.message || "Failed");
                 }
             } catch(e) {
                 msgEl.style.color = "var(--danger)";
