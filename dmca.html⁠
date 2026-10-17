@@ -1,1 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMCA Disclaimer - ProEditsAPK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #090d16; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; padding: 40px 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #818cf8; margin-bottom: 20px; }
+        h2 { color: #c084fc; margin-top: 30px; margin-bottom: 10px; font-size: 20px; }
+        p, li { color: #94a3b8; margin-bottom: 15px; font-size: 15px; }
+        a { color: #818cf8; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>DMCA Disclaimer</h1>
+    <p>ProEditsAPK respects the intellectual property rights of others. We comply with the Digital Millennium Copyright Act (DMCA).</p>
+    
+    <h2>Copyright Infringement Notice</h2>
+    <p>If you believe that your copyrighted material is listed on this website without authorization, please contact us immediately at <a href="mailto:contact@proeditsapk.com">contact@proeditsapk.com</a> with proper details, and we will remove it within 24-48 hours.</p>
+    <p><a href="/">← Back to Home</a></p>
+</body>
+</html>
 
