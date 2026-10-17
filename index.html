@@ -22,7 +22,7 @@
             --glass-border: rgba(255, 255, 255, 0.08);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
         body { background: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
 
         /* Header & Navbar */
@@ -64,7 +64,7 @@
         .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 18px; }
 
         /* Main Content Grid */
-        .container { max-width: 1150px; margin: 20px auto 60px; padding: 0 20px; flex-grow: 1; width: 100%; }
+        .container { max-width: 1150px; margin: 20px auto 40px; padding: 0 20px; flex-grow: 1; width: 100%; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; }
         .section-title { font-size: 20px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
 
@@ -85,6 +85,14 @@
         .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b; border-top: 1px solid var(--glass-border); padding-top: 14px; }
         .btn-download { background: var(--primary); color: white; padding: 8px 16px; border-radius: 10px; font-weight: 700; transition: background 0.2s; }
         .btn-download:hover { background: #4f46e5; }
+
+        /* Legal Content Sections */
+        .legal-section { max-width: 1150px; margin: 40px auto; padding: 30px 20px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px; backdrop-filter: blur(10px); }
+        .legal-section h2 { color: #818cf8; margin-bottom: 15px; font-size: 22px; }
+        .legal-section h3 { color: #c084fc; margin-top: 20px; margin-bottom: 10px; font-size: 18px; }
+        .legal-section p, .legal-section li { color: var(--text-muted); margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
+        .legal-section ul { padding-left: 20px; }
+        .legal-section a { color: #818cf8; text-decoration: none; }
 
         /* Footer */
         footer {
@@ -108,15 +116,15 @@
 <body>
 
     <header>
-        <a href="index.html" class="logo-container">
+        <a href="#" class="logo-container">
             <div class="logo-icon">P</div>
             <div class="logo-text">ProEdits<span>APK</span></div>
         </a>
         <nav class="nav-links">
-            <a href="index.html">Home</a>
+            <a href="#">Home</a>
             <a href="#apps">Trending Apps</a>
-            <a href="#categories">Categories</a>
-            <a href="dmca.html">DMCA</a>
+            <a href="#privacy">Privacy Policy</a>
+            <a href="#dmca">DMCA</a>
         </nav>
     </header>
 
@@ -142,6 +150,34 @@
         </div>
     </main>
 
+    <!-- Privacy Policy Section -->
+    <div id="privacy" class="legal-section">
+        <h2>Privacy Policy</h2>
+        <p>At ProEditsAPK, accessible from proeditsapk.com, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by ProEditsAPK and how we use it.</p>
+        <h3>Information We Collect</h3>
+        <p>We do not require user registration to download APKs. When you visit our site, standard log files and analytics data may be collected to improve our high-speed downloads and user experience.</p>
+        <h3>Consent</h3>
+        <p>By using our website, you hereby consent to our Privacy Policy and agree to its terms.</p>
+    </div>
+
+    <!-- Terms of Service Section -->
+    <div id="terms" class="legal-section">
+        <h2>Terms of Service</h2>
+        <p>Welcome to ProEditsAPK! By accessing our website, you agree to comply with and be bound by the following terms and conditions.</p>
+        <h3>Use of APKs</h3>
+        <p>All APK files provided on this platform are for educational, testing, and personal use purposes. We do not host malicious files; however, users download and install applications at their own discretion.</p>
+        <h3>Intellectual Property</h3>
+        <p>All app names, logos, and brands are property of their respective owners. ProEditsAPK acts solely as an independent file distribution and modification archive.</p>
+    </div>
+
+    <!-- DMCA Section -->
+    <div id="dmca" class="legal-section">
+        <h2>DMCA Disclaimer</h2>
+        <p>ProEditsAPK respects the intellectual property rights of others. We comply with the Digital Millennium Copyright Act (DMCA).</p>
+        <h3>Copyright Infringement Notice</h3>
+        <p>If you believe that your copyrighted material is listed on this website without authorization, please contact us immediately at <a href="mailto:contact@proeditsapk.com">contact@proeditsapk.com</a> with proper details, and we will remove it within 24-48 hours.</p>
+    </div>
+
     <footer>
         <div class="footer-content">
             <div class="logo-container">
@@ -149,10 +185,10 @@
                 <div class="logo-text" style="font-size: 16px;">ProEdits<span>APK</span></div>
             </div>
             <div class="footer-links">
-                <a href="index.html">Home</a>
-                <a href="privacy-policy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
-                <a href="dmca.html">DMCA Disclaimer</a>
+                <a href="#">Home</a>
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+                <a href="#dmca">DMCA Disclaimer</a>
                 <a href="mailto:contact@proeditsapk.com">Contact Us</a>
             </div>
             <div class="copyright">
