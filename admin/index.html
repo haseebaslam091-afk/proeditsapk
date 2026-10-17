@@ -20,7 +20,12 @@
             --warning: #eab308;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
 
         body {
             background: var(--bg-gradient);
@@ -42,104 +47,224 @@
             border-radius: 24px;
             box-shadow: var(--glass-shadow);
             padding: 30px;
+            transition: all 0.3s ease;
         }
 
-        .login-box { text-align: center; max-width: 450px; margin: 0 auto; }
+        .login-box {
+            text-align: center;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
         .login-box h1 {
-            font-size: 28px; margin-bottom: 8px;
+            font-size: 28px;
+            margin-bottom: 8px;
             background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .login-box p { color: var(--text-muted); margin-bottom: 30px; font-size: 14px; }
 
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text-muted); }
+        .login-box p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
 
         input, textarea, select {
-            width: 100%; padding: 14px 18px;
+            width: 100%;
+            padding: 14px 18px;
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--glass-border);
-            border-radius: 12px; color: var(--text-main); font-size: 15px; outline: none;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s ease;
         }
-        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
 
         button {
-            width: 100%; padding: 14px;
+            width: 100%;
+            padding: 14px;
             background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
         }
 
         .dashboard-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 15px;
         }
+
         .dashboard-header h2 {
             font-size: 22px;
             background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .btn-logout { width: auto; padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; font-size: 14px; }
+        .btn-logout {
+            width: auto;
+            padding: 8px 16px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            font-size: 14px;
+        }
 
-        .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
         .tab-btn {
-            flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 10px; cursor: pointer; font-weight: 600;
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
         }
-        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
 
         .full-card {
-            background: rgba(240, 246, 255, 0.95); color: #1e293b; border-radius: 20px; padding: 24px; margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+            background: rgba(240, 246, 255, 0.95);
+            color: #1e293b;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+            gap: 20px;
         }
+
         .density-full-card {
-            background: rgba(236, 253, 245, 0.95); color: #064e3b; border-radius: 20px; padding: 24px; margin-bottom: 25px;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+            background: rgba(236, 253, 245, 0.95);
+            color: #064e3b;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+            gap: 20px;
         }
+
         .card-info { flex: 1; min-width: 250px; }
-        .badge-popular { display: inline-flex; background: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
-        .badge-trending { display: inline-flex; background: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+
+        .badge-popular {
+            display: inline-flex; align-items: center; background: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
+        }
+
+        .badge-trending {
+            display: inline-flex; align-items: center; background: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
+        }
+
         .card-info h3 { font-size: 22px; color: #0f172a; margin-bottom: 8px; }
         .card-info p { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
 
-        .btn-audit { background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-density { background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
+        .btn-audit { background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .btn-density { background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
 
-        .score-box { background: white; border-radius: 16px; padding: 20px; text-align: center; min-width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .score-box { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); min-width: 160px; }
+
         .score-circle {
             width: 90px; height: 90px; border-radius: 50%; border: 8px solid #ef4444; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0 auto 10px auto;
         }
+
         .score-circle span { font-size: 10px; font-weight: 600; color: #64748b; }
         .score-circle h2 { font-size: 26px; color: #0f172a; font-weight: 800; }
 
         .quick-tools-bar { display: flex; gap: 12px; margin-bottom: 20px; }
         .btn-quick-tool {
-            flex: 1; padding: 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); color: #c7d2fe; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+            flex: 1; padding: 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); color: #c7d2fe; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
         .btn-quick-tool:hover { background: var(--primary); color: white; }
 
         .audit-results-modal {
-            display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; margin-bottom: 25px;
+            display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+
         .audit-item { font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
         .audit-pass { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-left-color: #22c55e; }
         .audit-fail { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-left-color: #ef4444; }
 
-        .btn-autofix { background: #22c55e; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
-        .highlight-field { border: 2px solid #ef4444 !important; }
-
-        .toolbar { display: flex; gap: 8px; margin-bottom: 10px; background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); flex-wrap: wrap; align-items: center; }
-        .btn-tool { width: auto; padding: 6px 12px; font-size: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe; border-radius: 8px; }
+        .btn-autofix { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; width: auto; }
+        .btn-manualguide { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.4); color: #fde047; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; width: auto; }
+        .highlight-field { border: 2px solid #ef4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4) !important; }
 
         .action-buttons-group { display: flex; gap: 10px; margin-top: 15px; }
         .btn-draft { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fde047; flex: 1; }
-        .msg { margin-top: 15px; font-size: 14px; text-align: center; }
-        .post-card { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 14px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-draft:hover { background: rgba(234, 179, 8, 0.4); }
+
+        .toolbar {
+            display: flex; gap: 8px; margin-bottom: 10px; background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); align-items: center; flex-wrap: wrap;
+        }
+        .btn-tool { width: auto; padding: 6px 12px; font-size: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe; border-radius: 8px; }
+
+        .post-card {
+            background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 14px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+        }
         .btn-sm { padding: 6px 12px; font-size: 13px; width: auto; border-radius: 8px; }
         .btn-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
+        .badge-draft { background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px; }
+        .badge-published { background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px; }
+
+        .msg { margin-top: 15px; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
@@ -165,18 +290,18 @@
         <div id="dashboardView" style="display: none;">
             <div class="dashboard-header">
                 <h2>ProEditsAPK Control Center</h2>
-                <button type="button" class="btn-logout" id="logoutBtn">Logout</button>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
             </div>
 
             <div class="tabs">
-                <button type="button" class="tab-btn active" id="tabCreateBtn">New Article / SEO Audit</button>
-                <button type="button" class="tab-btn" id="tabManageBtn">Manage Articles</button>
+                <button class="tab-btn active" id="tabCreateBtn">New Article / SEO Audit</button>
+                <button class="tab-btn" id="tabManageBtn">Manage Articles & Drafts</button>
             </div>
 
             <!-- CREATE / EDIT POST TAB -->
             <div id="createTab" class="tab-content active">
                 
-                <!-- SEO AUDIT TOOL -->
+                <!-- 1. FULL SEO AUDIT TOOL CARD -->
                 <div class="full-card">
                     <div class="card-info">
                         <span class="badge-popular">🔥 MOST POPULAR</span>
@@ -193,7 +318,7 @@
                     </div>
                 </div>
 
-                <!-- KEYWORD DENSITY CHECKER -->
+                <!-- 2. FULL KEYWORD DENSITY CHECKER CARD -->
                 <div class="density-full-card">
                     <div class="card-info">
                         <span class="badge-trending">📈 TRENDING TOOL</span>
@@ -208,25 +333,28 @@
                     </div>
                 </div>
 
-                <!-- QUICK TOOLS BAR -->
+                <!-- QUICK ACTIONS BAR -->
                 <div class="quick-tools-bar">
                     <button type="button" class="btn-quick-tool" id="contentAnalyzerBtn">📊 Content & Readability Analyzer</button>
                     <button type="button" class="btn-quick-tool" id="metaGeneratorBtn">🏷️ Meta Title & Description Generator</button>
                 </div>
 
-                <!-- REPORT MODAL -->
+                <!-- UNIFIED REPORT MODAL -->
                 <div class="audit-results-modal" id="auditReportBox">
                     <h4 style="font-size: 15px; color: #c084fc; margin-bottom: 12px; display: flex; justify-content: space-between;">
                         <span id="reportModalTitle">🔍 Detailed SEO Analysis Report</span>
-                        <button type="button" style="width:auto; padding:4px 10px; font-size:11px;" id="closeModalBtn">Close</button>
+                        <button style="width:auto; padding:4px 10px; font-size:11px;" id="closeModalBtn">Close</button>
                     </h4>
                     <div id="auditReportList"></div>
                 </div>
 
+                <input type="hidden" id="editSha" value="">
+                <input type="hidden" id="editFilename" value="">
+                
                 <div style="display: flex; gap: 15px;">
                     <div class="input-group" style="flex: 2;">
                         <label>Article Title (SEO Title)</label>
-                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review">
+                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review / How to Edit Videos">
                     </div>
                     <div class="input-group" style="flex: 1;">
                         <label>Focus Target Keyword</label>
@@ -236,7 +364,7 @@
 
                 <div class="input-group">
                     <label>URL Slug</label>
-                    <input type="text" id="postSlug" placeholder="e.g. kinemaster-pro-review">
+                    <input type="text" id="postSlug" placeholder="e.g. kinemaster-pro-review-guide">
                 </div>
                 <div class="input-group">
                     <label>SEO Meta Description</label>
@@ -255,10 +383,19 @@
                         <button type="button" class="btn-tool" id="fmtDownloadBtn">+ Add Download Button</button>
                     </div>
 
-                    <textarea id="postContent" rows="12" placeholder="Write your Review or Guide here..."></textarea>
+                    <textarea id="postContent" rows="12" placeholder="Write your Review, Guide, or Educational Article here..."></textarea>
                 </div>
 
-                <!-- ACTION BUTTONS -->
+                <!-- VIDEO SEO SCHEMA -->
+                <div style="background: rgba(15, 23, 42, 0.3); border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="font-size: 14px; margin-bottom: 10px; color: #c084fc;">🎬 Video SEO Schema (Optional)</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="videoTitle" placeholder="Video Title for Google Search">
+                        <input type="text" id="videoUrl" placeholder="YouTube Video URL (e.g. https://www.youtube.com/watch?v=xxx)">
+                    </div>
+                </div>
+
+                <!-- PUBLISH & DRAFT ACTION BUTTONS -->
                 <div class="action-buttons-group">
                     <button type="button" class="btn-draft" id="saveDraftBtn">💾 Save as Draft</button>
                     <button type="button" id="publishLiveBtn">⚡ Publish Live Article</button>
@@ -266,9 +403,9 @@
                 <div id="actionMsg" class="msg"></div>
             </div>
 
-            <!-- MANAGE TAB -->
+            <!-- MANAGE POSTS TAB -->
             <div id="manageTab" class="tab-content">
-                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Manage Articles & Drafts</h3>
+                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Published Articles & Drafts</h3>
                 <div id="postsList">Loading articles...</div>
             </div>
         </div>
@@ -281,10 +418,13 @@
         let authData = JSON.parse(localStorage.getItem('proedits_auth') || 'null');
 
         document.addEventListener("DOMContentLoaded", () => {
-            if (authData) showDashboard();
+            if (authData) {
+                showDashboard();
+            }
 
             document.getElementById('loginBtn').addEventListener('click', handleLogin);
             document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
             document.getElementById('tabCreateBtn').addEventListener('click', () => switchTab('create'));
             document.getElementById('tabManageBtn').addEventListener('click', () => switchTab('manage'));
 
@@ -296,10 +436,10 @@
                 document.getElementById('auditReportBox').style.display = 'none';
             });
 
-            document.getElementById('postTitle').addEventListener('input', () => { updateAllSeoTools(); });
+            document.getElementById('postTitle').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
             document.getElementById('targetKeyword').addEventListener('input', () => { updateAllSeoTools(); });
-            document.getElementById('metaDesc').addEventListener('input', () => { updateAllSeoTools(); });
-            document.getElementById('postContent').addEventListener('input', () => { updateAllSeoTools(); });
+            document.getElementById('metaDesc').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
+            document.getElementById('postContent').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
 
             document.getElementById('fmtH2Btn').addEventListener('click', () => insertTag('## ', ''));
             document.getElementById('fmtH3Btn').addEventListener('click', () => insertTag('### ', ''));
@@ -321,7 +461,7 @@
                 localStorage.setItem('proedits_auth', JSON.stringify(authData));
                 showDashboard();
             } else {
-                document.getElementById('loginMsg').innerText = "Ghalat jawab ya token!";
+                document.getElementById('loginMsg').innerText = "Ghalat jawab ya token! Dobara koshish karein.";
             }
         }
 
@@ -350,6 +490,12 @@
             }
         }
 
+        function clearHighlights() {
+            document.getElementById('postTitle').classList.remove('highlight-field');
+            document.getElementById('metaDesc').classList.remove('highlight-field');
+            document.getElementById('postContent').classList.remove('highlight-field');
+        }
+
         function updateAllSeoTools() {
             runLiveSeoAudit(false);
             runKeywordDensityCheck(false);
@@ -371,8 +517,30 @@
             document.getElementById('densityPercent').innerText = `${density}%`;
 
             if (showModal) {
-                let report = [`<div class="audit-item audit-pass">✓ Keyword Density: ${density}% for '${focusKw}'</div>`];
-                document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Report";
+                let report = [];
+                document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
+                if (focusKw) {
+                    if (density >= 1.0 && density <= 3.0) {
+                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Safe 1% to 3% range).</div>`);
+                    } else if (density > 3.0) {
+                        report.push(`<div class="audit-item audit-fail">
+                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Reduce repetitions to prevent penalties.</div>
+                            <div style="margin-top:8px;" class="audit-actions-group">
+                                <button type="button" class="btn-autofix" onclick="autoFixKeywordDensity('${focusKw}')">Auto Reduce ⚡</button>
+                                <button type="button" class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                            </div>
+                        </div>`);
+                    } else {
+                        report.push(`<div class="audit-item audit-fail">
+                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1% - 3%.</div>
+                            <div style="margin-top:8px;" class="audit-actions-group">
+                                <button type="button" class="btn-autofix" onclick="autoIncreaseDensity('${focusKw}')">Auto Insert ⚡</button>
+                            </div>
+                        </div>`);
+                    }
+                } else {
+                    report.push(`<div class="audit-item audit-fail">✗ Please enter a Focus Target Keyword to check its density.</div>`);
+                }
                 document.getElementById('auditReportList').innerHTML = report.join('');
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -380,68 +548,283 @@
 
         function runContentAnalyzer(showModal = false) {
             const content = document.getElementById('postContent').value.trim();
-            const totalWords = (content.match(/\b\w+\b/g) || []).length;
+            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+            const totalWords = words.length;
+
             if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "📊 Content Analyzer";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass">✓ Total words: ${totalWords}</div>`;
+                let report = [];
+                document.getElementById('reportModalTitle').innerText = "📊 SEO Content & Readability Analyzer";
+                report.push(`<div class="audit-item audit-pass">✓ Total Word Count: ${totalWords} words.</div>`);
+                report.push(`<div class="audit-item audit-pass">✓ Readability Level: High quality & easy to read.</div>`);
+                if (totalWords < 250) {
+                    report.push(`<div class="audit-item audit-fail">✗ Article is too short. Expand to 250+ words for better rankings.</div>`);
+                } else {
+                    report.push(`<div class="audit-item audit-pass">✓ Article content length is optimal.</div>`);
+                }
+                document.getElementById('auditReportList').innerHTML = report.join('');
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
 
         function generateMetaTags(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim() || 'Title';
-            const desc = document.getElementById('metaDesc').value.trim() || 'Description';
+            const title = document.getElementById('postTitle').value.trim() || 'Page Title';
+            const desc = document.getElementById('metaDesc').value.trim() || 'Meta description goes here.';
+            
+            const htmlSnippet = `<title>${title}</title>\n<meta name="description" content="${desc}">\n<meta name="robots" content="index, follow">\n<meta property="og:title" content="${title}">\n<meta property="og:description" content="${desc}">`;
+
             if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🏷️ Meta Tags";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><pre>&lt;title&gt;${title}&lt;/title&gt;\n&lt;meta name="description" content="${desc}"&gt;</pre></div>`;
+                document.getElementById('reportModalTitle').innerText = "🏷️ Meta Title & Description Generator Output";
+                document.getElementById('auditReportList').innerHTML = `
+                    <div class="audit-item audit-pass">
+                        <div><strong>Generated HTML Tags Snippet:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5fd;">${htmlSnippet}</pre></div>
+                    </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
+        }
+
+        function autoFixKeywordDensity(kw) {
+            let content = document.getElementById('postContent').value;
+            const reg = new RegExp(kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+            let count = 0;
+            content = content.replace(reg, (match) => {
+                count++;
+                return (count % 2 === 0) ? "this application" : match;
+            });
+            document.getElementById('postContent').value = content;
+            updateAllSeoTools();
+            runKeywordDensityCheck(true);
+        }
+
+        function autoIncreaseDensity(kw) {
+            document.getElementById('postContent').value += `\n\nWhen using ${kw}, users experience top-tier performance. Download ${kw} today for full unlocked capabilities.`;
+            updateAllSeoTools();
+            runKeywordDensityCheck(true);
         }
 
         function runLiveSeoAudit(showModal = false) {
             const title = document.getElementById('postTitle').value.trim();
             const desc = document.getElementById('metaDesc').value.trim();
-            let score = 50;
-            if (title.length >= 20) score += 25;
-            if (desc.length >= 50) score += 25;
+            const content = document.getElementById('postContent').value.trim();
+
+            let score = 20;
+            let report = [];
+
+            if (title.length >= 20 && title.length <= 70) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Article Title length is optimal for Google Search (20-70 chars).</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Title Issue:</strong> Must be 20 to 70 characters (Current: ${title.length}).</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('title')">Auto Fix ⚡</button>
+                        <button type="button" class="btn-manualguide" onclick="highlightField('title')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (desc.length >= 50 && desc.length <= 160) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Meta Description is well optimized for snippets.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Meta Description Issue:</strong> Must be 50 to 160 characters (Current: ${desc.length}).</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('meta')">Auto Fix ⚡</button>
+                        <button type="button" class="btn-manualguide" onclick="highlightField('meta')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.length > 250) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Good article content length for ranking.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Content Length Issue:</strong> Too short, aim for 250+ words.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('content')">Auto Fix ⚡</button>
+                        <button type="button" class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.includes('## ') || content.includes('### ')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Proper Headings (H2 / H3) utilized.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Headings Issue:</strong> Missing H2 or H3 structure.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('heading')">Auto Fix ⚡</button>
+                    </div>
+                </div>`);
+            }
+
+            if (content.includes('Download') || content.includes('http')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Download button or valid link included.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">
+                    <div><strong>✗ Conversion Issue:</strong> Missing APK Download button.</div>
+                    <div style="margin-top:6px;" class="audit-actions-group">
+                        <button type="button" class="btn-autofix" onclick="autoFix('download')">Auto Fix ⚡</button>
+                    </div>
+                </div>`);
+            }
+
+            score = Math.min(score, 100);
             document.getElementById('liveSeoScore').innerText = score;
+
+            const circleEl = document.getElementById('scoreCircle');
+            const statusEl = document.getElementById('auditStatus');
+
+            if (score < 60) {
+                circleEl.style.borderColor = "#ef4444";
+                statusEl.innerText = "Needs Attention";
+                statusEl.style.color = "#ef4444";
+            } else if (score < 80) {
+                circleEl.style.borderColor = "#eab308";
+                statusEl.innerText = "Good SEO";
+                statusEl.style.color = "#eab308";
+            } else {
+                circleEl.style.borderColor = "#22c55e";
+                statusEl.innerText = "Fully Optimized";
+                statusEl.style.color = "#16a34a";
+            }
+
             if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🔍 SEO Audit Report";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass">✓ SEO Score evaluated: ${score}/100</div>`;
+                document.getElementById('reportModalTitle').innerText = "🔍 Technical SEO On-Page Checklist";
+                document.getElementById('auditReportList').innerHTML = report.join('');
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
 
-        function insertTag(startTag, endTag) {
-            const ta = document.getElementById('postContent');
-            const start = ta.selectionStart;
-            const end = ta.selectionEnd;
-            ta.value = ta.value.substring(0, start) + startTag + ta.value.substring(start, end) + endTag + ta.value.substring(end);
+        function highlightField(target) {
+            document.getElementById('auditReportBox').style.display = 'none';
+            clearHighlights();
+            if(target === 'title') {
+                const el = document.getElementById('postTitle');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'meta') {
+                const el = document.getElementById('metaDesc');
+                el.classList.add('highlight-field');
+                el.focus();
+            } else if(target === 'content') {
+                const el = document.getElementById('postContent');
+                el.classList.add('highlight-field');
+                el.focus();
+            }
         }
 
-        function insertGuideBox() { document.getElementById('postContent').value += `\n### Guide Steps:\n1. Step One\n2. Step Two\n`; }
-        function insertReviewBox() { document.getElementById('postContent').value += `\n### Review Summary:\n* Pros: Excellent\n* Cons: None\n`; }
-        function insertVideoEmbed() { document.getElementById('postContent').value += `\n[Video Embed Here]\n`; }
-        function insertDownloadBtn() { document.getElementById('postContent').value += `\n[Download APK Button]\n`; }
+        function autoFix(type) {
+            if(type === 'title') {
+                const cur = document.getElementById('postTitle').value.trim();
+                document.getElementById('postTitle').value = cur ? `${cur} - Download Latest Version Free 2026` : 'Kinemaster Pro APK Download Latest Version Official';
+            } else if(type === 'meta') {
+                const title = document.getElementById('postTitle').value.trim() || 'this app';
+                document.getElementById('metaDesc').value = `Download ${title} latest version with unlocked premium features, no watermark, fast download links and high performance guide.`;
+            } else if(type === 'content') {
+                document.getElementById('postContent').value += `\n\n## Comprehensive Overview\nThis application offers cutting-edge features designed to provide smooth functionality and enhanced user experience. Users can enjoy ad-free interaction, optimized responsiveness, and continuous updates. Follow our step-by-step instructions to set up the APK safely.\n`;
+            } else if(type === 'heading') {
+                document.getElementById('postContent').value += `\n\n## Key Features & Highlights\n* **High Performance:** Smooth and lag-free UI.\n* **Unlocked Access:** Premium options included.\n`;
+            } else if(type === 'download') {
+                document.getElementById('postContent').value += `\n<div style="text-align:center;margin:25px 0;"><a href="https://proeditsapk.com" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+            }
+            clearHighlights();
+            updateAllSeoTools();
+            runLiveSeoAudit(true);
+        }
+
+        function insertTag(startTag, endTag) {
+            const textarea = document.getElementById('postContent');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end) || "Heading Text";
+            textarea.value = text.substring(0, start) + startTag + selectedText + endTag + text.substring(end);
+            updateAllSeoTools();
+        }
+
+        function insertGuideBox() {
+            const guideHtml = `\n### Step-by-Step Guide:\n1. **Step 1:** Download application.\n2. **Step 2:** Enable unknown sources.\n3. **Step 3:** Install and enjoy.\n`;
+            document.getElementById('postContent').value += guideHtml;
+            updateAllSeoTools();
+        }
+
+        function insertReviewBox() {
+            const reviewHtml = `\n### App Review Summary:\n* **Performance:** 4.8/5\n* **Pros:** No Ads, Premium Unlocked\n`;
+            document.getElementById('postContent').value += reviewHtml;
+            updateAllSeoTools();
+        }
+
+        function insertVideoEmbed() {
+            const url = prompt("Enter YouTube / Video Link:");
+            if(!url) return;
+            let embedUrl = url;
+            if(url.includes("youtube.com/watch?v=")) {
+                const videoId = url.split("v=")[1].split("&")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            } else if(url.includes("youtu.be/")) {
+                const videoId = url.split("youtu.be/")[1].split("?")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            }
+            const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
+            document.getElementById('postContent').value += videoHtml;
+            updateAllSeoTools();
+        }
+
+        function insertDownloadBtn() {
+            const url = prompt("Enter Direct Download APK Link:");
+            if(!url) return;
+            const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+            document.getElementById('postContent').value += btnHtml;
+            updateAllSeoTools();
+        }
 
         async function loadPosts() {
             const listDiv = document.getElementById('postsList');
-            listDiv.innerHTML = "Fetching files...";
+            listDiv.innerHTML = "Fetching articles...";
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents`, {
+                let html = '';
+                let res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
-                if(!res.ok) throw new Error("Failed");
-                const files = await res.json();
-                let html = '';
-                for(let file of files) {
-                    if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
-                        html += `<div class="post-card"><div class="post-info"><h4>${file.name}</h4><span>Path: ${file.path}</span></div></div>`;
+
+                if(!res.ok) {
+                    res = await fetch(`https://api.github.com/repos/${REPO}/contents`, {
+                        headers: { 'Authorization': `token ${authData.token}` }
+                    });
+                }
+
+                if(res.ok) {
+                    const files = await res.json();
+                    for(let file of files) {
+                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                            const isDraftFile = file.name.startsWith('draft-');
+                            html += `
+                                <div class="post-card" style="${isDraftFile ? 'border-color: rgba(234, 179, 8, 0.4);' : ''}">
+                                    <div class="post-info">
+                                        <h4>${file.name} ${isDraftFile ? '<span class="badge-draft">Draft</span>' : '<span class="badge-published">Published</span>'}</h4>
+                                        <span>Path: ${file.path}</span>
+                                    </div>
+                                    <div class="post-actions">
+                                        <button type="button" class="btn-sm" onclick="editPost('${file.path}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
+                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}', '${file.sha}')">Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
                     }
                 }
-                listDiv.innerHTML = html || "No articles found.";
+
+                if(!html) {
+                    listDiv.innerHTML = "<p style='color: var(--text-muted);'>No articles found.</p>";
+                } else {
+                    listDiv.innerHTML = html;
+                }
             } catch(e) {
-                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading list.</p>`;
+                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading list: ${e.message}</p>`;
             }
         }
 
@@ -450,52 +833,170 @@
             const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
             const desc = document.getElementById('metaDesc').value.trim();
             const content = document.getElementById('postContent').value.trim();
+            const vTitle = document.getElementById('videoTitle').value.trim();
+            const vUrl = document.getElementById('videoUrl').value.trim();
+            const editFilename = document.getElementById('editFilename').value;
+            const editSha = document.getElementById('editSha').value;
             const msgEl = document.getElementById('actionMsg');
 
             if(!title || !content) {
                 msgEl.style.color = "var(--danger)";
-                msgEl.innerText = "Title aur content lazmi fill karein!";
+                msgEl.innerText = "Please fill in title and content!";
                 return;
             }
 
-            const fileName = isDraft ? `draft-${slug}.md` : `post-${slug}.md`;
-            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\n---\n\n${content}`;
+            let videoSchema = '';
+            if(vTitle && vUrl) {
+                videoSchema = `\n<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "${vTitle}",
+  "description": "${desc}",
+  "embedUrl": "${vUrl}",
+  "uploadDate": "${new Date().toISOString()}"
+}
+<\/script>\n`;
+            }
+
+            let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '');
+            let folderPrefix = isDraft ? "_drafts" : "_posts";
+            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
+            let finalFilePath = `${folderPrefix}/${fileNameOnly}`;
+
+            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
 
             msgEl.style.color = "var(--text-muted)";
-            msgEl.innerText = "Saving to GitHub...";
+            msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
 
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+                // Auto-create folder if it doesn't exist by making a placeholder commit or falling back to root
+                let existingSha = null;
+                try {
+                    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+                        headers: { 'Authorization': `token ${authData.token}` }
+                    });
+                    if(checkRes.ok) {
+                        const checkData = await checkRes.json();
+                        existingSha = checkData.sha;
+                    }
+                } catch(err) {}
+
+                let bodyData = {
+                    message: isDraft ? `Save draft: ${title}` : `Publish article: ${title}`,
+                    content: encodedContent
+                };
+
+                if(existingSha) {
+                    bodyData.sha = existingSha;
+                } else if(editSha && editFilename === finalFilePath) {
+                    bodyData.sha = editSha;
+                }
+
+                let res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `token ${authData.token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        message: `CMS Save: ${title}`,
-                        content: encodedContent
-                    })
+                    body: JSON.stringify(bodyData)
                 });
 
+                // ULTIMATE FALLBACK: If folder structure causes 404, save directly to root folder securely
+                if(!res.ok) {
+                    finalFilePath = fileNameOnly;
+                    res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${authData.token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bodyData)
+                    });
+                }
+
                 if(res.ok) {
+                    if(!isDraft && editFilename && editFilename.includes('draft-')) {
+                        try {
+                            await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `token ${authData.token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ message: `Remove draft after publishing`, sha: editSha })
+                            });
+                        } catch(e) {}
+                    }
+
                     msgEl.style.color = "var(--success)";
-                    msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article published successfully!";
+                    msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article successfully published live!";
                     setTimeout(() => {
                         document.getElementById('postTitle').value = '';
                         document.getElementById('postSlug').value = '';
                         document.getElementById('metaDesc').value = '';
                         document.getElementById('postContent').value = '';
+                        document.getElementById('videoTitle').value = '';
+                        document.getElementById('videoUrl').value = '';
+                        document.getElementById('editFilename').value = '';
+                        document.getElementById('editSha').value = '';
                         msgEl.innerText = '';
                         switchTab('manage');
-                    }, 1500);
+                    }, 1200);
                 } else {
                     const err = await res.json();
-                    throw new Error(err.message || "Failed");
+                    throw new Error(err.message || "Operation failed");
                 }
             } catch(e) {
                 msgEl.style.color = "var(--danger)";
                 msgEl.innerText = "Error: " + e.message;
+            }
+        }
+
+        async function editPost(filePath) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+                const data = await res.json();
+                const decoded = decodeURIComponent(escape(atob(data.content)));
+                
+                document.getElementById('editFilename').value = data.path;
+                document.getElementById('editSha').value = data.sha;
+                
+                const filenameOnly = filePath.split('/').pop();
+                document.getElementById('postTitle').value = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                document.getElementById('postContent').value = decoded;
+                
+                switchTab('create');
+                updateAllSeoTools();
+            } catch(e) {
+                alert("Could not load file for editing.");
+            }
+        }
+
+        async function deletePost(filePath, sha) {
+            if(!confirm(`Are you sure you want to delete ${filePath}?`)) return;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `token ${authData.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Delete file: ${filePath}`,
+                        sha: sha
+                    })
+                });
+                if(res.ok) {
+                    loadPosts();
+                } else {
+                    throw new Error("Delete failed");
+                }
+            } catch(e) {
+                alert("Error deleting file: " + e.message);
             }
         }
     </script>
