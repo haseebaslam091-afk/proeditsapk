@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - ProEditsAPK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #090d16; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; padding: 40px 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #818cf8; margin-bottom: 20px; }
+        h2 { color: #c084fc; margin-top: 30px; margin-bottom: 10px; font-size: 20px; }
+        p, li { color: #94a3b8; margin-bottom: 15px; font-size: 15px; }
+        ul { padding-left: 20px; }
+        a { color: #818cf8; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Privacy Policy</h1>
+    <p>At ProEditsAPK, accessible from proeditsapk.com, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by ProEditsAPK and how we use it.</p>
+    
+    <h2>Information We Collect</h2>
+    <p>We do not require user registration to download APKs. When you visit our site, standard log files and analytics data may be collected to improve our high-speed downloads and user experience.</p>
+
+    <h2>Third Party Privacy Policies</h2>
+    <p>ProEditsAPK's Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you to consult the respective Privacy Policies of these third-party servers for more detailed information.</p>
+
+    <h2>Consent</h2>
+    <p>By using our website, you hereby consent to our Privacy Policy and agree to its terms.</p>
+    <p><a href="/">← Back to Home</a></p>
+</body>
+</html>
 
