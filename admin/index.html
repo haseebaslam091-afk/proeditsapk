@@ -593,51 +593,6 @@
 
         function updateAllSeoTools() {
             runLiveSeoAudit(false);
-            runKeywordDensityCheck(false);
-        }
-
-        function runKeywordDensityCheck(showModal = false) {
-            const content = document.getElementById('postContent').value.trim();
-            const focusKw = document.getElementById('targetKeyword').value.trim().toLowerCase();
-            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
-            const totalWords = words.length;
-
-            let targetCount = 0;
-            if (focusKw && totalWords > 0) {
-                const matches = content.toLowerCase().match(new RegExp(focusKw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'));
-                targetCount = matches ? matches.length : 0;
-            }
-
-            const density = totalWords > 0 && focusKw ? ((targetCount / totalWords) * 100).toFixed(1) : 0;
-            document.getElementById('densityPercent').innerText = `${density}%`;
-
-            if (showModal) {
-                let report = [];
-                document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
-                if (focusKw) {
-                    if (density >= 1.0 && density <= 2.0) {
-                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Perfect 1-2% range).</div>`);
-                    } else if (density > 2.0) {
-                        report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Aim for 1-2% to prevent Google penalties.</div>
-                            <div style="margin-top:8px;" class="audit-actions-group">
-                                <button type="button" class="btn-autofix" onclick="autoFixKeywordDensity('${focusKw}')">Auto Reduce ⚡</button>
-                            </div>
-                        </div>`);
-                    } else {
-                        report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1-2%.</div>
-                            <div style="margin-top:8px;" class="audit-actions-group">
-                                <button type="button" class="btn-autofix" onclick="autoIncreaseDensity('${focusKw}')">Auto Insert ⚡</button>
-                            </div>
-                        </div>`);
-                    }
-                } else {
-                    report.push(`<div class="audit-item audit-fail">✗ Please enter a Focus Target Keyword to check its density.</div>`);
-                }
-                document.getElementById('auditReportList').innerHTML = report.join('');
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
         }
 
         function generateSchemaMarkup(showModal = false) {
@@ -737,14 +692,55 @@
                 return (count % 2 === 0) ? "this application" : match;
             });
             document.getElementById('postContent').value = content;
-            updateAllSeoTools();
             runKeywordDensityCheck(true);
         }
 
         function autoIncreaseDensity(kw) {
             document.getElementById('postContent').value += `\n\nWhen using ${kw}, users experience top-tier performance. Download ${kw} today for full unlocked capabilities.`;
-            updateAllSeoTools();
             runKeywordDensityCheck(true);
+        }
+
+        function runKeywordDensityCheck(showModal = false) {
+            const content = document.getElementById('postContent').value.trim();
+            const focusKw = document.getElementById('targetKeyword').value.trim().toLowerCase();
+            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+            const totalWords = words.length;
+
+            let targetCount = 0;
+            if (focusKw && totalWords > 0) {
+                const matches = content.toLowerCase().match(new RegExp(focusKw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'));
+                targetCount = matches ? matches.length : 0;
+            }
+
+            const density = totalWords > 0 && focusKw ? ((targetCount / totalWords) * 100).toFixed(1) : 0;
+
+            if (showModal) {
+                let report = [];
+                document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
+                if (focusKw) {
+                    if (density >= 1.0 && density <= 2.0) {
+                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Perfect 1-2% range).</div>`);
+                    } else if (density > 2.0) {
+                        report.push(`<div class="audit-item audit-fail">
+                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Aim for 1-2% to prevent Google penalties.</div>
+                            <div style="margin-top:8px;" class="audit-actions-group">
+                                <button type="button" class="btn-autofix" onclick="autoFixKeywordDensity('${focusKw}')">Auto Reduce ⚡</button>
+                            </div>
+                        </div>`);
+                    } else {
+                        report.push(`<div class="audit-item audit-fail">
+                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1-2%.</div>
+                            <div style="margin-top:8px;" class="audit-actions-group">
+                                <button type="button" class="btn-autofix" onclick="autoIncreaseDensity('${focusKw}')">Auto Insert ⚡</button>
+                            </div>
+                        </div>`);
+                    }
+                } else {
+                    report.push(`<div class="audit-item audit-fail">✗ Please enter a Focus Target Keyword to check its density.</div>`);
+                }
+                document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
         }
 
         function runLiveSeoAudit(showModal = false) {
@@ -889,19 +885,16 @@
             const text = textarea.value;
             const selectedText = text.substring(start, end) || "Heading Text";
             textarea.value = text.substring(0, start) + startTag + selectedText + endTag + text.substring(end);
-            updateAllSeoTools();
         }
 
         function insertGuideBox() {
             const guideHtml = `\n### Step-by-Step Guide:\n1. **Step 1:** Download application.\n2. **Step 2:** Enable unknown sources.\n3. **Step 3:** Install and enjoy.\n`;
             document.getElementById('postContent').value += guideHtml;
-            updateAllSeoTools();
         }
 
         function insertReviewBox() {
             const reviewHtml = `\n### App Review Summary:\n* **Performance:** 4.8/5\n* **Pros:** No Ads, Premium Unlocked\n`;
             document.getElementById('postContent').value += reviewHtml;
-            updateAllSeoTools();
         }
 
         function insertVideoEmbed() {
@@ -917,7 +910,6 @@
             }
             const videoHtml = `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
             document.getElementById('postContent').value += videoHtml;
-            updateAllSeoTools();
         }
 
         function insertDownloadBtn() {
@@ -925,7 +917,6 @@
             if(!url) return;
             const btnHtml = `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
             document.getElementById('postContent').value += btnHtml;
-            updateAllSeoTools();
         }
 
         async function loadPosts() {
