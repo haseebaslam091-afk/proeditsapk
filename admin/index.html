@@ -384,6 +384,12 @@
         .score-circle span { font-size: 10px; font-weight: 600; color: #64748b; }
         .score-circle h2 { font-size: 26px; color: #0f172a; font-weight: 800; }
 
+        .quick-tools-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+        .btn-quick-tool {
+            flex: 1; padding: 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); color: #c7d2fe; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-quick-tool:hover { background: var(--primary); color: white; }
+
         .audit-results-modal {
             display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
@@ -475,10 +481,6 @@
                         <p style="color: #047857;">Check keyword usage in your content and avoid over-optimization (Target: 1% - 3%).</p>
                         <button type="button" class="btn-density" id="densityBtn">Open Tool →</button>
                     </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #059669; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Aim for a keyword density of 1-2%. Anything higher might trigger keyword stuffing penalties from Google.
-                    </div>
                 </div>
 
                 <!-- 3. SCHEMA MARKUP GENERATOR CARD -->
@@ -488,10 +490,6 @@
                         <h3 style="color: #3b0764;">Schema Markup Generator</h3>
                         <p style="color: #581c87;">Generate JSON-LD structured data without writing code. Boost Google Rich Results.</p>
                         <button type="button" class="btn-schema" id="schemaToolBtn">Open Tool →</button>
-                    </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #7c3aed; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        JSON-LD is Google's recommended format. Always test your generated schema using the Rich Results Test tool.
                     </div>
                 </div>
 
@@ -503,10 +501,6 @@
                         <p style="color: #92400e;">Convert text into SEO-friendly, hyphen-separated URL slugs effortlessly.</p>
                         <button type="button" class="btn-slug" id="slugToolBtn">Open Tool →</button>
                     </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #d97706; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Keep your URL slugs short and descriptive. Remove stop words like 'a', 'the', and 'and' to keep them concise.
-                    </div>
                 </div>
 
                 <!-- 5. CANONICAL TAG GENERATOR CARD -->
@@ -516,10 +510,6 @@
                         <h3 style="color: #0369a1;">Canonical Tag Generator</h3>
                         <p style="color: #0284c7;">Generate proper rel="canonical" tags to prevent duplicate content indexing issues.</p>
                         <button type="button" class="btn-canonical" id="canonicalToolBtn">Open Tool →</button>
-                    </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #0284c7; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Canonical tags are essential for preventing duplicate content issues, especially in e-commerce or multi-parameter URLs.
                     </div>
                 </div>
 
@@ -531,10 +521,6 @@
                         <p style="color: #be123c;">Create XML sitemaps to help search engines index your site comprehensively.</p>
                         <button type="button" class="btn-sitemap" id="sitemapToolBtn">Open Tool →</button>
                     </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #e11d48; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Keep your sitemap updated whenever new content goes live to ensure fast search engine discovery.
-                    </div>
                 </div>
 
                 <!-- 7. ROBOTS.TXT GENERATOR CARD -->
@@ -544,10 +530,6 @@
                         <h3 style="color: #991b1b;">Robots.txt Generator</h3>
                         <p style="color: #b91c1c;">Generate robots.txt files to manage search engine crawler access efficiently.</p>
                         <button type="button" class="btn-robots" id="robotsToolBtn">Open Tool →</button>
-                    </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #dc2626; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Use robots.txt to block admin directories and prevent unnecessary crawl budget wastage.
                     </div>
                 </div>
 
@@ -559,10 +541,6 @@
                         <p style="color: #5b21b6;">Bulk check URLs for 200, 404, 500, and other HTTP status codes.</p>
                         <button type="button" class="btn-status" id="statusToolBtn">Open Tool →</button>
                     </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #7c3aed; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Regularly check for broken links (404 errors) to preserve link equity and user experience.
-                    </div>
                 </div>
 
                 <!-- 9. META ROBOTS TAG GENERATOR CARD -->
@@ -572,10 +550,6 @@
                         <h3 style="color: #7c2d12;">Meta Robots Tag Generator</h3>
                         <p style="color: #9a3412;">Build a meta robots tag for index, follow, snippets, and image previews. Copy it into your page head.</p>
                         <button type="button" class="btn-metarobots" id="metaRobotsToolBtn">Open Tool →</button>
-                    </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #ea580c; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Use noindex tags on private or duplicate pages to keep search engine results clean.
                     </div>
                 </div>
 
@@ -587,10 +561,6 @@
                         <p style="color: #115e59;">Generate hreflang tags for international SEO targeting and multi-language setups.</p>
                         <button type="button" class="btn-hreflang" id="hreflangToolBtn">Open Tool →</button>
                     </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #0d9488; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Always include reciprocal hreflang links across all language variations to avoid targeting errors.
-                    </div>
                 </div>
 
                 <!-- 11. SITEMAP VS CRAWL CARD -->
@@ -600,10 +570,6 @@
                         <h3 style="color: #881337;">Sitemap vs Crawl</h3>
                         <p style="color: #9f1239;">Compare sitemap URLs with a sample crawl and split the result into sitemap only, crawl only, and both.</p>
                         <button type="button" class="btn-compare" id="compareToolBtn">Open Tool →</button>
-                    </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #f43f5e; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Identify orphaned pages (crawl only) and dead weight in your sitemap to optimize index coverage.
                     </div>
                 </div>
 
@@ -615,10 +581,12 @@
                         <p style="color: #4b5563;">Get a Flesch reading-ease score, readability label, plus sentence and word counts before publishing.</p>
                         <button type="button" class="btn-readability" id="readabilityToolBtn">Open Tool →</button>
                     </div>
-                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
-                        <strong style="color: #4b5563; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
-                        Easier readability keeps users engaged longer, reducing bounce rates and boosting user signals.
-                    </div>
+                </div>
+
+                <!-- QUICK ACTIONS BAR -->
+                <div class="quick-tools-bar">
+                    <button type="button" class="btn-quick-tool" id="contentAnalyzerBtn">📊 Content & Readability Analyzer</button>
+                    <button type="button" class="btn-quick-tool" id="metaGeneratorBtn">🏷️ Meta Title & Description Generator</button>
                 </div>
 
                 <!-- UNIFIED REPORT MODAL -->
@@ -716,7 +684,6 @@
             document.getElementById('slugToolBtn').addEventListener('click', () => generateSlugTool(true));
             document.getElementById('canonicalToolBtn').addEventListener('click', () => generateCanonicalTool(true));
             
-            // New Tools Event Listeners
             document.getElementById('sitemapToolBtn').addEventListener('click', () => generateXmlSitemap(true));
             document.getElementById('robotsToolBtn').addEventListener('click', () => generateRobotsTxt(true));
             document.getElementById('statusToolBtn').addEventListener('click', () => checkHttpStatusCodes(true));
@@ -724,6 +691,8 @@
             document.getElementById('hreflangToolBtn').addEventListener('click', () => generateHreflangTags(true));
             document.getElementById('compareToolBtn').addEventListener('click', () => compareSitemapCrawl(true));
             document.getElementById('readabilityToolBtn').addEventListener('click', () => checkReadabilityScore(true));
+            document.getElementById('contentAnalyzerBtn').addEventListener('click', () => runContentAnalyzer(true));
+            document.getElementById('metaGeneratorBtn').addEventListener('click', () => generateMetaTags(true));
 
             document.getElementById('closeModalBtn').addEventListener('click', () => {
                 document.getElementById('auditReportBox').style.display = 'none';
@@ -812,7 +781,6 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated JSON-LD Schema:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#c4b5fd; overflow-x:auto;">${schemaSnippet}</pre></div>
-                        <div style="margin-top:10px; font-size:11px; color:#fde047;">💡 <strong>Pro Tip:</strong> JSON-LD is Google's recommended format. Always test your generated schema using the Rich Results Test tool.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -832,7 +800,6 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated SEO Slug:</strong> <code style="background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; color:#fde047;">${slug}</code></div>
-                        <div style="margin-top:8px; font-size:11px; color:#93c5fd;">💡 <strong>Pro Tip:</strong> Keep your URL slugs short and descriptive. Stop words like 'a', 'the', and 'and' have been automatically removed.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -847,13 +814,10 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated Canonical Tag:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5fd;">${canonicalTag}</pre></div>
-                        <div style="margin-top:8px; font-size:11px; color:#fde047;">💡 <strong>Pro Tip:</strong> Canonical tags are essential for preventing duplicate content issues, especially in e-commerce or multi-parameter URLs.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
-
-        // --- NEW TOOLS IMPLEMENTATION ---
 
         function generateXmlSitemap(showModal = false) {
             const slug = document.getElementById('postSlug').value.trim() || 'sample-page';
@@ -865,7 +829,6 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated XML Sitemap:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#fde047; overflow-x:auto;">${sitemapXml}</pre></div>
-                        <div style="margin-top:8px; font-size:11px; color:#93c5fd;">💡 <strong>Pro Tip:</strong> Keep your sitemap updated whenever new content goes live to ensure fast search engine discovery.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -879,7 +842,6 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated Robots.txt:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#fde047; overflow-x:auto;">${robotsTxt}</pre></div>
-                        <div style="margin-top:8px; font-size:11px; color:#fca5a5;">💡 <strong>Pro Tip:</strong> Use robots.txt to block admin directories and prevent unnecessary crawl budget wastage.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -891,8 +853,7 @@
                 document.getElementById('reportModalTitle').innerText = "🔍 HTTP Status Code Checker Results";
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">✓ URL: https://proeditsapk.com/${slug} → <strong>200 OK (Active & Indexable)</strong></div>
-                    <div class="audit-item audit-pass">✓ URL: https://proeditsapk.com/admin/ → <strong>200 OK</strong></div>
-                    <div style="margin-top:8px; font-size:11px; color:#c4b5fd;">💡 <strong>Pro Tip:</strong> Regularly check for broken links (404 errors) to preserve link equity and user experience.</div>`;
+                    <div class="audit-item audit-pass">✓ URL: https://proeditsapk.com/admin/ → <strong>200 OK</strong></div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
@@ -905,7 +866,6 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated Meta Robots Tag:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#fdba74;">${metaRobots}</pre></div>
-                        <div style="margin-top:8px; font-size:11px; color:#fed7aa;">💡 <strong>Pro Tip:</strong> Use noindex tags on private or duplicate pages to keep search engine results clean.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -920,7 +880,6 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated Hreflang Tags:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#5eead4;">${hreflangSnippet}</pre></div>
-                        <div style="margin-top:8px; font-size:11px; color:#ccfbf1;">💡 <strong>Pro Tip:</strong> Always include reciprocal hreflang links across all language variations to avoid targeting errors.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -932,8 +891,7 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">✓ In Both Sitemap & Crawl: <strong>24 Pages</strong></div>
                     <div class="audit-item audit-fail">⚠ Sitemap Only (Potential Dead Weight): <strong>2 Pages</strong></div>
-                    <div class="audit-item audit-fail">⚠ Crawl Only (Orphaned Pages): <strong>3 Pages</strong></div>
-                    <div style="margin-top:8px; font-size:11px; color:#fecdd3;">💡 <strong>Pro Tip:</strong> Identify orphaned pages (crawl only) and dead weight in your sitemap to optimize index coverage.</div>`;
+                    <div class="audit-item audit-fail">⚠ Crawl Only (Orphaned Pages): <strong>3 Pages</strong></div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
@@ -945,7 +903,7 @@
             const sentences = content.split(/[.!?]+/).filter(Boolean).length || 1;
             const avgWordsPerSentence = (totalWords / sentences).toFixed(1);
 
-            let score = 75; // Standard easy estimation
+            let score = 75;
             let label = "Standard / Easy to Read";
             if(totalWords < 50) {
                 score = 85;
@@ -960,20 +918,191 @@
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">✓ Flesch Reading-Ease Score: <strong>${score} / 100</strong> (${label})</div>
                     <div class="audit-item audit-pass">✓ Word Count: <strong>${totalWords} words</strong></div>
-                    <div class="audit-item audit-pass">✓ Sentence Count: <strong>${sentences} sentences</strong> (Avg ${avgWordsPerSentence} words/sentence)</div>
-                    <div style="margin-top:8px; font-size:11px; color:#e5e7eb;">💡 <strong>Pro Tip:</strong> Easier readability keeps users engaged longer, reducing bounce rates and boosting user signals.</div>`;
+                    <div class="audit-item audit-pass">✓ Sentence Count: <strong>${sentences} sentences</strong> (Avg ${avgWordsPerSentence} words/sentence)</div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
 
-        // --- END OF NEW TOOLS ---
+        function runKeywordDensityCheck(showModal = false) {
+            const content = document.getElementById('postContent').value.trim();
+            const focusKw = document.getElementById('targetKeyword').value.trim().toLowerCase();
+            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+            const totalWords = words.length;
+
+            let targetCount = 0;
+            if (focusKw && totalWords > 0) {
+                const matches = content.toLowerCase().match(new RegExp(focusKw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'));
+                targetCount = matches ? matches.length : 0;
+            }
+
+            const density = totalWords > 0 && focusKw ? ((targetCount / totalWords) * 100).toFixed(1) : 0;
+
+            if (showModal) {
+                let report = [];
+                document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
+                if (focusKw) {
+                    if (density >= 1.0 && density <= 2.0) {
+                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Perfect 1-2% range).</div>`);
+                    } else if (density > 2.0) {
+                        report.push(`<div class="audit-item audit-fail"><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Aim for 1-2%.</div>`);
+                    } else {
+                        report.push(`<div class="audit-item audit-fail"><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1-2%.</div>`);
+                    }
+                } else {
+                    report.push(`<div class="audit-item audit-fail">✗ Please enter a Focus Target Keyword to check its density.</div>`);
+                }
+                document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function runContentAnalyzer(showModal = false) {
+            const content = document.getElementById('postContent').value.trim();
+            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
+            const totalWords = words.length;
+
+            if (showModal) {
+                let report = [];
+                document.getElementById('reportModalTitle').innerText = "📊 SEO Content & Readability Analyzer";
+                report.push(`<div class="audit-item audit-pass">✓ Total Word Count: ${totalWords} words.</div>`);
+                if (totalWords < 250) {
+                    report.push(`<div class="audit-item audit-fail">✗ Article is too short. Expand to 250+ words for better rankings.</div>`);
+                } else {
+                    report.push(`<div class="audit-item audit-pass">✓ Article content length is optimal.</div>`);
+                }
+                document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateMetaTags(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim() || 'Page Title';
+            const desc = document.getElementById('metaDesc').value.trim() || 'Meta description goes here.';
+            
+            const htmlSnippet = `<title>${title}</title>\n<meta name="description" content="${desc}">\n<meta name="robots" content="index, follow">`;
+
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🏷️ Meta Title & Description Generator Output";
+                document.getElementById('auditReportList').innerHTML = `
+                    <div class="audit-item audit-pass">
+                        <div><strong>Generated HTML Tags Snippet:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5fd;">${htmlSnippet}</pre></div>
+                    </div>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function runLiveSeoAudit(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim();
+            const desc = document.getElementById('metaDesc').value.trim();
+            const content = document.getElementById('postContent').value.trim();
+
+            let score = 20;
+            let report = [];
+
+            if (title.length >= 20 && title.length <= 70) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Article Title length is optimal for Google Search (20-70 chars).</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">✗ Title length must be 20 to 70 characters (Current: ${title.length}).</div>`);
+            }
+
+            if (desc.length >= 50 && desc.length <= 160) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Meta Description is well optimized for snippets.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">✗ Meta Description must be 50 to 160 characters (Current: ${desc.length}).</div>`);
+            }
+
+            if (content.length > 250) {
+                score += 20;
+                report.push('<div class="audit-item audit-pass">✓ Good article content length for ranking.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">✗ Content is too short, aim for 250+ words.</div>`);
+            }
+
+            if (content.includes('## ') || content.includes('### ')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Proper Headings (H2 / H3) utilized.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">✗ Missing H2 or H3 structure in content.</div>`);
+            }
+
+            if (content.includes('Download') || content.includes('http')) {
+                score += 10;
+                report.push('<div class="audit-item audit-pass">✓ Download button or valid link included.</div>');
+            } else {
+                report.push(`<div class="audit-item audit-fail">✗ Missing APK Download link or conversion button.</div>`);
+            }
+
+            score = Math.min(score, 100);
+            document.getElementById('liveSeoScore').innerText = score;
+
+            const circleEl = document.getElementById('scoreCircle');
+            const statusEl = document.getElementById('auditStatus');
+
+            if (score < 60) {
+                circleEl.style.borderColor = "#ef4444";
+                statusEl.innerText = "Needs Attention";
+                statusEl.style.color = "#ef4444";
+            } else if (score < 80) {
+                circleEl.style.borderColor = "#eab308";
+                statusEl.innerText = "Good SEO";
+                statusEl.style.color = "#eab308";
+            } else {
+                circleEl.style.borderColor = "#22c55e";
+                statusEl.innerText = "Fully Optimized";
+                statusEl.style.color = "#16a34a";
+            }
+
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🔍 Technical SEO On-Page Checklist";
+                document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function insertTag(startTag, endTag) {
+            const textarea = document.getElementById('postContent');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end) || "Heading Text";
+            textarea.value = text.substring(0, start) + startTag + selectedText + endTag + text.substring(end);
+        }
+
+        function insertGuideBox() {
+            document.getElementById('postContent').value += `\n### Step-by-Step Guide:\n1. **Step 1:** Download application.\n2. **Step 2:** Enable unknown sources.\n3. **Step 3:** Install and enjoy.\n`;
+        }
+
+        function insertReviewBox() {
+            document.getElementById('postContent').value += `\n### App Review Summary:\n* **Performance:** 4.8/5\n* **Pros:** No Ads, Premium Unlocked\n`;
+        }
+
+        function insertVideoEmbed() {
+            const url = prompt("Enter YouTube / Video Link:");
+            if(!url) return;
+            let embedUrl = url;
+            if(url.includes("youtube.com/watch?v=")) {
+                const videoId = url.split("v=")[1].split("&")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            } else if(url.includes("youtu.be/")) {
+                const videoId = url.split("youtu.be/")[1].split("?")[0];
+                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+            }
+            document.getElementById('postContent').value += `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
+        }
+
+        function insertDownloadBtn() {
+            const url = prompt("Enter Direct Download APK Link:");
+            if(!url) return;
+            document.getElementById('postContent').value += `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
+        }
 
         async function loadPosts() {
             const listDiv = document.getElementById('postsList');
             listDiv.innerHTML = "Fetching articles and drafts...";
             try {
                 let html = '';
-                
                 try {
                     let resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
                         headers: { 'Authorization': `token ${authData.token}` }
@@ -1053,16 +1182,7 @@
 
             let videoSchema = '';
             if(vTitle && vUrl) {
-                videoSchema = `\n<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "VideoObject",
-  "name": "${vTitle}",
-  "description": "${desc}",
-  "embedUrl": "${vUrl}",
-  "uploadDate": "${new Date().toISOString()}"
-}
-<\/script>\n`;
+                videoSchema = `\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "VideoObject",\n  "name": "${vTitle}",\n  "description": "${desc}",\n  "embedUrl": "${vUrl}",\n  "uploadDate": "${new Date().toISOString()}"\n}\n<\/script>\n`;
             }
 
             let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '');
