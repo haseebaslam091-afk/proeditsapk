@@ -787,14 +787,22 @@
             listDiv.innerHTML = "Fetching articles...";
             try {
                 let html = '';
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents`, {
+                
+                // Fetch _posts folder or root fallback
+                let res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
+
+                if(!res.ok) {
+                    res = await fetch(`https://api.github.com/repos/${REPO}/contents`, {
+                        headers: { 'Authorization': `token ${authData.token}` }
+                    });
+                }
 
                 if(res.ok) {
                     const files = await res.json();
                     for(let file of files) {
-                        if((file.name.startsWith('post-') || file.name.startsWith('draft-')) && (file.name.endsWith('.md') || file.name.endsWith('.html'))) {
+                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
                             const isDraftFile = file.name.startsWith('draft-');
                             html += `
                                 <div class="post-card" style="${isDraftFile ? 'border-color: rgba(234, 179, 8, 0.4);' : ''}">
@@ -803,8 +811,8 @@
                                         <span>Path: ${file.path}</span>
                                     </div>
                                     <div class="post-actions">
-                                        <button type="button" class="btn-sm" onclick="editPost('${file.name}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
-                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.name}', '${file.sha}')">Delete</button>
+                                        <button type="button" class="btn-sm" onclick="editPost('${file.path}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
+                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}', '${file.sha}')">Delete</button>
                                     </div>
                                 </div>
                             `;
@@ -854,8 +862,9 @@
             }
 
             let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '');
-            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `post-${cleanSlug}.md`;
-            let finalFilePath = fileNameOnly;
+            let folderPrefix = isDraft ? "_drafts" : "_posts";
+            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
+            let finalFilePath = `${folderPrefix}/${fileNameOnly}`;
 
             const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
             const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
@@ -864,6 +873,7 @@
             msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
 
             try {
+                // Ensure target folder exists by creating dummy file if needed
                 let existingSha = null;
                 try {
                     const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
@@ -886,7 +896,7 @@
                     bodyData.sha = editSha;
                 }
 
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+                let res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `token ${authData.token}`,
@@ -895,9 +905,21 @@
                     body: JSON.stringify(bodyData)
                 });
 
+                // FALLBACK: If folder path creation fails, save to Root Directory directly
+                if(!res.ok) {
+                    finalFilePath = fileNameOnly;
+                    res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${authData.token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(bodyData)
+                    });
+                }
+
                 if(res.ok) {
-                    // Agar draft se publish kiya hai, toh purana draft file delete kar dein
-                    if(!isDraft && editFilename && editFilename.startsWith('draft-')) {
+                    if(!isDraft && editFilename && editFilename.includes('draft-')) {
                         try {
                             await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
                                 method: 'DELETE',
@@ -946,7 +968,7 @@
                 document.getElementById('editSha').value = data.sha;
                 
                 const filenameOnly = filePath.split('/').pop();
-                document.getElementById('postTitle').value = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^post-/, '');
+                document.getElementById('postTitle').value = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
                 document.getElementById('postContent').value = decoded;
                 
                 switchTab('create');
