@@ -1,1 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - ProEditsAPK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #090d16; color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; padding: 40px 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #818cf8; margin-bottom: 20px; }
+        h2 { color: #c084fc; margin-top: 30px; margin-bottom: 10px; font-size: 20px; }
+        p, li { color: #94a3b8; margin-bottom: 15px; font-size: 15px; }
+        a { color: #818cf8; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Terms of Service</h1>
+    <p>Welcome to ProEditsAPK! By accessing our website, you agree to comply with and be bound by the following terms and conditions.</p>
+    
+    <h2>Use of APKs</h2>
+    <p>All APK files provided on this platform are for educational, testing, and personal use purposes. We do not host malicious files; however, users download and install applications at their own discretion.</p>
+
+    <h2>Intellectual Property</h2>
+    <p>All app names, logos, and brands are property of their respective owners. ProEditsAPK acts solely as an independent file distribution and modification archive.</p>
+    <p><a href="/">← Back to Home</a></p>
+</body>
+</html>
 
