@@ -465,9 +465,18 @@
             }
         }
 
+        // --- SECURE LOGOUT FIX IMPLEMENTED HERE ---
         function handleLogout() {
             localStorage.removeItem('proedits_auth');
-            location.reload();
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            const tokenInput = document.getElementById('token');
+            const ansInput = document.getElementById('secAnswer');
+            if(tokenInput) tokenInput.value = '';
+            if(ansInput) ansInput.value = '';
+
+            window.location.replace(window.location.pathname + '?nocache=' + new Date().getTime());
         }
 
         function showDashboard() {
@@ -871,7 +880,6 @@
             msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
 
             try {
-                // Auto-create folder if it doesn't exist by making a placeholder commit or falling back to root
                 let existingSha = null;
                 try {
                     const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
@@ -903,7 +911,6 @@
                     body: JSON.stringify(bodyData)
                 });
 
-                // ULTIMATE FALLBACK: If folder structure causes 404, save directly to root folder securely
                 if(!res.ok) {
                     finalFilePath = fileNameOnly;
                     res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
