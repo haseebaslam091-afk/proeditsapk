@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Three.js for 3D Blockchain Visual Animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
         :root {
             --bg-dark: #090d16;
@@ -35,12 +38,19 @@
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        .logo-container { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .logo-icon { 
-            width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #a855f7); 
-            border-radius: 10px; display: flex; align-items: center; justify-content: center; 
-            font-weight: 800; font-size: 18px; color: white; box-shadow: 0 4px 12px var(--primary-glow);
+        .logo-container { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        
+        /* 3D Canvas Container Styling */
+        #logo-3d-canvas {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(9,13,22,0.8) 100%);
+            box-shadow: 0 4px 15px var(--primary-glow);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            display: block;
         }
+
         .logo-text { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #ffffff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo-text span { background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
@@ -117,7 +127,8 @@
 
     <header>
         <a href="#" class="logo-container">
-            <div class="logo-icon">P</div>
+            <!-- 3D Blockchain Animation Canvas injected here -->
+            <canvas id="logo-3d-canvas"></canvas>
             <div class="logo-text">ProEdits<span>APK</span></div>
         </a>
         <nav class="nav-links">
@@ -180,8 +191,7 @@
 
     <footer>
         <div class="footer-content">
-            <div class="logo-container">
-                <div class="logo-icon" style="width: 28px; height: 28px; font-size: 14px;">P</div>
+            <div class="logo-container" style="justify-content: center;">
                 <div class="logo-text" style="font-size: 16px;">ProEdits<span>APK</span></div>
             </div>
             <div class="footer-links">
@@ -198,6 +208,57 @@
     </footer>
 
     <script>
+        // 3D Blockchain Visual Animation Script using Three.js
+        const canvas = document.getElementById('logo-3d-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(42, 42);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+        camera.position.z = 4.2;
+
+        // Create Blockchain Node Network Group
+        const networkGroup = new THREE.Group();
+        scene.add(networkGroup);
+
+        // Nodes (Cubes / Spheres representing blocks)
+        const nodeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0x6366f1, wireframe: true });
+        
+        const cubes = [];
+        for (let i = 0; i < 4; i++) {
+            const cube = new THREE.Mesh(nodeGeometry, nodeMaterial);
+            cube.position.set(
+                (Math.random() - 0.5) * 1.8,
+                (Math.random() - 0.5) * 1.8,
+                (Math.random() - 0.5) * 1.8
+            );
+            networkGroup.add(cube);
+            cubes.push(cube);
+        }
+
+        // Connecting lines (Blockchain Ledger Chains)
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.7 });
+        const points = [
+            cubes[0].position, cubes[1].position,
+            cubes[1].position, cubes[2].position,
+            cubes[2].position, cubes[3].position,
+            cubes[3].position, cubes[0].position
+        ];
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        const connectingLines = new THREE.LineSegments(lineGeometry, lineMaterial);
+        networkGroup.add(connectingLines);
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            networkGroup.rotation.x += 0.015;
+            networkGroup.rotation.y += 0.02;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Existing App Fetching & Filtering Logic
         async function fetchPosts() {
             const grid = document.getElementById('appsGrid');
             const countEl = document.getElementById('appCount');
