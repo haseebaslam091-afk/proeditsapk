@@ -195,6 +195,20 @@
             color: #064e3b;
             border-radius: 20px;
             padding: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .schema-full-card {
+            background: rgba(245, 243, 255, 0.95);
+            color: #3b0764;
+            border-radius: 20px;
+            padding: 24px;
             margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
@@ -214,11 +228,16 @@
             display: inline-flex; align-items: center; background: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
         }
 
+        .badge-essential {
+            display: inline-flex; align-items: center; background: #ede9fe; color: #6d28d9; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
+        }
+
         .card-info h3 { font-size: 22px; color: #0f172a; margin-bottom: 8px; }
         .card-info p { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
 
         .btn-audit { background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
         .btn-density { background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
+        .btn-schema { background: #7c3aed; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
 
         .score-box { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); min-width: 160px; }
 
@@ -333,6 +352,20 @@
                     </div>
                 </div>
 
+                <!-- 3. SCHEMA MARKUP GENERATOR CARD -->
+                <div class="schema-full-card">
+                    <div class="card-info">
+                        <span class="badge-essential">⭐ ESSENTIAL</span>
+                        <h3 style="color: #3b0764;">Schema Markup Generator</h3>
+                        <p style="color: #581c87;">Generate JSON-LD structured data without writing code. Boost Google Rich Results.</p>
+                        <button type="button" class="btn-schema" id="schemaToolBtn">Open Tool →</button>
+                    </div>
+                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
+                        <strong style="color: #7c3aed; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
+                        JSON-LD is Google's recommended format. Always test your generated schema using the Rich Results Test tool.
+                    </div>
+                </div>
+
                 <!-- QUICK ACTIONS BAR -->
                 <div class="quick-tools-bar">
                     <button type="button" class="btn-quick-tool" id="contentAnalyzerBtn">📊 Content & Readability Analyzer</button>
@@ -342,7 +375,7 @@
                 <!-- UNIFIED REPORT MODAL -->
                 <div class="audit-results-modal" id="auditReportBox">
                     <h4 style="font-size: 15px; color: #c084fc; margin-bottom: 12px; display: flex; justify-content: space-between;">
-                        <span id="reportModalTitle">🔍 Detailed SEO Analysis Report</span>
+                        <span id="reportModalTitle">🔍 Detailed Analysis Report</span>
                         <button style="width:auto; padding:4px 10px; font-size:11px;" id="closeModalBtn">Close</button>
                     </h4>
                     <div id="auditReportList"></div>
@@ -430,6 +463,7 @@
 
             document.getElementById('auditBtn').addEventListener('click', () => runLiveSeoAudit(true));
             document.getElementById('densityBtn').addEventListener('click', () => runKeywordDensityCheck(true));
+            document.getElementById('schemaToolBtn').addEventListener('click', () => generateSchemaMarkup(true));
             document.getElementById('contentAnalyzerBtn').addEventListener('click', () => runContentAnalyzer(true));
             document.getElementById('metaGeneratorBtn').addEventListener('click', () => generateMetaTags(true));
             document.getElementById('closeModalBtn').addEventListener('click', () => {
@@ -551,6 +585,23 @@
                     report.push(`<div class="audit-item audit-fail">✗ Please enter a Focus Target Keyword to check its density.</div>`);
                 }
                 document.getElementById('auditReportList').innerHTML = report.join('');
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateSchemaMarkup(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim() || 'Your Article Title';
+            const desc = document.getElementById('metaDesc').value.trim() || 'Your meta description summary here.';
+            
+            const schemaSnippet = `{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "${title}",\n  "description": "${desc}",\n  "author": {\n    "@type": "Person",\n    "name": "ProEditsAPK"\n  },\n  "publisher": {\n    "@type": "Organization",\n    "name": "ProEditsAPK",\n    "logo": {\n      "@type": "ImageObject",\n      "url": "https://proeditsapk.com/logo.png"\n    }\n  },\n  "datePublished": "${new Date().toISOString()}"\n}`;
+
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "⭐ Schema Markup Generator (JSON-LD)";
+                document.getElementById('auditReportList').innerHTML = `
+                    <div class="audit-item audit-pass">
+                        <div><strong>Generated JSON-LD Schema:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#c4b5fd; overflow-x:auto;">${schemaSnippet}</pre></div>
+                        <div style="margin-top:10px; font-size:11px; color:#fde047;">💡 <strong>Pro Tip:</strong> JSON-LD is Google's recommended format for structured data. Always test your generated schema using the <a href="https://search.google.com/test/rich-results" target="_blank" style="color:#93c5fd;">Rich Results Test tool</a>.</div>
+                    </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
@@ -1014,7 +1065,6 @@
         async function deletePost(filePath) {
             if(!confirm(`Are you sure you want to delete ${filePath}?`)) return;
             try {
-                // Fetch latest fresh SHA right before deleting
                 const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
