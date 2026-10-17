@@ -209,6 +209,34 @@
             color: #3b0764;
             border-radius: 20px;
             padding: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .slug-full-card {
+            background: rgba(254, 243, 199, 0.95);
+            color: #78350f;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .canonical-full-card {
+            background: rgba(224, 242, 254, 0.95);
+            color: #0369a1;
+            border-radius: 20px;
+            padding: 24px;
             margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
@@ -220,17 +248,11 @@
 
         .card-info { flex: 1; min-width: 250px; }
 
-        .badge-popular {
-            display: inline-flex; align-items: center; background: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
-        }
-
-        .badge-trending {
-            display: inline-flex; align-items: center; background: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
-        }
-
-        .badge-essential {
-            display: inline-flex; align-items: center; background: #ede9fe; color: #6d28d9; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase;
-        }
+        .badge-popular { display: inline-flex; align-items: center; background: #ffedd5; color: #c2410c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .badge-trending { display: inline-flex; align-items: center; background: #d1fae5; color: #047857; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .badge-essential { display: inline-flex; align-items: center; background: #ede9fe; color: #6d28d9; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .badge-slug { display: inline-flex; align-items: center; background: #fde68a; color: #b45309; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+        .badge-canonical { display: inline-flex; align-items: center; background: #bae6fd; color: #0284c7; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
 
         .card-info h3 { font-size: 22px; color: #0f172a; margin-bottom: 8px; }
         .card-info p { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
@@ -238,6 +260,8 @@
         .btn-audit { background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
         .btn-density { background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
         .btn-schema { background: #7c3aed; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+        .btn-slug { background: #d97706; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3); }
+        .btn-canonical { background: #0284c7; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
 
         .score-box { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); min-width: 160px; }
 
@@ -345,10 +369,9 @@
                         <p style="color: #047857;">Check keyword usage in your content and avoid over-optimization (Target: 1% - 3%).</p>
                         <button type="button" class="btn-density" id="densityBtn">Open Tool →</button>
                     </div>
-                    <div class="score-box" style="min-width: 200px;">
-                        <h4 style="font-size: 13px; color: #0f172a; margin-bottom: 8px;">Target Keyword Density</h4>
-                        <div style="font-size: 24px; font-weight: 800; color: #2563eb;" id="densityPercent">0%</div>
-                        <span style="font-size: 11px; color: #64748b;">(Pro Tip: Keep 1% - 3%)</span>
+                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
+                        <strong style="color: #059669; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
+                        Aim for a keyword density of 1-2%. Anything higher might trigger keyword stuffing penalties from Google.
                     </div>
                 </div>
 
@@ -363,6 +386,34 @@
                     <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
                         <strong style="color: #7c3aed; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
                         JSON-LD is Google's recommended format. Always test your generated schema using the Rich Results Test tool.
+                    </div>
+                </div>
+
+                <!-- 4. URL SLUG GENERATOR CARD -->
+                <div class="slug-full-card">
+                    <div class="card-info">
+                        <span class="badge-slug">🔗 URL UTILITY</span>
+                        <h3 style="color: #78350f;">URL Slug Generator</h3>
+                        <p style="color: #92400e;">Convert text into SEO-friendly, hyphen-separated URL slugs effortlessly.</p>
+                        <button type="button" class="btn-slug" id="slugToolBtn">Open Tool →</button>
+                    </div>
+                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
+                        <strong style="color: #d97706; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
+                        Keep URL slugs short and descriptive. Remove stop words like 'a', 'the', and 'and' to keep them concise.
+                    </div>
+                </div>
+
+                <!-- 5. CANONICAL TAG GENERATOR CARD -->
+                <div class="canonical-full-card">
+                    <div class="card-info">
+                        <span class="badge-canonical">🛡️ DUPLICATE PROTECTION</span>
+                        <h3 style="color: #0369a1;">Canonical Tag Generator</h3>
+                        <p style="color: #0284c7;">Generate proper rel="canonical" tags to prevent duplicate content indexing issues.</p>
+                        <button type="button" class="btn-canonical" id="canonicalToolBtn">Open Tool →</button>
+                    </div>
+                    <div class="score-box" style="min-width: 200px; background: white; text-align: left; padding: 12px; font-size: 11px; color: #475569;">
+                        <strong style="color: #0284c7; display: block; margin-bottom: 4px;">💡 Pro Tip:</strong>
+                        Canonical tags prevent duplicate content, especially in e-commerce or multi-parameter URLs.
                     </div>
                 </div>
 
@@ -464,6 +515,8 @@
             document.getElementById('auditBtn').addEventListener('click', () => runLiveSeoAudit(true));
             document.getElementById('densityBtn').addEventListener('click', () => runKeywordDensityCheck(true));
             document.getElementById('schemaToolBtn').addEventListener('click', () => generateSchemaMarkup(true));
+            document.getElementById('slugToolBtn').addEventListener('click', () => generateSlugTool(true));
+            document.getElementById('canonicalToolBtn').addEventListener('click', () => generateCanonicalTool(true));
             document.getElementById('contentAnalyzerBtn').addEventListener('click', () => runContentAnalyzer(true));
             document.getElementById('metaGeneratorBtn').addEventListener('click', () => generateMetaTags(true));
             document.getElementById('closeModalBtn').addEventListener('click', () => {
@@ -499,7 +552,6 @@
             }
         }
 
-        // --- SECURE LOGOUT FIX IMPLEMENTED HERE ---
         function handleLogout() {
             localStorage.removeItem('proedits_auth');
             localStorage.clear();
@@ -563,19 +615,18 @@
                 let report = [];
                 document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
                 if (focusKw) {
-                    if (density >= 1.0 && density <= 3.0) {
-                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Safe 1% to 3% range).</div>`);
-                    } else if (density > 3.0) {
+                    if (density >= 1.0 && density <= 2.0) {
+                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Perfect 1-2% range).</div>`);
+                    } else if (density > 2.0) {
                         report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Reduce repetitions to prevent penalties.</div>
+                            <div><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Aim for 1-2% to prevent Google penalties.</div>
                             <div style="margin-top:8px;" class="audit-actions-group">
                                 <button type="button" class="btn-autofix" onclick="autoFixKeywordDensity('${focusKw}')">Auto Reduce ⚡</button>
-                                <button type="button" class="btn-manualguide" onclick="highlightField('content')">Manual Highlight 🔍</button>
                             </div>
                         </div>`);
                     } else {
                         report.push(`<div class="audit-item audit-fail">
-                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1% - 3%.</div>
+                            <div><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1-2%.</div>
                             <div style="margin-top:8px;" class="audit-actions-group">
                                 <button type="button" class="btn-autofix" onclick="autoIncreaseDensity('${focusKw}')">Auto Insert ⚡</button>
                             </div>
@@ -593,14 +644,49 @@
             const title = document.getElementById('postTitle').value.trim() || 'Your Article Title';
             const desc = document.getElementById('metaDesc').value.trim() || 'Your meta description summary here.';
             
-            const schemaSnippet = `{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "${title}",\n  "description": "${desc}",\n  "author": {\n    "@type": "Person",\n    "name": "ProEditsAPK"\n  },\n  "publisher": {\n    "@type": "Organization",\n    "name": "ProEditsAPK",\n    "logo": {\n      "@type": "ImageObject",\n      "url": "https://proeditsapk.com/logo.png"\n    }\n  },\n  "datePublished": "${new Date().toISOString()}"\n}`;
+            const schemaSnippet = `{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "${title}",\n  "description": "${desc}",\n  "author": {\n    "@type": "Person",\n    "name": "ProEditsAPK"\n  },\n  "datePublished": "${new Date().toISOString()}"\n}`;
 
             if (showModal) {
                 document.getElementById('reportModalTitle').innerText = "⭐ Schema Markup Generator (JSON-LD)";
                 document.getElementById('auditReportList').innerHTML = `
                     <div class="audit-item audit-pass">
                         <div><strong>Generated JSON-LD Schema:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#c4b5fd; overflow-x:auto;">${schemaSnippet}</pre></div>
-                        <div style="margin-top:10px; font-size:11px; color:#fde047;">💡 <strong>Pro Tip:</strong> JSON-LD is Google's recommended format for structured data. Always test your generated schema using the <a href="https://search.google.com/test/rich-results" target="_blank" style="color:#93c5fd;">Rich Results Test tool</a>.</div>
+                        <div style="margin-top:10px; font-size:11px; color:#fde047;">💡 <strong>Pro Tip:</strong> JSON-LD is Google's recommended format. Always test your generated schema using the Rich Results Test tool.</div>
+                    </div>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateSlugTool(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim() || document.getElementById('postSlug').value.trim() || 'sample article title';
+            const stopWords = ['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'by'];
+            let words = title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+            let filtered = words.filter(w => !stopWords.includes(w));
+            let slug = filtered.join('-');
+            
+            document.getElementById('postSlug').value = slug;
+
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🔗 URL Slug Generator Output";
+                document.getElementById('auditReportList').innerHTML = `
+                    <div class="audit-item audit-pass">
+                        <div><strong>Generated SEO Slug:</strong> <code style="background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; color:#fde047;">${slug}</code></div>
+                        <div style="margin-top:8px; font-size:11px; color:#93c5fd;">💡 <strong>Pro Tip:</strong> Keep your URL slugs short and descriptive. Stop words like 'a', 'the', and 'and' have been automatically removed.</div>
+                    </div>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateCanonicalTool(showModal = false) {
+            const slug = document.getElementById('postSlug').value.trim() || 'sample-page';
+            const canonicalTag = `<link rel="canonical" href="https://proeditsapk.com/${slug}">`;
+
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🛡️ Canonical Tag Generator Output";
+                document.getElementById('auditReportList').innerHTML = `
+                    <div class="audit-item audit-pass">
+                        <div><strong>Generated Canonical Tag:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5fd;">${canonicalTag}</pre></div>
+                        <div style="margin-top:8px; font-size:11px; color:#fde047;">💡 <strong>Pro Tip:</strong> Canonical tags are essential for preventing duplicate content issues, especially in e-commerce or multi-parameter URLs.</div>
                     </div>`;
                 document.getElementById('auditReportBox').style.display = 'block';
             }
@@ -848,7 +934,6 @@
             try {
                 let html = '';
                 
-                // 1. Fetch _posts folder
                 try {
                     let resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
                         headers: { 'Authorization': `token ${authData.token}` }
@@ -874,7 +959,6 @@
                     }
                 } catch(e) {}
 
-                // 2. Fetch _drafts folder
                 try {
                     let resDrafts = await fetch(`https://api.github.com/repos/${REPO}/contents/_drafts`, {
                         headers: { 'Authorization': `token ${authData.token}` }
