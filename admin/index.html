@@ -814,7 +814,7 @@
                                         </div>
                                         <div class="post-actions">
                                             <button type="button" class="btn-sm" onclick="editPost('${file.path}')">Edit</button>
-                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}', '${file.sha}')">Delete</button>
+                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}')">Delete</button>
                                         </div>
                                     </div>
                                 `;
@@ -840,7 +840,7 @@
                                         </div>
                                         <div class="post-actions">
                                             <button type="button" class="btn-sm" onclick="editPost('${file.path}')">Review & Publish</button>
-                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}', '${file.sha}')">Delete</button>
+                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}')">Delete</button>
                                         </div>
                                     </div>
                                 `;
@@ -948,14 +948,20 @@
                 if(res.ok) {
                     if(!isDraft && editFilename && editFilename.includes('draft-')) {
                         try {
-                            await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Authorization': `token ${authData.token}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ message: `Remove draft after publishing`, sha: editSha })
+                            const getShaRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
+                                headers: { 'Authorization': `token ${authData.token}` }
                             });
+                            if(getShaRes.ok) {
+                                const dData = await getShaRes.json();
+                                await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `token ${authData.token}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ message: `Remove draft after publishing`, sha: dData.sha })
+                                });
+                            }
                         } catch(e) {}
                     }
 
@@ -1005,9 +1011,16 @@
             }
         }
 
-        async function deletePost(filePath, sha) {
+        async function deletePost(filePath) {
             if(!confirm(`Are you sure you want to delete ${filePath}?`)) return;
             try {
+                // Fetch latest fresh SHA right before deleting
+                const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+                if(!checkRes.ok) throw new Error("Could not find file on GitHub.");
+                const fileData = await checkRes.json();
+
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
                     method: 'DELETE',
                     headers: {
@@ -1016,13 +1029,14 @@
                     },
                     body: JSON.stringify({
                         message: `Delete file: ${filePath}`,
-                        sha: sha
+                        sha: fileData.sha
                     })
                 });
                 if(res.ok) {
                     loadPosts();
                 } else {
-                    throw new Error("Delete failed");
+                    const errData = await res.json();
+                    throw new Error(errData.message || "Delete failed");
                 }
             } catch(e) {
                 alert("Error deleting file: " + e.message);
