@@ -793,39 +793,61 @@
 
         async function loadPosts() {
             const listDiv = document.getElementById('postsList');
-            listDiv.innerHTML = "Fetching articles...";
+            listDiv.innerHTML = "Fetching articles and drafts...";
             try {
                 let html = '';
-                let res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
-                    headers: { 'Authorization': `token ${authData.token}` }
-                });
-
-                if(!res.ok) {
-                    res = await fetch(`https://api.github.com/repos/${REPO}/contents`, {
+                
+                // 1. Fetch _posts folder
+                try {
+                    let resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
                         headers: { 'Authorization': `token ${authData.token}` }
                     });
-                }
-
-                if(res.ok) {
-                    const files = await res.json();
-                    for(let file of files) {
-                        if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
-                            const isDraftFile = file.name.startsWith('draft-');
-                            html += `
-                                <div class="post-card" style="${isDraftFile ? 'border-color: rgba(234, 179, 8, 0.4);' : ''}">
-                                    <div class="post-info">
-                                        <h4>${file.name} ${isDraftFile ? '<span class="badge-draft">Draft</span>' : '<span class="badge-published">Published</span>'}</h4>
-                                        <span>Path: ${file.path}</span>
+                    if(resPosts.ok) {
+                        const posts = await resPosts.json();
+                        for(let file of posts) {
+                            if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                                html += `
+                                    <div class="post-card">
+                                        <div class="post-info">
+                                            <h4>${file.name} <span class="badge-published">Published</span></h4>
+                                            <span>Path: ${file.path}</span>
+                                        </div>
+                                        <div class="post-actions">
+                                            <button type="button" class="btn-sm" onclick="editPost('${file.path}')">Edit</button>
+                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}', '${file.sha}')">Delete</button>
+                                        </div>
                                     </div>
-                                    <div class="post-actions">
-                                        <button type="button" class="btn-sm" onclick="editPost('${file.path}')">${isDraftFile ? 'Review & Publish' : 'Edit'}</button>
-                                        <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}', '${file.sha}')">Delete</button>
-                                    </div>
-                                </div>
-                            `;
+                                `;
+                            }
                         }
                     }
-                }
+                } catch(e) {}
+
+                // 2. Fetch _drafts folder
+                try {
+                    let resDrafts = await fetch(`https://api.github.com/repos/${REPO}/contents/_drafts`, {
+                        headers: { 'Authorization': `token ${authData.token}` }
+                    });
+                    if(resDrafts.ok) {
+                        const drafts = await resDrafts.json();
+                        for(let file of drafts) {
+                            if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                                html += `
+                                    <div class="post-card" style="border-color: rgba(234, 179, 8, 0.4);">
+                                        <div class="post-info">
+                                            <h4>${file.name} <span class="badge-draft">Draft</span></h4>
+                                            <span>Path: ${file.path}</span>
+                                        </div>
+                                        <div class="post-actions">
+                                            <button type="button" class="btn-sm" onclick="editPost('${file.path}')">Review & Publish</button>
+                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}', '${file.sha}')">Delete</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                } catch(e) {}
 
                 if(!html) {
                     listDiv.innerHTML = "<p style='color: var(--text-muted);'>No articles found.</p>";
