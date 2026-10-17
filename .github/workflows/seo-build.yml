@@ -1,1 +1,35 @@
+name: Auto Generate SEO & Sitemap
+
+on:
+  push:
+    paths:
+      - '_posts/**'
+      - 'scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-seo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-size: '18'
+
+      - name: Run SEO Build Script
+        run: node scripts/build-seo.js
+
+      - name: Commit and Push Updated Sitemap & Robots.txt
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add sitemap.xml robots.txt
+          git commit -m "auto: update sitemap.xml and robots.txt [skip ci]" || exit 0
+          git push
 
