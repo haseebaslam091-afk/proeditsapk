@@ -100,7 +100,6 @@
             background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 22px; 
             color: var(--text-main); display: flex; flex-direction: column; justify-content: space-between;
             backdrop-filter: blur(10px); transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-            cursor: pointer;
         }
         .card:hover { transform: translateY(-4px); border-color: rgba(99, 102, 241, 0.4); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2); }
 
@@ -110,7 +109,7 @@
         .card p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
 
         .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--glass-border); padding-top: 14px; }
-        .btn-download { background: var(--primary); color: white; padding: 8px 16px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.2s; }
+        .btn-download { background: var(--primary); color: white; padding: 8px 16px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; transition: opacity 0.2s; }
         .btn-download:hover { opacity: 0.9; }
 
         /* Article Modal Window Styling */
@@ -341,19 +340,20 @@
                         const cleanSlug = file.name.replace(/\.md$/, '').replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
                         const displayTitle = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+                        // Yahan direct download link aur download attribute lagaya gaya hai
                         html += `
-                            <div class="card" onclick="openArticle('${file.download_url}', '${displayTitle}')">
+                            <div class="card">
                                 <div>
                                     <div class="card-top">
                                         <span class="card-badge">PRO UNLOCKED</span>
                                         <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
                                     </div>
-                                    <h3>${displayTitle}</h3>
+                                    <h3 style="cursor: pointer;" onclick="openArticle('${file.download_url}', '${displayTitle}')">${displayTitle}</h3>
                                     <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
                                 </div>
                                 <div class="card-footer">
                                     <span>⚡ Direct Download</span>
-                                    <button class="btn-download" onclick="event.stopPropagation(); openArticle('${file.download_url}', '${displayTitle}')">Get APK</button>
+                                    <a href="APKA_GITHUB_RELEASE_YA_RAW_FILE_LINK" class="btn-download" download>Get APK</a>
                                 </div>
                             </div>
                         `;
