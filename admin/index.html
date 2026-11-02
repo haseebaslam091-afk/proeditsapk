@@ -83,7 +83,7 @@
             color: var(--text-muted);
         }
 
-        input, textarea, select {
+        input, select {
             width: 100%;
             padding: 14px 18px;
             background: rgba(15, 23, 42, 0.6);
@@ -95,7 +95,29 @@
             transition: all 0.2s ease;
         }
 
-        input:focus, textarea:focus, select:focus {
+        /* 3D NEON STYLIZED TEXTAREA */
+        textarea {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(30, 27, 75, 0.6));
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            color: #f1f5f9;
+            font-size: 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.7;
+            outline: none;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.15);
+            transition: all 0.3s ease;
+            white-space: pre-wrap;
+        }
+
+        textarea:focus {
+            border-color: #a855f7;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 25px rgba(168, 85, 247, 0.4);
+        }
+
+        input:focus, select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
@@ -553,6 +575,7 @@
                         <button type="button" class="btn-tool" id="fmtDownloadBtn">+ Add Download Button</button>
                     </div>
 
+                    <!-- 3D STYLIZED TEXTAREA -->
                     <textarea id="postContent" rows="12" placeholder="Write your Review, Guide, or Educational Article here... Use [IMAGE_1], [IMAGE_2] tags where you want photos to appear."></textarea>
                 </div>
 
