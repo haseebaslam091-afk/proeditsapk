@@ -500,7 +500,7 @@
         }
 
         function insertDownloadBtn() {
-            let apkLink = prompt("Enter Direct Download APK Link:", "https://example.com/download.apk");
+            let apkLink = prompt("Enter Direct Download APK Link:");
             if (!apkLink) return;
             
             let btnCode = `\n<div style="text-align:center;margin:30px 0;"><a href="${apkLink}" style="background:#22c55e;color:white;padding:16px 36px;border-radius:14px;font-weight:700;text-decoration:none;display:inline-block;" target="_blank">⚡ Download APK</a></div>\n`;
