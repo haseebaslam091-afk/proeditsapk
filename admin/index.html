@@ -236,7 +236,6 @@
         .btn-draft { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fde047; flex: 1; cursor: pointer; }
         .btn-draft:hover { background: rgba(234, 179, 8, 0.4); }
 
-        /* ADVANCED MS OFFICE STYLE RICH TEXT TOOLBAR */
         .ms-toolbar { background: rgba(15, 23, 42, 0.85); padding: 10px 14px; border-radius: 16px 16px 0 0; border: 2px solid rgba(139, 92, 246, 0.5); border-bottom: none; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .ms-tool-btn { background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #c7d2fe; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s; width: auto; box-shadow: none; }
         .ms-tool-btn:hover { background: var(--primary); color: white; transform: translateY(-1px); }
@@ -283,7 +282,7 @@
             <!-- CREATE / EDIT POST TAB -->
             <div id="createTab" class="tab-content active">
                 
-                <!-- 1. FULL SEO AUDIT TOOL CARD (100% Score Engine) -->
+                <!-- 1. FULL SEO AUDIT TOOL CARD -->
                 <div class="full-card">
                     <div class="card-info">
                         <h3>SEO Audit & Auto-Fix Tool</h3>
@@ -1103,6 +1102,7 @@
 
             try {
                 let existingSha = editSha || null;
+                // If editing and editSha is empty, fetch exact SHA of target file to prevent conflicts
                 if (!existingSha && editFilename) {
                     try {
                         const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
@@ -1166,21 +1166,49 @@
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
                 const data = await res.json();
-                const decoded = decodeURIComponent(escape(atob(data.content)));
+                
+                // Robust Base64 decode to handle Unicode / Roman Urdu / Special characters safely
+                const binaryString = atob(data.content);
+                const bytes = Uint8Array.from(binaryString, (m) => m.codePointAt(0));
+                const decoded = new TextDecoder().decode(bytes);
                 
                 document.getElementById('editFilename').value = data.path;
                 document.getElementById('editSha').value = data.sha;
                 
-                const filenameOnly = filePath.split('/').pop();
-                let cleanTitle = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
-                document.getElementById('postTitle').value = cleanTitle;
+                // Extract title from front matter if present
+                let titleVal = "";
+                let descVal = "";
+                let contentVal = decoded;
+
+                if (decoded.startsWith('---')) {
+                    const parts = decoded.split('---');
+                    if (parts.length >= 3) {
+                        const frontMatter = parts[1];
+                        contentVal = parts.slice(2).join('---').trim();
+                        
+                        const titleMatch = frontMatter.match(/title:\s*"([^"]+)"/);
+                        if (titleMatch) titleVal = titleMatch[1];
+                        
+                        const descMatch = frontMatter.match(/description:\s*"([^"]+)"/);
+                        if (descMatch) descVal = descMatch[1];
+                    }
+                }
+
+                if (!titleVal) {
+                    const filenameOnly = filePath.split('/').pop();
+                    titleVal = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                }
+
+                document.getElementById('postTitle').value = titleVal;
+                if (descVal) document.getElementById('metaDesc').value = descVal;
                 
-                let cleanText = decoded;
-                if(decoded.includes('<div style="font-family:')) {
-                    let firstClose = decoded.indexOf('">');
-                    let lastClose = decoded.lastIndexOf('</div>');
+                // Strip wrapper div if present when loading back into textarea
+                let cleanText = contentVal;
+                if(contentVal.includes('<div style="font-family:')) {
+                    let firstClose = contentVal.indexOf('">');
+                    let lastClose = contentVal.lastIndexOf('</div>');
                     if(firstClose !== -1 && lastClose !== -1) {
-                        cleanText = decoded.substring(firstClose + 2, lastClose);
+                        cleanText = contentVal.substring(firstClose + 2, lastClose);
                     }
                 }
                 
@@ -1188,7 +1216,7 @@
                 switchTab('create');
                 updateAllSeoTools();
             } catch(e) {
-                alert("Could not load file for editing.");
+                alert("Could not load file for editing: " + e.message);
             }
         }
 
