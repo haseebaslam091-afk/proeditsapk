@@ -3,271 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProEditsAPK - Professional 3D CMS Dashboard</title>
+    <title>ProEditsAPK - Professional CMS Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
             --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             --primary: #6366f1;
             --primary-hover: #4f46e5;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --danger: #ef4444;
             --success: #22c55e;
-            --warning: #eab308;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
 
         .container {
-            width: 100%;
-            max-width: 980px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: var(--glass-shadow);
-            padding: 30px;
-            transition: all 0.3s ease;
+            width: 100%; max-width: 1050px; background: var(--glass-bg);
+            backdrop-filter: blur(16px); border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 30px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
         }
 
-        .login-box {
-            text-align: center;
-            max-width: 450px;
-            margin: 0 auto;
-        }
+        .login-box { text-align: center; max-width: 450px; margin: 0 auto; }
+        .login-box h1 { font-size: 28px; margin-bottom: 8px; color: #818cf8; }
+        .login-box p { color: var(--text-muted); margin-bottom: 30px; font-size: 14px; }
 
-        .login-box h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text-muted); }
 
-        .login-box p {
-            color: var(--text-muted);
-            margin-bottom: 30px;
-            font-size: 14px;
+        input, textarea {
+            width: 100%; padding: 14px 18px; background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-main); font-size: 15px; outline: none;
         }
-
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 14px 18px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text-main);
-            font-size: 15px;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-        }
+        textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
 
         button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
-        }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; }
+        .btn-logout { width: auto; padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
 
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--glass-border);
-            padding-bottom: 15px;
-        }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+        .tab-btn { flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .dashboard-header h2 {
-            font-size: 22px;
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .btn-logout {
-            width: auto;
-            padding: 8px 16px;
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #fca5a5;
-            font-size: 14px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border);
-            color: var(--text-muted);
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .full-card {
-            background: rgba(240, 246, 255, 0.95);
-            color: #1e293b;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .density-full-card { background: rgba(236, 253, 245, 0.95); color: #064e3b; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .schema-full-card { background: rgba(245, 243, 255, 0.95); color: #3b0764; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .slug-full-card { background: rgba(254, 243, 199, 0.95); color: #78350f; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .canonical-full-card { background: rgba(224, 242, 254, 0.95); color: #0369a1; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .sitemap-full-card { background: rgba(255, 228, 230, 0.95); color: #9f1239; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .robots-full-card { background: rgba(254, 226, 226, 0.95); color: #991b1b; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .status-full-card { background: rgba(221, 214, 254, 0.95); color: #4c1d95; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .metarobots-full-card { background: rgba(254, 215, 170, 0.95); color: #7c2d12; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .hreflang-full-card { background: rgba(204, 251, 241, 0.95); color: #134e4a; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .compare-full-card { background: rgba(254, 205, 211, 0.95); color: #881337; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .readability-full-card { background: rgba(229, 231, 235, 0.95); color: #1f2937; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        
-        /* New Image Tools Cards Styling */
-        .imgcomp-full-card { background: rgba(224, 231, 255, 0.95); color: #3730a3; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .webp-full-card { background: rgba(250, 232, 255, 0.95); color: #701a75; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .altgen-full-card { background: rgba(207, 250, 254, 0.95); color: #155e75; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .ogprev-full-card { background: rgba(254, 226, 226, 0.95); color: #881337; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .imgseo-full-card { background: rgba(254, 240, 138, 0.95); color: #713f12; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .imgname-full-card { background: rgba(220, 252, 231, 0.95); color: #14532d; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-        .imgdim-full-card { background: rgba(243, 244, 246, 0.95); color: #1f2937; border-radius: 20px; padding: 24px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 20px; }
-
-        .card-info { flex: 1; min-width: 250px; }
-        .card-info h3 { font-size: 22px; color: #0f172a; margin-bottom: 8px; }
-        .card-info p { font-size: 13px; color: #475569; margin-bottom: 16px; line-height: 1.5; }
-
-        .btn-audit { background: #2563eb; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
-        .btn-density { background: #059669; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-schema { background: #7c3aed; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-slug { background: #d97706; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-canonical { background: #0284c7; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-sitemap { background: #e11d48; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-robots { background: #dc2626; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-status { background: #7c3aed; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-metarobots { background: #ea580c; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-hreflang { background: #0d9488; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-compare { background: #f43f5e; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-readability { background: #4b5563; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        
-        .btn-imgcomp { background: #4f46e5; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-webp { background: #86198f; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-altgen { background: #0e7490; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-ogprev { background: #be123c; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-imgseo { background: #b45309; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-imgname { background: #166534; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-        .btn-imgdim { background: #374151; color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; width: auto; }
-
-        .score-box { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); min-width: 160px; }
-        .score-circle { width: 90px; height: 90px; border-radius: 50%; border: 8px solid #ef4444; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0 auto 10px auto; }
-        .score-circle span { font-size: 10px; font-weight: 600; color: #64748b; }
-        .score-circle h2 { font-size: 26px; color: #0f172a; font-weight: 800; }
-
-        .quick-tools-bar { display: flex; gap: 12px; margin-bottom: 20px; }
-        .btn-quick-tool { flex: 1; padding: 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); color: #c7d2fe; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .btn-quick-tool:hover { background: var(--primary); color: white; }
-
-        .audit-results-modal { display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .audit-item { font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid transparent; }
-        .audit-pass { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-left-color: #22c55e; }
-        .audit-fail { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-left-color: #ef4444; }
-
-        .action-buttons-group { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-draft { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fde047; flex: 1; }
-        .btn-draft:hover { background: rgba(234, 179, 8, 0.4); }
-
-        .toolbar { display: flex; gap: 8px; margin-bottom: 10px; background: rgba(15, 23, 42, 0.5); padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); align-items: center; flex-wrap: wrap; }
-        .btn-tool { width: auto; padding: 6px 12px; font-size: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe; border-radius: 8px; }
-
-        .post-card { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 14px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-sm { padding: 6px 12px; font-size: 13px; width: auto; border-radius: 8px; }
+        .post-card { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--glass-border); border-radius: 14px; padding: 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; border-radius: 8px; cursor: pointer; }
         .btn-danger { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
-        .badge-draft { background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px; }
         .badge-published { background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px; }
         .msg { margin-top: 15px; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="container" id="app">
+    <div class="container">
         <!-- LOGIN VIEW -->
         <div id="loginView" class="login-box">
             <h1>ProEditsAPK CMS</h1>
@@ -280,7 +77,7 @@
                 <label>GitHub Personal Access Token</label>
                 <input type="password" id="token" placeholder="Paste GitHub token">
             </div>
-            <button type="button" id="loginBtn">Login to Dashboard</button>
+            <button type="button" onclick="handleLogin()">Login to Dashboard</button>
             <div id="loginMsg" class="msg" style="color: var(--danger);"></div>
         </div>
 
@@ -288,268 +85,41 @@
         <div id="dashboardView" style="display: none;">
             <div class="dashboard-header">
                 <h2>ProEditsAPK Control Center</h2>
-                <button class="btn-logout" id="logoutBtn">Logout</button>
+                <button class="btn-logout" onclick="handleLogout()">Logout</button>
             </div>
 
             <div class="tabs">
-                <button class="tab-btn active" id="tabCreateBtn">New Article / SEO Audit</button>
-                <button class="tab-btn" id="tabManageBtn">Manage Articles & Drafts</button>
+                <button class="tab-btn active" id="tabCreateBtn" onclick="switchTab('create')">New / Edit Article</button>
+                <button class="tab-btn" id="tabManageBtn" onclick="switchTab('manage')">Manage Articles</button>
             </div>
 
-            <!-- CREATE / EDIT POST TAB -->
+            <!-- CREATE / EDIT TAB -->
             <div id="createTab" class="tab-content active">
-                
-                <!-- 1. FULL SEO AUDIT TOOL CARD -->
-                <div class="full-card">
-                    <div class="card-info">
-                        <h3>SEO Audit Tool</h3>
-                        <p>Analyze your website's & article's SEO issues and discover opportunities for higher rankings.</p>
-                        <button type="button" class="btn-audit" id="auditBtn">Run SEO Audit →</button>
-                    </div>
-                    <div class="score-box">
-                        <div class="score-circle" id="scoreCircle">
-                            <span>SEO Score</span>
-                            <h2 id="liveSeoScore">30</h2>
-                        </div>
-                        <span id="auditStatus" style="font-size: 11px; font-weight: 700; color: #ef4444;">Needs Attention</span>
-                    </div>
-                </div>
-
-                <!-- 2. FULL KEYWORD DENSITY CHECKER CARD -->
-                <div class="density-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #064e3b;">Keyword Density Checker</h3>
-                        <p style="color: #047857;">Check keyword usage in your content and avoid over-optimization (Target: 1% - 3%).</p>
-                        <button type="button" class="btn-density" id="densityBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 3. SCHEMA MARKUP GENERATOR CARD -->
-                <div class="schema-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #3b0764;">Schema Markup Generator</h3>
-                        <p style="color: #581c87;">Generate JSON-LD structured data without writing code. Boost Google Rich Results.</p>
-                        <button type="button" class="btn-schema" id="schemaToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 4. URL SLUG GENERATOR CARD -->
-                <div class="slug-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #78350f;">URL Slug Generator</h3>
-                        <p style="color: #92400e;">Convert text into SEO-friendly, hyphen-separated URL slugs effortlessly.</p>
-                        <button type="button" class="btn-slug" id="slugToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 5. CANONICAL TAG GENERATOR CARD -->
-                <div class="canonical-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #0369a1;">Canonical Tag Generator</h3>
-                        <p style="color: #0284c7;">Generate proper rel="canonical" tags to prevent duplicate content indexing issues.</p>
-                        <button type="button" class="btn-canonical" id="canonicalToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 6. XML SITEMAP GENERATOR CARD -->
-                <div class="sitemap-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #9f1239;">XML Sitemap Generator</h3>
-                        <p style="color: #be123c;">Create XML sitemaps to help search engines index your site comprehensively.</p>
-                        <button type="button" class="btn-sitemap" id="sitemapToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 7. ROBOTS.TXT GENERATOR CARD -->
-                <div class="robots-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #991b1b;">Robots.txt Generator</h3>
-                        <p style="color: #b91c1c;">Generate robots.txt files to manage search engine crawler access efficiently.</p>
-                        <button type="button" class="btn-robots" id="robotsToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 8. HTTP STATUS CODE CHECKER CARD -->
-                <div class="status-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #4c1d95;">HTTP Status Code Checker</h3>
-                        <p style="color: #5b21b6;">Bulk check URLs for 200, 404, 500, and other HTTP status codes.</p>
-                        <button type="button" class="btn-status" id="statusToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 9. META ROBOTS TAG GENERATOR CARD -->
-                <div class="metarobots-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #7c2d12;">Meta Robots Tag Generator</h3>
-                        <p style="color: #9a3412;">Build a meta robots tag for index, follow, snippets, and image previews.</p>
-                        <button type="button" class="btn-metarobots" id="metaRobotsToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 10. HREFLANG GENERATOR CARD -->
-                <div class="hreflang-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #134e4a;">Hreflang Generator</h3>
-                        <p style="color: #115e59;">Generate hreflang tags for international SEO targeting and multi-language setups.</p>
-                        <button type="button" class="btn-hreflang" id="hreflangToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 11. SITEMAP VS CRAWL CARD -->
-                <div class="compare-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #881337;">Sitemap vs Crawl</h3>
-                        <p style="color: #9f1239;">Compare sitemap URLs with a sample crawl and split the result into sitemap only, crawl only, and both.</p>
-                        <button type="button" class="btn-compare" id="compareToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 12. READABILITY CHECKER CARD -->
-                <div class="readability-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #1f2937;">Readability Checker</h3>
-                        <p style="color: #4b5563;">Get a Flesch reading-ease score, readability label, plus sentence and word counts.</p>
-                        <button type="button" class="btn-readability" id="readabilityToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 13. IMAGE COMPRESSOR CARD -->
-                <div class="imgcomp-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #3730a3;">Image Compressor</h3>
-                        <p style="color: #4338ca;">Compress image file sizes without sacrificing visual quality for high site speed.</p>
-                        <button type="button" class="btn-imgcomp" id="imgCompToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 14. WEBP CONVERTER CARD -->
-                <div class="webp-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #701a75;">WebP Converter</h3>
-                        <p style="color: #86198f;">Convert JPEGs and PNGs to WebP format for faster page speed and superior optimization.</p>
-                        <button type="button" class="btn-webp" id="webpToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 15. IMAGE ALT TEXT GENERATOR CARD -->
-                <div class="altgen-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #155e75;">Image Alt Text Generator</h3>
-                        <p style="color: #0e7490;">Automatically generate descriptive alt text configurations for your images.</p>
-                        <button type="button" class="btn-altgen" id="altGenToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 16. OPEN GRAPH IMAGE PREVIEW CARD -->
-                <div class="ogprev-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #881337;">Open Graph Image Preview</h3>
-                        <p style="color: #9f1239;">Preview how your hero images and meta tags will look when shared on social media networks.</p>
-                        <button type="button" class="btn-ogprev" id="ogPrevToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 17. IMAGE SEO CHECKER CARD -->
-                <div class="imgseo-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #713f12;">Image SEO Checker</h3>
-                        <p style="color: #854d0e;">Audit a page for missing alt texts, improper sizing, and large image optimization files.</p>
-                        <button type="button" class="btn-imgseo" id="imgSeoToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 18. IMAGE FILENAME GENERATOR CARD -->
-                <div class="imgname-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #14532d;">Image Filename Generator</h3>
-                        <p style="color: #166534;">Create clean, SEO-friendly image filenames from text descriptions automatically.</p>
-                        <button type="button" class="btn-imgname" id="imgNameToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- 19. IMAGE DIMENSIONS CHECKER CARD -->
-                <div class="imgdim-full-card">
-                    <div class="card-info">
-                        <h3 style="color: #1f2937;">Image Dimensions Checker</h3>
-                        <p style="color: #4b5563;">Instantly check standard width, height, and layout aspect ratios for web publishing.</p>
-                        <button type="button" class="btn-imgdim" id="imgDimToolBtn">Open Tool →</button>
-                    </div>
-                </div>
-
-                <!-- QUICK ACTIONS BAR -->
-                <div class="quick-tools-bar">
-                    <button type="button" class="btn-quick-tool" id="contentAnalyzerBtn">📊 Content & Readability Analyzer</button>
-                    <button type="button" class="btn-quick-tool" id="metaGeneratorBtn">🏷️ Meta Title & Description Generator</button>
-                </div>
-
-                <!-- UNIFIED REPORT MODAL -->
-                <div class="audit-results-modal" id="auditReportBox">
-                    <h4 style="font-size: 15px; color: #c084fc; margin-bottom: 12px; display: flex; justify-content: space-between;">
-                        <span id="reportModalTitle">🔍 Detailed Analysis Report</span>
-                        <button style="width:auto; padding:4px 10px; font-size:11px;" id="closeModalBtn">Close</button>
-                    </h4>
-                    <div id="auditReportList"></div>
-                </div>
-
                 <input type="hidden" id="editSha" value="">
                 <input type="hidden" id="editFilename" value="">
                 
-                <div style="display: flex; gap: 15px;">
-                    <div class="input-group" style="flex: 2;">
-                        <label>Article Title (SEO Title)</label>
-                        <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Review / How to Edit Videos">
-                    </div>
-                    <div class="input-group" style="flex: 1;">
-                        <label>Focus Target Keyword</label>
-                        <input type="text" id="targetKeyword" placeholder="e.g. Kinemaster Pro">
-                    </div>
-                </div>
-
                 <div class="input-group">
-                    <label>URL Slug</label>
-                    <input type="text" id="postSlug" placeholder="e.g. kinemaster-pro-review-guide">
+                    <label>Article Title</label>
+                    <input type="text" id="postTitle" placeholder="e.g. Kinemaster Pro Mod APK">
                 </div>
                 <div class="input-group">
-                    <label>SEO Meta Description</label>
-                    <input type="text" id="metaDesc" placeholder="Short summary for Google search snippet">
+                    <label>Meta Description</label>
+                    <input type="text" id="metaDesc" placeholder="Short SEO description">
                 </div>
                 <div class="input-group">
-                    <label>Article Content & Formatting</label>
-                    
-                    <div class="toolbar">
-                        <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Fast Formats:</span>
-                        <button type="button" class="btn-tool" id="fmtH2Btn">H2 Heading</button>
-                        <button type="button" class="btn-tool" id="fmtH3Btn">H3 Heading</button>
-                        <button type="button" class="btn-tool" id="fmtGuideBtn">+ Add Guide Steps</button>
-                        <button type="button" class="btn-tool" id="fmtReviewBtn">+ Add Pros/Cons Box</button>
-                        <button type="button" class="btn-tool" id="fmtVideoBtn">+ Add Video Tutorial</button>
-                        <button type="button" class="btn-tool" id="fmtDownloadBtn">+ Add Download Button</button>
-                    </div>
-
-                    <textarea id="postContent" rows="12" placeholder="Write your Review, Guide, or Educational Article here..."></textarea>
+                    <label>Article Content (Markdown / HTML)</label>
+                    <textarea id="postContent" placeholder="Write your review or guide here..."></textarea>
                 </div>
 
-                <!-- VIDEO SEO SCHEMA -->
-                <div style="background: rgba(15, 23, 42, 0.3); border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="font-size: 14px; margin-bottom: 10px; color: #c084fc;">🎬 Video SEO Schema (Optional)</h4>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="videoTitle" placeholder="Video Title for Google Search">
-                        <input type="text" id="videoUrl" placeholder="YouTube Video URL (e.g. https://www.youtube.com/watch?v=xxx)">
-                    </div>
-                </div>
-
-                <!-- PUBLISH & DRAFT ACTION BUTTONS -->
-                <div class="action-buttons-group">
-                    <button type="button" class="btn-draft" id="saveDraftBtn">💾 Save as Draft</button>
-                    <button type="button" id="publishLiveBtn">⚡ Publish Live Article</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="publishPost(false)" style="background: var(--success);">⚡ Publish / Update Live</button>
                 </div>
                 <div id="actionMsg" class="msg"></div>
             </div>
 
-            <!-- MANAGE POSTS TAB -->
+            <!-- MANAGE TAB -->
             <div id="manageTab" class="tab-content">
-                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Published Articles & Drafts</h3>
+                <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--text-muted);">Published Articles List</h3>
                 <div id="postsList">Loading articles...</div>
             </div>
         </div>
@@ -558,97 +128,33 @@
     <script>
         const REPO = "haseebaslam091-afk/proeditsapk";
         const SECURITY_ANSWER = "Laadi Wifoxo";
-
         let authData = JSON.parse(localStorage.getItem('proedits_auth') || 'null');
 
         document.addEventListener("DOMContentLoaded", () => {
-            if (authData) {
-                showDashboard();
-            }
-
-            document.getElementById('loginBtn').addEventListener('click', handleLogin);
-            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-
-            document.getElementById('tabCreateBtn').addEventListener('click', () => switchTab('create'));
-            document.getElementById('tabManageBtn').addEventListener('click', () => switchTab('manage'));
-
-            document.getElementById('auditBtn').addEventListener('click', () => runLiveSeoAudit(true));
-            document.getElementById('densityBtn').addEventListener('click', () => runKeywordDensityCheck(true));
-            document.getElementById('schemaToolBtn').addEventListener('click', () => generateSchemaMarkup(true));
-            document.getElementById('slugToolBtn').addEventListener('click', () => generateSlugTool(true));
-            document.getElementById('canonicalToolBtn').addEventListener('click', () => generateCanonicalTool(true));
-            
-            document.getElementById('sitemapToolBtn').addEventListener('click', () => generateXmlSitemap(true));
-            document.getElementById('robotsToolBtn').addEventListener('click', () => generateRobotsTxt(true));
-            document.getElementById('statusToolBtn').addEventListener('click', () => checkHttpStatusCodes(true));
-            document.getElementById('metaRobotsToolBtn').addEventListener('click', () => generateMetaRobotsTag(true));
-            document.getElementById('hreflangToolBtn').addEventListener('click', () => generateHreflangTags(true));
-            document.getElementById('compareToolBtn').addEventListener('click', () => compareSitemapCrawl(true));
-            document.getElementById('readabilityToolBtn').addEventListener('click', () => checkReadabilityScore(true));
-            
-            // Image SEO Tools Event Listeners
-            document.getElementById('imgCompToolBtn').addEventListener('click', () => runImageCompressor(true));
-            document.getElementById('webpToolBtn').addEventListener('click', () => runWebpConverter(true));
-            document.getElementById('altGenToolBtn').addEventListener('click', () => runAltTextGenerator(true));
-            document.getElementById('ogPrevToolBtn').addEventListener('click', () => runOgPreview(true));
-            document.getElementById('imgSeoToolBtn').addEventListener('click', () => runImgSeoChecker(true));
-            document.getElementById('imgNameToolBtn').addEventListener('click', () => runImgFilenameGen(true));
-            document.getElementById('imgDimToolBtn').addEventListener('click', () => runImgDimensionsChecker(true));
-
-            document.getElementById('contentAnalyzerBtn').addEventListener('click', () => runContentAnalyzer(true));
-            document.getElementById('metaGeneratorBtn').addEventListener('click', () => generateMetaTags(true));
-
-            document.getElementById('closeModalBtn').addEventListener('click', () => {
-                document.getElementById('auditReportBox').style.display = 'none';
-            });
-
-            document.getElementById('postTitle').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
-            document.getElementById('targetKeyword').addEventListener('input', () => { updateAllSeoTools(); });
-            document.getElementById('metaDesc').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
-            document.getElementById('postContent').addEventListener('input', () => { clearHighlights(); updateAllSeoTools(); });
-
-            document.getElementById('fmtH2Btn').addEventListener('click', () => insertTag('## ', ''));
-            document.getElementById('fmtH3Btn').addEventListener('click', () => insertTag('### ', ''));
-            document.getElementById('fmtGuideBtn').addEventListener('click', insertGuideBox);
-            document.getElementById('fmtReviewBtn').addEventListener('click', insertReviewBox);
-            document.getElementById('fmtVideoBtn').addEventListener('click', insertVideoEmbed);
-            document.getElementById('fmtDownloadBtn').addEventListener('click', insertDownloadBtn);
-
-            document.getElementById('saveDraftBtn').addEventListener('click', () => publishPost(true));
-            document.getElementById('publishLiveBtn').addEventListener('click', () => publishPost(false));
+            if (authData) showDashboard();
         });
 
         function handleLogin() {
             const ans = document.getElementById('secAnswer').value.trim();
             const t = document.getElementById('token').value.trim();
-
             if (ans.toLowerCase() === SECURITY_ANSWER.toLowerCase() && t.length > 5) {
                 authData = { token: t };
                 localStorage.setItem('proedits_auth', JSON.stringify(authData));
                 showDashboard();
             } else {
-                document.getElementById('loginMsg').innerText = "Ghalat jawab ya token! Dobara koshish karein.";
+                document.getElementById('loginMsg').innerText = "Ghalat jawab ya token!";
             }
         }
 
         function handleLogout() {
             localStorage.removeItem('proedits_auth');
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            const tokenInput = document.getElementById('token');
-            const ansInput = document.getElementById('secAnswer');
-            if(tokenInput) tokenInput.value = '';
-            if(ansInput) ansInput.value = '';
-
-            window.location.replace(window.location.pathname + '?nocache=' + new Date().getTime());
+            location.reload();
         }
 
         function showDashboard() {
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'block';
             loadPosts();
-            updateAllSeoTools();
         }
 
         function switchTab(tab) {
@@ -664,585 +170,109 @@
             }
         }
 
-        function clearHighlights() {
-            document.getElementById('postTitle').classList.remove('highlight-field');
-            document.getElementById('metaDesc').classList.remove('highlight-field');
-            document.getElementById('postContent').classList.remove('highlight-field');
-        }
-
-        function updateAllSeoTools() {
-            runLiveSeoAudit(false);
-        }
-
-        // --- CORE SEO TOOLS ---
-        function generateSchemaMarkup(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim() || 'Your Article Title';
-            const desc = document.getElementById('metaDesc').value.trim() || 'Your meta description summary here.';
-            const schemaSnippet = `{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "${title}",\n  "description": "${desc}",\n  "author": {\n    "@type": "Person",\n    "name": "ProEditsAPK"\n  },\n  "datePublished": "${new Date().toISOString()}"\n}`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "⭐ Schema Markup Generator (JSON-LD)";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated JSON-LD Schema:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#c4b5fd; overflow-x:auto;">${schemaSnippet}</pre></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function generateSlugTool(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim() || document.getElementById('postSlug').value.trim() || 'sample article title';
-            const stopWords = ['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'by'];
-            let words = title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
-            let filtered = words.filter(w => !stopWords.includes(w));
-            let slug = filtered.join('-');
-            document.getElementById('postSlug').value = slug;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🔗 URL Slug Generator Output";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated SEO Slug:</strong> <code style="background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; color:#fde047;">${slug}</code></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function generateCanonicalTool(showModal = false) {
-            const slug = document.getElementById('postSlug').value.trim() || 'sample-page';
-            const canonicalTag = `<link rel="canonical" href="https://proeditsapk.com/${slug}">`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🛡️ Canonical Tag Generator Output";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated Canonical Tag:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5fd;">${canonicalTag}</pre></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function generateXmlSitemap(showModal = false) {
-            const slug = document.getElementById('postSlug').value.trim() || 'sample-page';
-            const dateStr = new Date().toISOString().split('T')[0];
-            const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>https://proeditsapk.com/${slug}</loc>\n    <lastmod>${dateStr}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n</urlset>`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🗺️ XML Sitemap Generator Output";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated XML Sitemap:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#fde047; overflow-x:auto;">${sitemapXml}</pre></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function generateRobotsTxt(showModal = false) {
-            const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /private/\n\nSitemap: https://proeditsapk.com/sitemap.xml`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🤖 Robots.txt Generator Output";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated Robots.txt:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#fde047; overflow-x:auto;">${robotsTxt}</pre></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function checkHttpStatusCodes(showModal = false) {
-            const slug = document.getElementById('postSlug').value.trim() || 'sample-page';
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🔍 HTTP Status Code Checker Results";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">✓ URL: https://proeditsapk.com/${slug} → <strong>200 OK (Active & Indexable)</strong></div>
-                    <div class="audit-item audit-pass">✓ URL: https://proeditsapk.com/admin/ → <strong>200 OK</strong></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function generateMetaRobotsTag(showModal = false) {
-            const metaRobots = `<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🏷️ Meta Robots Tag Generator Output";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated Meta Robots Tag:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#fdba74;">${metaRobots}</pre></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function generateHreflangTags(showModal = false) {
-            const slug = document.getElementById('postSlug').value.trim() || 'sample-page';
-            const hreflangSnippet = `<link rel="alternate" hreflang="en" href="https://proeditsapk.com/${slug}">\n<link rel="alternate" hreflang="ur" href="https://proeditsapk.com/ur/${slug}">\n<link rel="alternate" hreflang="x-default" href="https://proeditsapk.com/${slug}">`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🌍 Hreflang Tags Generator Output";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated Hreflang Tags:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#5eead4;">${hreflangSnippet}</pre></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function compareSitemapCrawl(showModal = false) {
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "📊 Sitemap vs Crawl Comparison Report";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">✓ In Both Sitemap & Crawl: <strong>24 Pages</strong></div>
-                    <div class="audit-item audit-fail">⚠ Sitemap Only (Potential Dead Weight): <strong>2 Pages</strong></div>
-                    <div class="audit-item audit-fail">⚠ Crawl Only (Orphaned Pages): <strong>3 Pages</strong></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function checkReadabilityScore(showModal = false) {
-            const content = document.getElementById('postContent').value.trim();
-            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
-            const totalWords = words.length;
-            const sentences = content.split(/[.!?]+/).filter(Boolean).length || 1;
-            const avgWordsPerSentence = (totalWords / sentences).toFixed(1);
-
-            let score = 75;
-            let label = "Standard / Easy to Read";
-            if(totalWords < 50) { score = 85; label = "Very Easy"; } 
-            else if(avgWordsPerSentence > 20) { score = 45; label = "Difficult (Long Sentences)"; }
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "📖 Readability Checker Report";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">✓ Flesch Reading-Ease Score: <strong>${score} / 100</strong> (${label})</div>
-                    <div class="audit-item audit-pass">✓ Word Count: <strong>${totalWords} words</strong></div>
-                    <div class="audit-item audit-pass">✓ Sentence Count: <strong>${sentences} sentences</strong> (Avg ${avgWordsPerSentence} words/sentence)</div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        // --- NEW IMAGE TOOLS IMPLEMENTATION ---
-        function runImageCompressor(showModal = false) {
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🖼️ Image Compressor Utility";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">✓ Compression Engine Status: <strong>Ready (Lossless & Lossy modes active)</strong></div>
-                    <div class="audit-item audit-pass">✓ Average Expected Savings: <strong>40% - 70% file reduction</strong> without quality loss.</div>
-                    <div class="audit-item audit-pass">✓ Supported Formats: <strong>JPEG, PNG, WebP, SVG</strong></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runWebpConverter(showModal = false) {
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🔄 WebP Converter Tool";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">✓ Conversion Pipeline: <strong>Active (JPEG/PNG to modern WebP format)</strong></div>
-                    <div class="audit-item audit-pass">✓ Speed Benefit: <strong>Boosts Google PageSpeed Insights score by up to 25%</strong>.</div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runAltTextGenerator(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim() || 'featured graphic';
-            const generatedAlt = `alt="${title} illustration and visual preview for ProEditsAPK"`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🏷️ Image Alt Text Generator";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">
-                        <div><strong>Generated SEO Alt Text Attribute:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#67e8f9;">${generatedAlt}</pre></div>
-                    </div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runOgPreview(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim() || 'ProEditsAPK Platform';
-            const desc = document.getElementById('metaDesc').value.trim() || 'Download latest apps and guides.';
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "📱 Open Graph Image Social Preview";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass" style="background:rgba(15,23,42,0.8); border:1px solid #334155; padding:15px; border-radius:12px;">
-                        <div style="font-size:12px; color:#94a3b8; margin-bottom:4px;">PROEDITSAPK.COM</div>
-                        <div style="font-size:15px; font-weight:700; color:#f8fafc; margin-bottom:6px;">${title}</div>
-                        <div style="font-size:13px; color:#cbd5e1; margin-bottom:10px;">${desc}</div>
-                        <div style="background:#1e293b; height:120px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#64748b; font-size:12px;">[1200x630 Social Hero Image Preview Box]</div>
-                    </div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runImgSeoChecker(showModal = false) {
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🔍 Image SEO Page Auditor";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">✓ Total Images Scanned on Page: <strong>4 images</strong></div>
-                    <div class="audit-item audit-pass">✓ Images with Alt Text: <strong>4 / 4 (100%)</strong></div>
-                    <div class="audit-item audit-pass">✓ Oversized Images (>200KB): <strong>None detected</strong></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runImgFilenameGen(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim() || 'app review banner';
-            const cleanName = title.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-') + '-latest.webp';
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "📁 Image Filename Generator";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">
-                        <div><strong>Optimized SEO Filename:</strong> <code style="background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:4px; color:#4ade80;">${cleanName}</code></div>
-                    </div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runImgDimensionsChecker(showModal = false) {
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "📐 Image Dimensions Checker";
-                document.getElementById('auditReportList').innerHTML = `
-                    <div class="audit-item audit-pass">✓ Standard Blog Hero Banner: <strong>1200px × 630px (1.91:1 Ratio)</strong></div>
-                    <div class="audit-item audit-pass">✓ Thumbnail / Card Size: <strong>600px × 400px (3:2 Ratio)</strong></div>
-                    <div class="audit-item audit-pass">✓ Favicon / Icon Size: <strong>512px × 512px (Square 1:1)</strong></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runKeywordDensityCheck(showModal = false) {
-            const content = document.getElementById('postContent').value.trim();
-            const focusKw = document.getElementById('targetKeyword').value.trim().toLowerCase();
-            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
-            const totalWords = words.length;
-
-            let targetCount = 0;
-            if (focusKw && totalWords > 0) {
-                const matches = content.toLowerCase().match(new RegExp(focusKw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'));
-                targetCount = matches ? matches.length : 0;
-            }
-
-            const density = totalWords > 0 && focusKw ? ((targetCount / totalWords) * 100).toFixed(1) : 0;
-
-            if (showModal) {
-                let report = [];
-                document.getElementById('reportModalTitle').innerText = "📈 Keyword Density Checker Output";
-                if (focusKw) {
-                    if (density >= 1.0 && density <= 2.0) {
-                        report.push(`<div class="audit-item audit-pass">✓ Optimal Density: '${focusKw}' is at ${density}% (Perfect 1-2% range).</div>`);
-                    } else if (density > 2.0) {
-                        report.push(`<div class="audit-item audit-fail"><strong>✗ Keyword Stuffing Warning:</strong> '${focusKw}' density is ${density}%. Aim for 1-2%.</div>`);
-                    } else {
-                        report.push(`<div class="audit-item audit-fail"><strong>✗ Low Density:</strong> '${focusKw}' density is ${density}%. Aim for 1-2%.</div>`);
-                    }
-                } else {
-                    report.push(`<div class="audit-item audit-fail">✗ Please enter a Focus Target Keyword to check its density.</div>`);
-                }
-                document.getElementById('auditReportList').innerHTML = report.join('');
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runContentAnalyzer(showModal = false) {
-            const content = document.getElementById('postContent').value.trim();
-            const words = content.toLowerCase().match(/\b\w+\b/g) || [];
-            const totalWords = words.length;
-
-            if (showModal) {
-                let report = [];
-                document.getElementById('reportModalTitle').innerText = "📊 SEO Content & Readability Analyzer";
-                report.push(`<div class="audit-item audit-pass">✓ Total Word Count: ${totalWords} words.</div>`);
-                if (totalWords < 250) {
-                    report.push(`<div class="audit-item audit-fail">✗ Article is too short. Expand to 250+ words for better rankings.</div>`);
-                } else {
-                    report.push(`<div class="audit-item audit-pass">✓ Article content length is optimal.</div>`);
-                }
-                document.getElementById('auditReportList').innerHTML = report.join('');
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function generateMetaTags(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim() || 'Page Title';
-            const desc = document.getElementById('metaDesc').value.trim() || 'Meta description goes here.';
-            const htmlSnippet = `<title>${title}</title>\n<meta name="description" content="${desc}">\n<meta name="robots" content="index, follow">`;
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🏷️ Meta Title & Description Generator Output";
-                document.getElementById('auditReportList').innerHTML = `<div class="audit-item audit-pass"><div><strong>Generated HTML Tags Snippet:</strong><pre style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin-top:8px; font-size:11px; color:#93c5fd;">${htmlSnippet}</pre></div></div>`;
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function runLiveSeoAudit(showModal = false) {
-            const title = document.getElementById('postTitle').value.trim();
-            const desc = document.getElementById('metaDesc').value.trim();
-            const content = document.getElementById('postContent').value.trim();
-
-            let score = 20;
-            let report = [];
-
-            if (title.length >= 20 && title.length <= 70) {
-                score += 20;
-                report.push('<div class="audit-item audit-pass">✓ Article Title length is optimal for Google Search (20-70 chars).</div>');
-            } else {
-                report.push(`<div class="audit-item audit-fail">✗ Title length must be 20 to 70 characters (Current: ${title.length}).</div>`);
-            }
-
-            if (desc.length >= 50 && desc.length <= 160) {
-                score += 20;
-                report.push('<div class="audit-item audit-pass">✓ Meta Description is well optimized for snippets.</div>');
-            } else {
-                report.push(`<div class="audit-item audit-fail">✗ Meta Description must be 50 to 160 characters (Current: ${desc.length}).</div>`);
-            }
-
-            if (content.length > 250) {
-                score += 20;
-                report.push('<div class="audit-item audit-pass">✓ Good article content length for ranking.</div>');
-            } else {
-                report.push(`<div class="audit-item audit-fail">✗ Content is too short, aim for 250+ words.</div>`);
-            }
-
-            if (content.includes('## ') || content.includes('### ')) {
-                score += 10;
-                report.push('<div class="audit-item audit-pass">✓ Proper Headings (H2 / H3) utilized.</div>');
-            } else {
-                report.push(`<div class="audit-item audit-fail">✗ Missing H2 or H3 structure in content.</div>`);
-            }
-
-            if (content.includes('Download') || content.includes('http')) {
-                score += 10;
-                report.push('<div class="audit-item audit-pass">✓ Download button or valid link included.</div>');
-            } else {
-                report.push(`<div class="audit-item audit-fail">✗ Missing APK Download link or conversion button.</div>`);
-            }
-
-            score = Math.min(score, 100);
-            document.getElementById('liveSeoScore').innerText = score;
-
-            const circleEl = document.getElementById('scoreCircle');
-            const statusEl = document.getElementById('auditStatus');
-
-            if (score < 60) {
-                circleEl.style.borderColor = "#ef4444";
-                statusEl.innerText = "Needs Attention";
-                statusEl.style.color = "#ef4444";
-            } else if (score < 80) {
-                circleEl.style.borderColor = "#eab308";
-                statusEl.innerText = "Good SEO";
-                statusEl.style.color = "#eab308";
-            } else {
-                circleEl.style.borderColor = "#22c55e";
-                statusEl.innerText = "Fully Optimized";
-                statusEl.style.color = "#16a34a";
-            }
-
-            if (showModal) {
-                document.getElementById('reportModalTitle').innerText = "🔍 Technical SEO On-Page Checklist";
-                document.getElementById('auditReportList').innerHTML = report.join('');
-                document.getElementById('auditReportBox').style.display = 'block';
-            }
-        }
-
-        function insertTag(startTag, endTag) {
-            const textarea = document.getElementById('postContent');
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = textarea.value;
-            const selectedText = text.substring(start, end) || "Heading Text";
-            textarea.value = text.substring(0, start) + startTag + selectedText + endTag + text.substring(end);
-        }
-
-        function insertGuideBox() {
-            document.getElementById('postContent').value += `\n### Step-by-Step Guide:\n1. **Step 1:** Download application.\n2. **Step 2:** Enable unknown sources.\n3. **Step 3:** Install and enjoy.\n`;
-        }
-
-        function insertReviewBox() {
-            document.getElementById('postContent').value += `\n### App Review Summary:\n* **Performance:** 4.8/5\n* **Pros:** No Ads, Premium Unlocked\n`;
-        }
-
-        function insertVideoEmbed() {
-            const url = prompt("Enter YouTube / Video Link:");
-            if(!url) return;
-            let embedUrl = url;
-            if(url.includes("youtube.com/watch?v=")) {
-                const videoId = url.split("v=")[1].split("&")[0];
-                embedUrl = `https://www.youtube.com/embed/${videoId}`;
-            } else if(url.includes("youtu.be/")) {
-                const videoId = url.split("youtu.be/")[1].split("?")[0];
-                embedUrl = `https://www.youtube.com/embed/${videoId}`;
-            }
-            document.getElementById('postContent').value += `\n<div class="video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;margin:20px 0;"><iframe src="${embedUrl}" title="Video Tutorial" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe></div>\n`;
-        }
-
-        function insertDownloadBtn() {
-            const url = prompt("Enter Direct Download APK Link:");
-            if(!url) return;
-            document.getElementById('postContent').value += `\n<div style="text-align:center;margin:25px 0;"><a href="${url}" target="_blank" rel="noopener noreferrer" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:white;padding:16px 32px;border-radius:12px;font-weight:700;font-size:18px;text-decoration:none;display:inline-block;box-shadow:0 6px 20px rgba(34,197,94,0.4);">⚡ Download APK (Latest Version)</a></div>\n`;
-        }
-
         async function loadPosts() {
             const listDiv = document.getElementById('postsList');
-            listDiv.innerHTML = "Fetching articles and drafts...";
+            listDiv.innerHTML = "Fetching articles...";
             try {
+                let res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
+                    headers: { 'Authorization': `token ${authData.token}` }
+                });
+                if(!res.ok) throw new Error("Could not fetch _posts folder");
+                const files = await res.json();
+                
                 let html = '';
-                try {
-                    let resPosts = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
-                        headers: { 'Authorization': `token ${authData.token}` }
-                    });
-                    if(resPosts.ok) {
-                        const posts = await resPosts.json();
-                        for(let file of posts) {
-                            if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
-                                html += `
-                                    <div class="post-card">
-                                        <div class="post-info">
-                                            <h4>${file.name} <span class="badge-published">Published</span></h4>
-                                            <span>Path: ${file.path}</span>
-                                        </div>
-                                        <div class="post-actions">
-                                            <button type="button" class="btn-sm" onclick="editPost('${file.path}')">Edit</button>
-                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}')">Delete</button>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        }
+                for(let file of files) {
+                    if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                        html += `
+                            <div class="post-card">
+                                <div>
+                                    <h4>${file.name} <span class="badge-published">Live</span></h4>
+                                    <span style="font-size:12px; color:var(--text-muted);">${file.path}</span>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn-sm" onclick="editPost('${file.path}')">Edit</button>
+                                    <button class="btn-sm btn-danger" onclick="deletePost('${file.path}')">Delete</button>
+                                </div>
+                            </div>
+                        `;
                     }
-                } catch(e) {}
-
-                try {
-                    let resDrafts = await fetch(`https://api.github.com/repos/${REPO}/contents/_drafts`, {
-                        headers: { 'Authorization': `token ${authData.token}` }
-                    });
-                    if(resDrafts.ok) {
-                        const drafts = await resDrafts.json();
-                        for(let file of drafts) {
-                            if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
-                                html += `
-                                    <div class="post-card" style="border-color: rgba(234, 179, 8, 0.4);">
-                                        <div class="post-info">
-                                            <h4>${file.name} <span class="badge-draft">Draft</span></h4>
-                                            <span>Path: ${file.path}</span>
-                                        </div>
-                                        <div class="post-actions">
-                                            <button type="button" class="btn-sm" onclick="editPost('${file.path}')">Review & Publish</button>
-                                            <button type="button" class="btn-sm btn-danger" onclick="deletePost('${file.path}')">Delete</button>
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    }
-                } catch(e) {}
-
-                if(!html) {
-                    listDiv.innerHTML = "<p style='color: var(--text-muted);'>No articles found.</p>";
-                } else {
-                    listDiv.innerHTML = html;
                 }
+                listDiv.innerHTML = html || "<p style='color:var(--text-muted);'>No articles found.</p>";
             } catch(e) {
-                listDiv.innerHTML = `<p style="color: var(--danger);">Error loading list: ${e.message}</p>`;
+                listDiv.innerHTML = `<p style="color:var(--danger);">Error: ${e.message}</p>`;
             }
         }
 
-        async function publishPost(isDraft = false) {
+        async function publishPost() {
             const title = document.getElementById('postTitle').value.trim();
-            const slug = document.getElementById('postSlug').value.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
             const desc = document.getElementById('metaDesc').value.trim();
             const content = document.getElementById('postContent').value.trim();
-            const vTitle = document.getElementById('videoTitle').value.trim();
-            const vUrl = document.getElementById('videoUrl').value.trim();
-            const editFilename = document.getElementById('editFilename').value;
-            const editSha = document.getElementById('editSha').value;
+            const editFilename = document.getElementById('editFilename').value.trim();
+            const editSha = document.getElementById('editSha').value.trim();
             const msgEl = document.getElementById('actionMsg');
 
             if(!title || !content) {
-                msgEl.style.color = "var(--danger)";
-                msgEl.innerText = "Please fill in title and content!";
+                alert("Please fill in title and content!");
                 return;
             }
 
-            let videoSchema = '';
-            if(vTitle && vUrl) {
-                videoSchema = `\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "VideoObject",\n  "name": "${vTitle}",\n  "description": "${desc}",\n  "embedUrl": "${vUrl}",\n  "uploadDate": "${new Date().toISOString()}"\n}\n<\/script>\n`;
-            }
+            let cleanSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            let todayDateStr = new Date().toISOString().split('T')[0];
+            let finalFilePath = editFilename || `_posts/${todayDateStr}-${cleanSlug}.md`;
 
-            let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '');
-            let folderPrefix = isDraft ? "_drafts" : "_posts";
-            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
-            let finalFilePath = `${folderPrefix}/${fileNameOnly}`;
+            const fileContent = `---
+layout: post
+title: "${title.replace(/"/g, '\\"')}"
+description: "${desc.replace(/"/g, '\\"')}"
+date: ${new Date().toISOString()}
+---
 
-            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
-            const encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
+${content}`;
 
-            msgEl.style.color = "var(--text-muted)";
-            msgEl.innerText = isDraft ? "Saving to Drafts..." : "Publishing Live...";
+            let encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
+            msgEl.innerText = "Saving to GitHub...";
 
             try {
-                let existingSha = null;
-                try {
-                    const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
-                        headers: { 'Authorization': `token ${authData.token}` }
-                    });
-                    if(checkRes.ok) {
-                        const checkData = await checkRes.json();
-                        existingSha = checkData.sha;
-                    }
-                } catch(err) {}
+                let sha = editSha;
+                if(!sha) {
+                    try {
+                        const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
+                            headers: { 'Authorization': `token ${authData.token}` }
+                        });
+                        if(checkRes.ok) {
+                            const checkData = await checkRes.json();
+                            sha = checkData.sha;
+                        }
+                    } catch(e) {}
+                }
 
                 let bodyData = {
-                    message: isDraft ? `Save draft: ${title}` : `Publish article: ${title}`,
+                    message: `CMS: Update/Create ${title}`,
                     content: encodedContent
                 };
-
-                if(existingSha) {
-                    bodyData.sha = existingSha;
-                } else if(editSha && editFilename === finalFilePath) {
-                    bodyData.sha = editSha;
-                }
+                if(sha) bodyData.sha = sha;
 
                 let res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
                     method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${authData.token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `token ${authData.token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(bodyData)
                 });
 
-                if(!res.ok) {
-                    finalFilePath = fileNameOnly;
-                    res = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${authData.token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(bodyData)
-                    });
-                }
-
                 if(res.ok) {
-                    if(!isDraft && editFilename && editFilename.includes('draft-')) {
-                        try {
-                            const getShaRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
-                                headers: { 'Authorization': `token ${authData.token}` }
-                            });
-                            if(getShaRes.ok) {
-                                const dData = await getShaRes.json();
-                                await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'Authorization': `token ${authData.token}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ message: `Remove draft after publishing`, sha: dData.sha })
-                                });
-                            }
-                        } catch(e) {}
-                    }
-
-                    msgEl.style.color = "var(--success)";
-                    msgEl.innerText = isDraft ? "Draft successfully saved!" : "Article successfully published live!";
-                    setTimeout(() => {
-                        document.getElementById('postTitle').value = '';
-                        document.getElementById('postSlug').value = '';
-                        document.getElementById('metaDesc').value = '';
-                        document.getElementById('postContent').value = '';
-                        document.getElementById('videoTitle').value = '';
-                        document.getElementById('videoUrl').value = '';
-                        document.getElementById('editFilename').value = '';
-                        document.getElementById('editSha').value = '';
-                        msgEl.innerText = '';
-                        switchTab('manage');
-                    }, 1200);
+                    alert("Article successfully saved!");
+                    document.getElementById('postTitle').value = '';
+                    document.getElementById('metaDesc').value = '';
+                    document.getElementById('postContent').value = '';
+                    document.getElementById('editFilename').value = '';
+                    document.getElementById('editSha').value = '';
+                    switchTab('manage');
                 } else {
                     const err = await res.json();
-                    throw new Error(err.message || "Operation failed");
+                    throw new Error(err.message || "Failed to save");
                 }
             } catch(e) {
-                msgEl.style.color = "var(--danger)";
-                msgEl.innerText = "Error: " + e.message;
+                alert("Error: " + e.message);
+                msgEl.innerText = "";
             }
         }
 
@@ -1252,47 +282,56 @@
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
                 const data = await res.json();
-                const decoded = decodeURIComponent(escape(atob(data.content)));
-                
+                const decoded = decodeURIComponent(atob(data.content).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+
                 document.getElementById('editFilename').value = data.path;
                 document.getElementById('editSha').value = data.sha;
-                
-                const filenameOnly = filePath.split('/').pop();
-                document.getElementById('postTitle').value = filenameOnly.replace('.md','').replace(/^draft-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
-                document.getElementById('postContent').value = decoded;
-                
+
+                let titleVal = "";
+                let descVal = "";
+                let contentVal = decoded;
+
+                if (decoded.includes('---')) {
+                    const parts = decoded.split('---');
+                    if (parts.length >= 3) {
+                        const frontMatter = parts[1];
+                        contentVal = parts.slice(2).join('---').trim();
+                        const titleMatch = frontMatter.match(/title:\s*"([^"]+)"/);
+                        if (titleMatch) titleVal = titleMatch[1];
+                        const descMatch = frontMatter.match(/description:\s*"([^"]+)"/);
+                        if (descMatch) descVal = descMatch[1];
+                    }
+                }
+
+                document.getElementById('postTitle').value = titleVal;
+                document.getElementById('metaDesc').value = descVal;
+                document.getElementById('postContent').value = contentVal;
                 switchTab('create');
-                updateAllSeoTools();
             } catch(e) {
-                alert("Could not load file for editing.");
+                alert("Could not load file: " + e.message);
             }
         }
 
         async function deletePost(filePath) {
-            if(!confirm(`Are you sure you want to delete ${filePath}?`)) return;
+            if(!confirm(`Kya aap waqai ${filePath} ko delete karna chahte hain?`)) return;
             try {
                 const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
-                if(!checkRes.ok) throw new Error("Could not find file on GitHub.");
+                if(!checkRes.ok) throw new Error("File not found on GitHub");
                 const fileData = await checkRes.json();
 
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `token ${authData.token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `Delete file: ${filePath}`,
-                        sha: fileData.sha
-                    })
+                    headers: { 'Authorization': `token ${authData.token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Delete ${filePath}`, sha: fileData.sha })
                 });
+
                 if(res.ok) {
+                    alert("Article successfully deleted!");
                     loadPosts();
                 } else {
-                    const errData = await res.json();
-                    throw new Error(errData.message || "Delete failed");
+                    throw new Error("Delete operation failed");
                 }
             } catch(e) {
                 alert("Error deleting file: " + e.message);
