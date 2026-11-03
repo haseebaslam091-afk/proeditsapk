@@ -323,12 +323,14 @@
         }
         animate();
 
-        // App Fetching
+        // App Fetching directly from GitHub API
         async function fetchPosts() {
             const grid = document.getElementById('appsGrid');
             const countEl = document.getElementById('appCount');
+            const repo = "haseebaslam091-afk/proeditsapk";
+            
             try {
-                const res = await fetch('https://api.github.com/repos/haseebaslam091-afk/proeditsapk/contents/_posts');
+                const res = await fetch(`https://api.github.com/repos/${repo}/contents/_posts`);
                 if(!res.ok) throw new Error("No posts found");
                 
                 const files = await res.json();
@@ -368,7 +370,7 @@
             }
         }
 
-        // Clean Front-matter & Parse Markdown
+        // Clean Front-matter & Parse Markdown inside Modal
         async function openArticle(url, title) {
             const modal = document.getElementById('articleModal');
             const modalTitle = document.getElementById('modalTitle');
