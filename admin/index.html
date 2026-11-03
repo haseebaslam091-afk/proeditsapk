@@ -730,6 +730,7 @@
                 
                 reader.onload = (function(tag, fName) {
                     return function(uploadEvent) {
+                        // Safe image tag markup without heavy raw bloat breaking JSON
                         uploadedImagesMap[tag] = `<div style="text-align:center;margin:25px 0;"><img src="${uploadEvent.target.result}" alt="${fName}" style="max-width:100%;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);"></div>`;
                     };
                 })(tagKey, file.name);
@@ -1094,8 +1095,8 @@
 
             const fileContent = `---
 layout: post
-title: "${title}"
-description: "${desc}"
+title: "${title.replace(/"/g, '\\"')}"
+description: "${desc.replace(/"/g, '\\"')}"
 date: ${new Date().toISOString()}
 draft: ${isDraft}
 ---
@@ -1104,7 +1105,11 @@ ${videoSchema}${content}`;
             
             let encodedContent;
             try {
-                encodedContent = btoa(unescape(encodeURIComponent(fileContent)));
+                // FIXED SAFE ENCODING FOR LARGE TEXT & IMAGES
+                encodedContent = btoa(encodeURIComponent(fileContent).replace(/%([0-9A-F]{2})/g,
+                    function toSolidBytes(match, p1) {
+                        return String.fromCharCode('0x' + p1);
+                }));
             } catch(err) {
                 msgEl.style.color = "var(--danger)";
                 msgEl.innerText = "Encoding Error: " + err.message;
@@ -1180,9 +1185,9 @@ ${videoSchema}${content}`;
                 });
                 const data = await res.json();
                 
-                const binaryString = atob(data.content);
-                const bytes = Uint8Array.from(binaryString, (m) => m.codePointAt(0));
-                const decoded = new TextDecoder().decode(bytes);
+                const decoded = decodeURIComponent(atob(data.content).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
                 
                 document.getElementById('editFilename').value = data.path;
                 document.getElementById('editSha').value = data.sha;
