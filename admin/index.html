@@ -71,18 +71,6 @@
         .canonical-full-card { background: rgba(224, 242, 254, 0.95); color: #0369a1; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
         .sitemap-full-card { background: rgba(255, 228, 230, 0.95); color: #9f1239; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
         .robots-full-card { background: rgba(254, 226, 226, 0.95); color: #991b1b; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .status-full-card { background: rgba(221, 214, 254, 0.95); color: #4c1d95; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .metarobots-full-card { background: rgba(254, 215, 170, 0.95); color: #7c2d12; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .hreflang-full-card { background: rgba(204, 251, 241, 0.95); color: #134e4a; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .compare-full-card { background: rgba(254, 205, 211, 0.95); color: #881337; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .readability-full-card { background: rgba(229, 231, 235, 0.95); color: #1f2937; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .imgcomp-full-card { background: rgba(224, 231, 255, 0.95); color: #3730a3; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .webp-full-card { background: rgba(250, 232, 255, 0.95); color: #701a75; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .altgen-full-card { background: rgba(207, 250, 254, 0.95); color: #155e75; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .ogprev-full-card { background: rgba(254, 226, 226, 0.95); color: #881337; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .imgseo-full-card { background: rgba(254, 240, 138, 0.95); color: #713f12; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .imgname-full-card { background: rgba(220, 252, 231, 0.95); color: #14532d; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        .imgdim-full-card { background: rgba(243, 244, 246, 0.95); color: #1f2937; border-radius: 20px; padding: 24px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
 
         .card-info { flex: 1; min-width: 250px; }
         .card-info h3 { font-size: 22px; margin-bottom: 8px; }
@@ -512,7 +500,13 @@
         }
 
         function insertDownloadBtn() {
-            document.getElementById('postContent').value += `\n<div style="text-align:center;margin:30px 0;"><a href="#" style="background:#22c55e;color:white;padding:16px 36px;border-radius:14px;font-weight:700;text-decoration:none;display:inline-block;">⚡ Download APK</a></div>\n`;
+            let apkLink = prompt("Enter Direct Download APK Link:", "https://example.com/download.apk");
+            if (!apkLink) return;
+            
+            let btnCode = `\n<div style="text-align:center;margin:30px 0;"><a href="${apkLink}" style="background:#22c55e;color:white;padding:16px 36px;border-radius:14px;font-weight:700;text-decoration:none;display:inline-block;" target="_blank">⚡ Download APK</a></div>\n`;
+            
+            const ta = document.getElementById('postContent');
+            ta.value = ta.value.substring(0, ta.selectionStart) + btnCode + ta.value.substring(ta.selectionEnd);
         }
 
         async function loadPosts() {
