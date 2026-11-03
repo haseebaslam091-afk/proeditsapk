@@ -1084,12 +1084,14 @@
             let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
             let folderPrefix = isDraft ? "_drafts" : "_posts";
             
-            // STRICT JEKYLL FILENAME FORMAT (YYYY-MM-DD-slug.md)
-            let todayDateStr = new Date().toISOString().split('T')[0];
-            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${todayDateStr}-${cleanSlug}.md`;
-            let finalFilePath = editFilename ? editFilename : `${folderPrefix}/${fileNameOnly}`;
+            // STRICT PRESERVATION OF EXISTING FILENAME DURING EDIT TO PREVENT OVERWRITING OR DELETING OTHER POSTS
+            let finalFilePath = editFilename;
+            if (!finalFilePath) {
+                let todayDateStr = new Date().toISOString().split('T')[0];
+                let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${todayDateStr}-${cleanSlug}.md`;
+                finalFilePath = `${folderPrefix}/${fileNameOnly}`;
+            }
 
-            // Standard Jekyll Front Matter YAML structure
             const fileContent = `---
 layout: post
 title: "${title}"
@@ -1114,9 +1116,9 @@ ${videoSchema}${content}`;
 
             try {
                 let existingSha = editSha || null;
-                if (!existingSha && editFilename) {
+                if (!existingSha && finalFilePath) {
                     try {
-                        const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
+                        const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${finalFilePath}`, {
                             headers: { 'Authorization': `token ${authData.token}` }
                         });
                         if(checkRes.ok) {
