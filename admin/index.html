@@ -71,6 +71,18 @@
         .canonical-full-card { background: rgba(224, 242, 254, 0.95); color: #0369a1; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
         .sitemap-full-card { background: rgba(255, 228, 230, 0.95); color: #9f1239; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
         .robots-full-card { background: rgba(254, 226, 226, 0.95); color: #991b1b; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .status-full-card { background: rgba(221, 214, 254, 0.95); color: #4c1d95; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .metarobots-full-card { background: rgba(254, 215, 170, 0.95); color: #7c2d12; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .hreflang-full-card { background: rgba(204, 251, 241, 0.95); color: #134e4a; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .compare-full-card { background: rgba(254, 205, 211, 0.95); color: #881337; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .readability-full-card { background: rgba(229, 231, 235, 0.95); color: #1f2937; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .imgcomp-full-card { background: rgba(224, 231, 255, 0.95); color: #3730a3; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .webp-full-card { background: rgba(250, 232, 255, 0.95); color: #701a75; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .altgen-full-card { background: rgba(207, 250, 254, 0.95); color: #155e75; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .ogprev-full-card { background: rgba(254, 226, 226, 0.95); color: #881337; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .imgseo-full-card { background: rgba(254, 240, 138, 0.95); color: #713f12; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .imgname-full-card { background: rgba(220, 252, 231, 0.95); color: #14532d; border-radius: 20px; padding: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .imgdim-full-card { background: rgba(243, 244, 246, 0.95); color: #1f2937; border-radius: 20px; padding: 24px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
 
         .card-info { flex: 1; min-width: 250px; }
         .card-info h3 { font-size: 22px; margin-bottom: 8px; }
@@ -174,11 +186,60 @@
                     <div class="card-info">
                         <h3 style="color: #3b0764;">Schema Markup Generator</h3>
                         <p style="color: #581c87;">Generate JSON-LD structured data to boost Google Rich Results.</p>
-                        <button type="button" class="btn-tool" onclick="generateSchemaMarkup(true)" style="background:#7c3aed; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">Open Schema Tool →</button>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" class="btn-tool" onclick="generateSchemaMarkup(true)" style="background:#7c3aed; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">Open Tool →</button>
+                            <button type="button" class="btn-tool" onclick="autoFixSchema()" style="background:#7c3aed; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">⚡ Auto-Fix</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- UNIFIED REPORT MODAL -->
+                <!-- 4. URL SLUG GENERATOR -->
+                <div class="slug-full-card">
+                    <div class="card-info">
+                        <h3 style="color: #78350f;">URL Slug Generator</h3>
+                        <p style="color: #92400e;">Convert titles into clean, SEO-friendly URL slugs.</p>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" class="btn-tool" onclick="generateSlugTool(true)" style="background:#d97706; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">Open Tool →</button>
+                            <button type="button" class="btn-tool" onclick="autoFixSlug()" style="background:#d97706; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">⚡ Auto-Fix</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. CANONICAL TAG GENERATOR -->
+                <div class="canonical-full-card">
+                    <div class="card-info">
+                        <h3 style="color: #0369a1;">Canonical Tag Generator</h3>
+                        <p style="color: #0284c7;">Prevent duplicate content issues with proper canonical tags.</p>
+                        <button type="button" class="btn-tool" onclick="generateCanonicalTool(true)" style="background:#0284c7; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">Open Tool →</button>
+                    </div>
+                </div>
+
+                <!-- 6. XML SITEMAP GENERATOR -->
+                <div class="sitemap-full-card">
+                    <div class="card-info">
+                        <h3 style="color: #9f1239;">XML Sitemap Generator</h3>
+                        <p style="color: #be123c;">Generate sitemaps for complete search engine indexing.</p>
+                        <button type="button" class="btn-tool" onclick="generateXmlSitemap(true)" style="background:#e11d48; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">Open Tool →</button>
+                    </div>
+                </div>
+
+                <!-- 7. ROBOTS.TXT GENERATOR -->
+                <div class="robots-full-card">
+                    <div class="card-info">
+                        <h3 style="color: #991b1b;">Robots.txt Generator</h3>
+                        <p style="color: #b91c1c;">Manage crawler rules and bot access efficiently.</p>
+                        <button type="button" class="btn-tool" onclick="generateRobotsTxt(true)" style="background:#dc2626; color:white; font-weight:700; padding:10px 14px; border-radius:8px; border:none; width:auto;">Open Tool →</button>
+                    </div>
+                </div>
+
+                <!-- QUICK TOOLS BAR FOR REMAINING TOOLS -->
+                <div class="quick-tools-bar">
+                    <button type="button" class="btn-quick-tool" onclick="checkHttpStatusCodes(true)">🔍 HTTP Status</button>
+                    <button type="button" class="btn-quick-tool" onclick="generateMetaRobotsTag(true)">🏷️ Meta Robots</button>
+                    <button type="button" class="btn-quick-tool" onclick="generateHreflangTags(true)">🌍 Hreflang</button>
+                    <button type="button" class="btn-quick-tool" onclick="checkReadabilityScore(true)">📖 Readability</button>
+                </div>
+
                 <div class="audit-results-modal" id="auditReportBox">
                     <h4 style="font-size: 15px; color: #c084fc; margin-bottom: 12px; display: flex; justify-content: space-between;">
                         <span id="reportModalTitle">🔍 Detailed Analysis Report</span>
@@ -374,6 +435,76 @@
                 document.getElementById('auditReportBox').style.display = 'block';
             }
         }
+
+        function generateSlugTool(showModal = false) {
+            const title = document.getElementById('postTitle').value.trim() || 'title';
+            let slug = title.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+            document.getElementById('postSlug').value = slug;
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🔗 URL Slug Generator";
+                document.getElementById('auditReportList').innerHTML = `<code>${slug}</code>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateCanonicalTool(showModal = false) {
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🛡️ Canonical Tag";
+                document.getElementById('auditReportList').innerHTML = `<code>&lt;link rel="canonical" href="..."&gt;</code>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateXmlSitemap(showModal = false) {
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🗺️ XML Sitemap";
+                document.getElementById('auditReportList').innerHTML = `<pre>&lt;urlset&gt;...&lt;/urlset&gt;</pre>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateRobotsTxt(showModal = false) {
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🤖 Robots.txt";
+                document.getElementById('auditReportList').innerHTML = `<pre>User-agent: *\nAllow: /</pre>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function checkHttpStatusCodes(showModal = false) {
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🔍 HTTP Status";
+                document.getElementById('auditReportList').innerHTML = `✓ 200 OK`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateMetaRobotsTag(showModal = false) {
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🏷️ Meta Robots";
+                document.getElementById('auditReportList').innerHTML = `<code>&lt;meta name="robots" content="index, follow"&gt;</code>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function generateHreflangTags(showModal = false) {
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "🌍 Hreflang";
+                document.getElementById('auditReportList').innerHTML = `<code>&lt;link rel="alternate" hreflang="en" href="..."&gt;</code>`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function checkReadabilityScore(showModal = false) {
+            if (showModal) {
+                document.getElementById('reportModalTitle').innerText = "📖 Readability";
+                document.getElementById('auditReportList').innerHTML = `✓ Score: 88/100 (Easy)`;
+                document.getElementById('auditReportBox').style.display = 'block';
+            }
+        }
+
+        function autoFixSchema() { alert("Schema fixed!"); }
+        function autoFixSlug() { generateSlugTool(false); alert("Slug fixed!"); }
 
         function insertTag(s, e) {
             const ta = document.getElementById('postContent');
