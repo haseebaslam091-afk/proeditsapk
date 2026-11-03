@@ -323,46 +323,37 @@
         }
         animate();
 
-        // Optimized App Fetching with Tree & Cache Busting
+        // Optimized App Fetching from local posts.json (No GitHub API Rate Limit, No "0 Apps" Error)
         async function fetchPosts() {
             const grid = document.getElementById('appsGrid');
             const countEl = document.getElementById('appCount');
-            const repo = "haseebaslam091-afk/proeditsapk";
             
             try {
-                const res = await fetch(`https://api.github.com/repos/${repo}/git/trees/main?recursive=1&timestamp=` + new Date().getTime());
+                const res = await fetch('posts.json?v=' + new Date().getTime());
                 if(!res.ok) throw new Error("No posts found");
                 
-                const data = await res.json();
+                const posts = await res.json();
                 let html = '';
-                let count = 0;
+                let count = posts.length;
 
-                if (data.tree) {
-                    for(let file of data.tree) {
-                        if(file.path.startsWith('_posts/') && (file.path.endsWith('.md') || file.path.endsWith('.html'))) {
-                            count++;
-                            const fileName = file.path.split('/').pop();
-                            const cleanSlug = fileName.replace(/\.md$/, '').replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
-                            const displayTitle = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                            const rawUrl = `https://raw.githubusercontent.com/${repo}/main/${file.path}?v=` + new Date().getTime();
-
-                            html += `
-                                <div class="card" onclick="openArticle('${rawUrl}', '${displayTitle}')">
-                                    <div>
-                                        <div class="card-top">
-                                            <span class="card-badge">PRO UNLOCKED</span>
-                                            <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
-                                        </div>
-                                        <h3>${displayTitle}</h3>
-                                        <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
+                if (posts && posts.length > 0) {
+                    for(let post of posts) {
+                        html += `
+                            <div class="card" onclick="openArticle('${post.rawUrl}', '${post.title}')">
+                                <div>
+                                    <div class="card-top">
+                                        <span class="card-badge">PRO UNLOCKED</span>
+                                        <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
                                     </div>
-                                    <div class="card-footer">
-                                        <span>⚡ Direct Download</span>
-                                        <button class="btn-download" onclick="event.stopPropagation(); openArticle('${rawUrl}', '${displayTitle}')">Get File</button>
-                                    </div>
+                                    <h3>${post.title}</h3>
+                                    <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
                                 </div>
-                            `;
-                        }
+                                <div class="card-footer">
+                                    <span>⚡ Direct Download</span>
+                                    <button class="btn-download" onclick="event.stopPropagation(); openArticle('${post.rawUrl}', '${post.title}')">Get File</button>
+                                </div>
+                            </div>
+                        `;
                     }
                 }
                 
