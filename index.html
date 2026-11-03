@@ -129,36 +129,19 @@
             color: var(--text-main); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 18px;
         }
 
-        /* Formatted Content Typography */
         .modal-body { color: var(--text-main); font-size: 15px; line-height: 1.7; margin-top: 20px; }
         .modal-body h1, .modal-body h2, .modal-body h3 { color: var(--primary); margin-top: 20px; margin-bottom: 10px; font-weight: 700; }
         .modal-body p { color: var(--text-muted); margin-bottom: 15px; }
-        .modal-body ul, .modal-body ol { margin-left: 20px; margin-bottom: 15px; color: var(--text-muted); }
-        .modal-body li { margin-bottom: 6px; }
-        .modal-body a { color: var(--primary); text-decoration: underline; }
-        .modal-body code { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 
         .legal-section { max-width: 1150px; margin: 40px auto; padding: 30px 20px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px; backdrop-filter: blur(10px); }
         .legal-section h2 { color: var(--primary); margin-bottom: 15px; font-size: 22px; }
-        .legal-section h3 { color: #c084fc; margin-top: 20px; margin-bottom: 10px; font-size: 18px; }
         .legal-section p, .legal-section li { color: var(--text-muted); margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
-        .legal-section ul { padding-left: 20px; }
-        .legal-section a { color: var(--primary); text-decoration: none; }
 
-        footer {
-            background: var(--header-bg); border-top: 1px solid var(--glass-border); padding: 40px 20px 20px; margin-top: auto;
-        }
+        footer { background: var(--header-bg); border-top: 1px solid var(--glass-border); padding: 40px 20px 20px; margin-top: auto; }
         .footer-content { max-width: 1150px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; align-items: center; text-align: center; }
         .footer-links { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
-        .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
-        .footer-links a:hover { color: var(--primary); }
+        .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
         .copyright { color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--glass-border); width: 100%; padding-top: 20px; }
-
-        @media(max-width: 768px) {
-            .nav-links { display: none; }
-            .hero h1 { font-size: 30px; }
-            .modal-content { padding: 20px; }
-        }
     </style>
 </head>
 <body>
@@ -201,7 +184,6 @@
         </div>
     </main>
 
-    <!-- Modal Box for Clean Article Render -->
     <div id="articleModal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal()">✕</button>
@@ -210,47 +192,13 @@
         </div>
     </div>
 
-    <!-- Legal Sections -->
-    <div id="privacy" class="legal-section">
-        <h2>Privacy Policy</h2>
-        <p>At ProEditsAPK, accessible from proeditsapk.com, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by ProEditsAPK and how we use it.</p>
-        <h3>Information We Collect</h3>
-        <p>We do not require user registration to download APKs. When you visit our site, standard log files and analytics data may be collected to improve our high-speed downloads and user experience.</p>
-        <h3>Consent</h3>
-        <p>By using our website, you hereby consent to our Privacy Policy and agree to its terms.</p>
-    </div>
-
-    <div id="terms" class="legal-section">
-        <h2>Terms of Service</h2>
-        <p>Welcome to ProEditsAPK! By accessing our website, you agree to comply with and be bound by the following terms and conditions.</p>
-        <h3>Use of APKs</h3>
-        <p>All APK files provided on this platform are for educational, testing, and personal use purposes. We do not host malicious files; however, users download and install applications at their own discretion.</p>
-        <h3>Intellectual Property</h3>
-        <p>All app names, logos, and brands are property of their respective owners. ProEditsAPK acts solely as an independent file distribution and modification archive.</p>
-    </div>
-
-    <div id="dmca" class="legal-section">
-        <h2>DMCA Disclaimer</h2>
-        <p>ProEditsAPK respects the intellectual property rights of others. We comply with the Digital Millennium Copyright Act (DMCA).</p>
-        <h3>Copyright Infringement Notice</h3>
-        <p>If you believe that your copyrighted material is listed on this website without authorization, please contact us immediately at <a href="mailto:contact@proeditsapk.com">contact@proeditsapk.com</a> with proper details, and we will remove it within 24-48 hours.</p>
-    </div>
-
     <footer>
         <div class="footer-content">
-            <div class="logo-container" style="justify-content: center;">
-                <div class="logo-text" style="font-size: 16px;">ProEdits<span>APK</span></div>
-            </div>
             <div class="footer-links">
                 <a href="#">Home</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#terms">Terms of Service</a>
-                <a href="#dmca">DMCA Disclaimer</a>
                 <a href="mailto:contact@proeditsapk.com">Contact Us</a>
             </div>
-            <div class="copyright">
-                © 2026 ProEditsAPK. All rights reserved. Designed for lightning fast mobile downloads.
-            </div>
+            <div class="copyright">© 2026 ProEditsAPK. All rights reserved.</div>
         </div>
     </footer>
 
@@ -277,7 +225,7 @@
             }
         });
 
-        // 3D Blockchain Visual Animation
+        // 3D Blockchain Animation
         const canvas = document.getElementById('logo-3d-canvas');
         const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         renderer.setSize(42, 42);
@@ -323,7 +271,7 @@
         }
         animate();
 
-        // App Fetching with Cache-Busting Timestamp
+        // Fetch Posts with Cache Busting
         async function fetchPosts() {
             const grid = document.getElementById('appsGrid');
             const countEl = document.getElementById('appCount');
@@ -363,14 +311,13 @@
                 }
                 
                 countEl.innerText = `${count} Apps Available`;
-                grid.innerHTML = html || '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">No published articles yet. Publish one via Admin Panel!</p>';
+                grid.innerHTML = html || '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">No published apps yet.</p>';
             } catch(e) {
                 countEl.innerText = `0 Apps`;
-                grid.innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">No apps published yet. Create your first post from the admin dashboard.</p>';
+                grid.innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">No apps published yet.</p>';
             }
         }
 
-        // Clean Front-matter & Parse Markdown
         async function openArticle(url, title) {
             const modal = document.getElementById('articleModal');
             const modalTitle = document.getElementById('modalTitle');
@@ -383,13 +330,8 @@
             try {
                 const response = await fetch(url + '?v=' + new Date().getTime());
                 let rawText = await response.text();
-
-                // Remove YAML Front-Matter (--- ... ---)
                 rawText = rawText.replace(/^---[\s\S]*?---/, '').trim();
-
-                // Convert Markdown to HTML using marked.js
-                const parsedHTML = marked.parse(rawText);
-                modalBody.innerHTML = parsedHTML;
+                modalBody.innerHTML = marked.parse(rawText);
             } catch(err) {
                 modalBody.innerHTML = "<p>Failed to load article content.</p>";
             }
@@ -401,8 +343,7 @@
 
         function filterApps() {
             const input = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
+            document.querySelectorAll('.card').forEach(card => {
                 const title = card.querySelector('h3').innerText.toLowerCase();
                 card.style.display = title.includes(input) ? 'flex' : 'none';
             });
