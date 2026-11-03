@@ -1081,12 +1081,24 @@
                 videoSchema = `\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "VideoObject",\n  "name": "${vTitle}",\n  "description": "${desc}",\n  "embedUrl": "${vUrl}",\n  "uploadDate": "${new Date().toISOString()}"\n}\n<\/script>\n`;
             }
 
-            let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '');
+            let cleanSlug = slug.replace(/^draft-/, '').replace(/^post-/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
             let folderPrefix = isDraft ? "_drafts" : "_posts";
-            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${new Date().toISOString().split('T')[0]}-${cleanSlug}.md`;
+            
+            // STRICT JEKYLL FILENAME FORMAT (YYYY-MM-DD-slug.md)
+            let todayDateStr = new Date().toISOString().split('T')[0];
+            let fileNameOnly = isDraft ? `draft-${cleanSlug}.md` : `${todayDateStr}-${cleanSlug}.md`;
             let finalFilePath = editFilename ? editFilename : `${folderPrefix}/${fileNameOnly}`;
 
-            const fileContent = `---\ntitle: "${title}"\ndescription: "${desc}"\ndraft: ${isDraft}\ndate: ${new Date().toISOString()}\n---\n\n${videoSchema}${content}`;
+            // Standard Jekyll Front Matter YAML structure
+            const fileContent = `---
+layout: post
+title: "${title}"
+description: "${desc}"
+date: ${new Date().toISOString()}
+draft: ${isDraft}
+---
+
+${videoSchema}${content}`;
             
             let encodedContent;
             try {
@@ -1102,7 +1114,6 @@
 
             try {
                 let existingSha = editSha || null;
-                // If editing and editSha is empty, fetch exact SHA of target file to prevent conflicts
                 if (!existingSha && editFilename) {
                     try {
                         const checkRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${editFilename}`, {
@@ -1167,7 +1178,6 @@
                 });
                 const data = await res.json();
                 
-                // Robust Base64 decode to handle Unicode / Roman Urdu / Special characters safely
                 const binaryString = atob(data.content);
                 const bytes = Uint8Array.from(binaryString, (m) => m.codePointAt(0));
                 const decoded = new TextDecoder().decode(bytes);
@@ -1175,12 +1185,11 @@
                 document.getElementById('editFilename').value = data.path;
                 document.getElementById('editSha').value = data.sha;
                 
-                // Extract title from front matter if present
                 let titleVal = "";
                 let descVal = "";
                 let contentVal = decoded;
 
-                if (decoded.startsWith('---')) {
+                if (decoded.includes('---')) {
                     const parts = decoded.split('---');
                     if (parts.length >= 3) {
                         const frontMatter = parts[1];
@@ -1202,7 +1211,6 @@
                 document.getElementById('postTitle').value = titleVal;
                 if (descVal) document.getElementById('metaDesc').value = descVal;
                 
-                // Strip wrapper div if present when loading back into textarea
                 let cleanText = contentVal;
                 if(contentVal.includes('<div style="font-family:')) {
                     let firstClose = contentVal.indexOf('">');
