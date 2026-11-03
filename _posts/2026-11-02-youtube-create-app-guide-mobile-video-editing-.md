@@ -1,10 +1,3 @@
----
-title: "youtube-create-app-guide-mobile-video-editing-"
-description: ""
-draft: false
-date: 2026-11-03T03:44:37.108Z
----
-
 <div style="font-family: 'Outfit', sans-serif; font-size: 16px; color: #f1f5f9; line-height: 1.8; text-shadow: 2px 2px 5px rgba(0,0,0,0.8), 0 0 15px #f1f5f9;">---
 title: "youtube-create-app-guide-mobile-video-editing-"
 description: ""
