@@ -551,7 +551,8 @@
         // AUTO-UPDATE posts.json FUNCTION
         async function updatePostsJson() {
             try {
-                let res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts`, {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/_posts?t=` + new Date().getTime(), {
+
                     headers: { 'Authorization': `token ${authData.token}` }
                 });
                 if (!res.ok) return;
