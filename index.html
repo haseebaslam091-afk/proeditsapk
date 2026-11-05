@@ -336,32 +336,26 @@
                 let html = '';
                 let count = posts.length;
 
-              if (posts && posts.length > 0) {
-    for(let post of posts) {
-        // Fallback slug generate karna agar post mein slug na ho
-        let postSlug = post.slug || `/${post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`;
-        
-        html += `
-            <a href="${postSlug}" class="card" style="text-decoration: none;">
-                <div>
-                    <div class="card-top">
-                        <span class="card-badge">PRO UNLOCKED</span>
-                        <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
-                    </div>
-                    <h3>${post.title}</h3>
-                    <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
-                </div>
-                <div class="card-footer">
-                    <span>⚡ Direct Download</span>
-                    <span class="btn-download">Get File</span>
-                </div>
-            </a>
-        `;
-    }
-}
-
-
-
+                if (posts && posts.length > 0) {
+                    for(let post of posts) {
+                        html += `
+                            <div class="card" onclick="openArticle('${post.rawUrl}', '${post.title}')">
+                                <div>
+                                    <div class="card-top">
+                                        <span class="card-badge">PRO UNLOCKED</span>
+                                        <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
+                                    </div>
+                                    <h3>${post.title}</h3>
+                                    <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
+                                </div>
+                                <div class="card-footer">
+                                    <span>⚡ Direct Download</span>
+                                    <button class="btn-download" onclick="event.stopPropagation(); openArticle('${post.rawUrl}', '${post.title}')">Get File</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
                 
                 countEl.innerText = `${count} Apps Available`;
                 grid.innerHTML = html || '<p style="color:var(--text-muted); grid-icon: 1/-1; text-align: center; padding: 40px;">No published articles yet. Publish one via Admin Panel!</p>';
@@ -399,7 +393,7 @@
         function closeModal() {
             document.getElementById('articleModal').style.display = 'none';
         }
- 
+
         function filterApps() {
             const input = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.card');
