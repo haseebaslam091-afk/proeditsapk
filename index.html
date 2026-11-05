@@ -342,21 +342,22 @@
         let postSlug = post.slug || `/${post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`;
         
         html += `
-            <a href="${postSlug}" class="card" style="text-decoration: none;">
-                <div>
-                    <div class="card-top">
-                        <span class="card-badge">PRO UNLOCKED</span>
-                        <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
-                    </div>
-                    <h3>${post.title}</h3>
-                    <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
-                </div>
-                <div class="card-footer">
-                    <span>⚡ Direct Download</span>
-                    <span class="btn-download">Get File</span>
-                </div>
-            </a>
-        `;
+    <a href="${post.slug}" class="card" style="text-decoration: none;">
+        <div>
+            <div class="card-top">
+                <span class="card-badge">PRO UNLOCKED</span>
+                <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
+            </div>
+            <h3>${post.title}</h3>
+            <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
+        </div>
+        <div class="card-footer">
+            <span>⚡ Direct Download</span>
+            <span class="btn-download">Get File</span>
+        </div>
+    </a>
+`;
+
     }
 }
 
