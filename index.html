@@ -336,10 +336,13 @@
                 let html = '';
                 let count = posts.length;
 
-                if (posts && posts.length > 0) {
+              if (posts && posts.length > 0) {
     for(let post of posts) {
+        // Agar post mein slug mojood hai toh use karein, warna fallback
+        let postSlug = post.slug || `/${post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`;
+        
         html += `
-            <a href="post.html?file=${encodeURIComponent(post.rawUrl)}&title=${encodeURIComponent(post.title)}" class="card" style="text-decoration: none;">
+            <a href="${postSlug}" class="card" style="text-decoration: none;">
                 <div>
                     <div class="card-top">
                         <span class="card-badge">PRO UNLOCKED</span>
@@ -356,6 +359,7 @@
         `;
     }
 }
+
 
                 
                 countEl.innerText = `${count} Apps Available`;
