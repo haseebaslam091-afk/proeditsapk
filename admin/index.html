@@ -563,7 +563,14 @@
                         let cleanSlug = fileName.replace(/\.md$/, '').replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
                         let displayTitle = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                         let rawUrl = `https://raw.githubusercontent.com/${REPO}/main/${file.path}`;
-                        postsList.push({ title: displayTitle, path: file.path, rawUrl: rawUrl, date: file.name.substring(0, 10) });
+                        postsList.push({ 
+    title: displayTitle, 
+    slug: `/${cleanSlug}/`, 
+    path: file.path, 
+    rawUrl: rawUrl, 
+    date: file.name.substring(0, 10) 
+});
+
                     }
                 }
 
