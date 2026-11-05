@@ -2,7 +2,7 @@
 layout: post
 title: "Capcut latest version ai pro"
 description: "Download CapCut Android APK with advanced AI editing features. Explore smart cutouts, auto-captions, and easy installation steps today!"
-date: 2026-11-05T04:40:37.189Z
+date: 2026-11-05T04:54:58.170Z
 draft: false
 ---
 
