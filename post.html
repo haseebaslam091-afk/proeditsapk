@@ -1,1 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Details - ProEditsAPK</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { background: #090d16; color: #f8fafc; font-family: sans-serif; padding: 40px 20px; max-width: 800px; margin: 0 auto; }
+        a { color: #6366f1; text-decoration: none; }
+        .content { background: rgba(30, 41, 59, 0.5); padding: 30px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); }
+    </style>
+</head>
+<body>
+    <a href="/">← Back to Home</a>
+    <h1 id="postTitle" style="margin: 20px 0; color: #6366f1;">Loading...</h1>
+    <div class="content" id="postContent">Fetching article content...</div>
 
+    <script>
+        async function loadPost() {
+            const params = new URLSearchParams(window.location.search);
+            const fileUrl = params.get('file');
+            const title = params.get('title');
+
+            if(title) document.getElementById('postTitle').innerText = title;
+            if(!fileUrl) {
+                document.getElementById('postContent').innerText = "Post not found.";
+                return;
+            }
+
+            try {
+                const res = await fetch(fileUrl);
+                let text = await res.text();
+                text = text.replace(/^---[\s\S]*?---/, '').trim();
+                document.getElementById('postContent').innerHTML = marked.parse(text);
+            } catch(e) {
+                document.getElementById('postContent').innerText = "Failed to load content.";
+            }
+        }
+        loadPost();
+    </script>
+</body>
+</html>
