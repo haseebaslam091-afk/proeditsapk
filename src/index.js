@@ -121,7 +121,8 @@ export default {
        injected=injected.replace('href="https://proeditsapk.com/article.html"', 'href="'+canonical+'"');
        injected=injected.replace('<title>Article | ProEditsAPK</title>', '<title>'+String(post.title).replace(/[&<>"]/g,"")+' | ProEditsAPK</title>');
        if(post.description)injected=injected.replace('content="Explore Android apps, video editing tools and AI apps on ProEditsAPK."', 'content="'+String(post.description).replace(/[&<>"]/g,"")+'"');
-       const headers=new Headers(asset.headers); headers.delete("content-length"); headers.delete("etag"); headers.set("content-type","text/html; charset=utf-8");\n       return new Response(injected,{status:asset.status,headers});
+       const headers=new Headers(asset.headers); headers.delete("content-length"); headers.delete("etag"); headers.set("content-type","text/html; charset=utf-8");
+       return new Response(injected,{status:asset.status,headers});
      } catch(e) { return new Response("Article temporarily unavailable",{status:503}); }
    }
    return env.ASSETS.fetch(request);
