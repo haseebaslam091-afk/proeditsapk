@@ -40,7 +40,15 @@ async function writeFile(path, content, message, env, sha) {
   if(sha)body.sha=sha;
   return gh(path,env,{method:"PUT",body:JSON.stringify(body)});
 }
-async function getPublicPosts(env, request) {\n  const u=new URL("/posts.json",request.url);\n  const r=await env.ASSETS.fetch(new Request(u.toString()));\n  if(!r.ok)throw new Error("Article index unavailable.");\n  const list=await r.json();\n  if(!Array.isArray(list))throw new Error("Article index is invalid.");\n  return list;\n}\nasync function getPosts(env) {
+async function getPublicPosts(env, request) {
+  const u=new URL("/posts.json",request.url);
+  const r=await env.ASSETS.fetch(new Request(u.toString()));
+  if(!r.ok)throw new Error("Article index unavailable.");
+  const list=await r.json();
+  if(!Array.isArray(list))throw new Error("Article index is invalid.");
+  return list;
+}
+async function getPosts(env) {
   const f=await readFile("posts.json",env);
   const list=JSON.parse(f.text);
   if(!Array.isArray(list))throw new Error("posts.json is invalid.");
@@ -108,7 +116,11 @@ export default {
        target.searchParams.set("path",post.path);
        const asset=await env.ASSETS.fetch(new Request(target.toString(),request));
        const html=await asset.text();
-       const injected=html.replace('<meta name="article-path" content="">', '<meta name="article-path" content="'+post.path+'">');
+       const canonical=SITE+"/articles/"+slug;
+       let injected=html.replace('<meta name="article-path" content="">', '<meta name="article-path" content="'+post.path+'">');
+       injected=injected.replace('href="https://proeditsapk.com/article.html"', 'href="'+canonical+'"');
+       injected=injected.replace('<title>Article | ProEditsAPK</title>', '<title>'+String(post.title).replace(/[&<>"]/g,"")+' | ProEditsAPK</title>');
+       if(post.description)injected=injected.replace('content="Explore Android apps, video editing tools and AI apps on ProEditsAPK."', 'content="'+String(post.description).replace(/[&<>"]/g,"")+'"');
        return new Response(injected,{status:asset.status,headers:asset.headers});
      } catch(e) { return new Response("Article temporarily unavailable",{status:503}); }
    }
