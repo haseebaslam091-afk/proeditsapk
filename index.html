@@ -323,34 +323,42 @@
         }
         animate();
 
-        // Optimized App Fetching from local posts.json (No GitHub API Rate Limit, No "0 Apps" Error)
+        // Optimized App Fetching from local posts.json with flexible key checking & debugging
         async function fetchPosts() {
             const grid = document.getElementById('appsGrid');
             const countEl = document.getElementById('appCount');
             
             try {
                 const res = await fetch('posts.json?v=' + new Date().getTime());
-                if(!res.ok) throw new Error("No posts found");
+                if(!res.ok) throw new Error("Could not load posts.json");
                 
                 const posts = await res.json();
-                let html = '';
-                let count = posts.length;
+                console.log("Fetched Posts Data:", posts); // F12 Console me data check karne ke liye
 
-                if (posts && posts.length > 0) {
+                let html = '';
+                let count = Array.isArray(posts) ? posts.length : 0;
+
+                if (Array.isArray(posts) && posts.length > 0) {
                     for(let post of posts) {
+                        // Flexible key lookup taaki admin panel ke alag format se error na aaye
+                        const postTitle = post.title || post.name || "Untitled App";
+                        const postUrl = post.rawUrl || post.url || post.file || "#";
+                        const postVersion = post.version || "v8.4.2";
+                        const postDesc = post.description || "Fully unlocked premium version, zero ads, all filters and export features enabled.";
+
                         html += `
-                            <div class="card" onclick="openArticle('${post.rawUrl}', '${post.title}')">
+                            <div class="card" onclick="openArticle('${postUrl}', '${postTitle}')">
                                 <div>
                                     <div class="card-top">
                                         <span class="card-badge">PRO UNLOCKED</span>
-                                        <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
+                                        <span style="font-size: 11px; color: var(--text-muted);">${postVersion}</span>
                                     </div>
-                                    <h3>${post.title}</h3>
-                                    <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
+                                    <h3>${postTitle}</h3>
+                                    <p>${postDesc}</p>
                                 </div>
                                 <div class="card-footer">
                                     <span>⚡ Direct Download</span>
-                                    <button class="btn-download" onclick="event.stopPropagation(); openArticle('${post.rawUrl}', '${post.title}')">Get File</button>
+                                    <button class="btn-download" onclick="event.stopPropagation(); openArticle('${postUrl}', '${postTitle}')">Get File</button>
                                 </div>
                             </div>
                         `;
@@ -358,10 +366,11 @@
                 }
                 
                 countEl.innerText = `${count} Apps Available`;
-                grid.innerHTML = html || '<p style="color:var(--text-muted); grid-icon: 1/-1; text-align: center; padding: 40px;">No published articles yet. Publish one via Admin Panel!</p>';
+                grid.innerHTML = html || '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No published articles yet. Publish one via Admin Panel!</p>';
             } catch(e) {
+                console.error("Error fetching posts:", e);
                 countEl.innerText = `0 Apps`;
-                grid.innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No apps published yet. Create your first post from the admin dashboard.</p>';
+                grid.innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No apps published yet or posts.json path is incorrect. Please run via Local Server (VS Code Live Server).</p>';
             }
         }
 
