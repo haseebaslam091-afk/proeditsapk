@@ -33,7 +33,7 @@ async function gh(path, env, options={}) {
 }
 async function readFile(path, env) {
   const r=await gh(path+"?ref="+BRANCH,env);
-  return {text:atob(r.content.replace(/\n/g,"")),sha:r.sha};
+  const binary=atob(r.content.replace(/\n/g,"")); const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0)); return {text:new TextDecoder().decode(bytes),sha:r.sha};
 }
 async function writeFile(path, content, message, env, sha) {
   const body={message,content:b64utf8(content),branch:BRANCH};
@@ -106,7 +106,10 @@ export default {
        if(!post)return new Response("Article not found",{status:404});
        const target=new URL("/article.html",url);
        target.searchParams.set("path",post.path);
-       return env.ASSETS.fetch(new Request(target.toString(),request));
+       const asset=await env.ASSETS.fetch(new Request(target.toString(),request));
+       const html=await asset.text();
+       const injected=html.replace('<meta name="article-path" content="">', '<meta name="article-path" content="'+post.path+'">');
+       return new Response(injected,{status:asset.status,headers:asset.headers});
      } catch(e) { return new Response("Article temporarily unavailable",{status:503}); }
    }
    return env.ASSETS.fetch(request);
