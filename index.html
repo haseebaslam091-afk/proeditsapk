@@ -323,42 +323,39 @@
         }
         animate();
 
-        // Optimized App Fetching from local posts.json with flexible key checking & debugging
+        // App Fetching with Cache-Busting Timestamp
         async function fetchPosts() {
             const grid = document.getElementById('appsGrid');
             const countEl = document.getElementById('appCount');
+            const repo = "haseebaslam091-afk/proeditsapk";
             
             try {
-                const res = await fetch('posts.json?v=' + new Date().getTime());
-                if(!res.ok) throw new Error("Could not load posts.json");
+                const res = await fetch(`https://api.github.com/repos/${repo}/contents/_posts?timestamp=` + new Date().getTime());
+                if(!res.ok) throw new Error("No posts found");
                 
-                const posts = await res.json();
-                console.log("Fetched Posts Data:", posts); // F12 Console me data check karne ke liye
-
+                const files = await res.json();
                 let html = '';
-                let count = Array.isArray(posts) ? posts.length : 0;
+                let count = 0;
 
-                if (Array.isArray(posts) && posts.length > 0) {
-                    for(let post of posts) {
-                        // Flexible key lookup taaki admin panel ke alag format se error na aaye
-                        const postTitle = post.title || post.name || "Untitled App";
-                        const postUrl = post.rawUrl || post.url || post.file || "#";
-                        const postVersion = post.version || "v8.4.2";
-                        const postDesc = post.description || "Fully unlocked premium version, zero ads, all filters and export features enabled.";
+                for(let file of files) {
+                    if(file.name.endsWith('.md') || file.name.endsWith('.html')) {
+                        count++;
+                        const cleanSlug = file.name.replace(/\.md$/, '').replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
+                        const displayTitle = cleanSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
                         html += `
-                            <div class="card" onclick="openArticle('${postUrl}', '${postTitle}')">
+                            <div class="card" onclick="openArticle('${file.download_url}', '${displayTitle}')">
                                 <div>
                                     <div class="card-top">
                                         <span class="card-badge">PRO UNLOCKED</span>
-                                        <span style="font-size: 11px; color: var(--text-muted);">${postVersion}</span>
+                                        <span style="font-size: 11px; color: var(--text-muted);">v8.4.2</span>
                                     </div>
-                                    <h3>${postTitle}</h3>
-                                    <p>${postDesc}</p>
+                                    <h3>${displayTitle}</h3>
+                                    <p>Fully unlocked premium version, zero ads, all filters and export features enabled.</p>
                                 </div>
                                 <div class="card-footer">
                                     <span>⚡ Direct Download</span>
-                                    <button class="btn-download" onclick="event.stopPropagation(); openArticle('${postUrl}', '${postTitle}')">Get File</button>
+                                    <button class="btn-download" onclick="event.stopPropagation(); openArticle('${file.download_url}', '${displayTitle}')">Get File</button>
                                 </div>
                             </div>
                         `;
@@ -366,11 +363,10 @@
                 }
                 
                 countEl.innerText = `${count} Apps Available`;
-                grid.innerHTML = html || '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No published articles yet. Publish one via Admin Panel!</p>';
+                grid.innerHTML = html || '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">No published articles yet. Publish one via Admin Panel!</p>';
             } catch(e) {
-                console.error("Error fetching posts:", e);
                 countEl.innerText = `0 Apps`;
-                grid.innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No apps published yet or posts.json path is incorrect. Please run via Local Server (VS Code Live Server).</p>';
+                grid.innerHTML = '<p style="color:var(--text-muted); grid-column: 1/-1; text-align: center;">No apps published yet. Create your first post from the admin dashboard.</p>';
             }
         }
 
@@ -385,7 +381,7 @@
             modal.style.display = 'flex';
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(url + '?v=' + new Date().getTime());
                 let rawText = await response.text();
 
                 // Remove YAML Front-Matter (--- ... ---)
