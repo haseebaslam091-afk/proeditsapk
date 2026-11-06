@@ -2,7 +2,7 @@
 layout: post
 title: "For Blog photos"
 description: "mustache, and thin metal-rimmed glasses. He wears a navy blue blazer over a white shirt and has a warm, confident smile. Keep his face, hair, beard, glasses and build identical across all images."
-date: 2026-11-06T03:22:00.718Z
+date: 2026-11-06T03:34:34.146Z
 draft: false
 ---
 
