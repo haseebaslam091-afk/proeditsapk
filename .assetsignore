@@ -1,0 +1,12 @@
+.git/
+.github/
+_drafts/
+_posts/
+scripts/
+worker.js
+wrangler.jsonc
+.assetsignore
+README*
+package.json
+package-lock.json
+node_modules/
