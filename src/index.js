@@ -109,7 +109,7 @@ export default {
      const slug=decodeURIComponent(url.pathname.slice("/articles/".length)).replace(/\/$/,"");
      if(!/^[a-z0-9-]{3,90}$/.test(slug))return new Response("Not found",{status:404});
      try {
-       const {list}=await getPosts(env);
+       const list=await getPublicPosts(env,request);
        const post=list.find(p=>(p.slug||safeSlug(p.title))===slug);
        if(!post)return new Response("Article not found",{status:404});
        const target=new URL("/article.html",url);
@@ -121,7 +121,7 @@ export default {
        injected=injected.replace('href="https://proeditsapk.com/article.html"', 'href="'+canonical+'"');
        injected=injected.replace('<title>Article | ProEditsAPK</title>', '<title>'+String(post.title).replace(/[&<>"]/g,"")+' | ProEditsAPK</title>');
        if(post.description)injected=injected.replace('content="Explore Android apps, video editing tools and AI apps on ProEditsAPK."', 'content="'+String(post.description).replace(/[&<>"]/g,"")+'"');
-       return new Response(injected,{status:asset.status,headers:asset.headers});
+       const headers=new Headers(asset.headers); headers.delete("content-length"); headers.delete("etag"); headers.set("content-type","text/html; charset=utf-8");\n       return new Response(injected,{status:asset.status,headers});
      } catch(e) { return new Response("Article temporarily unavailable",{status:503}); }
    }
    return env.ASSETS.fetch(request);
