@@ -40,7 +40,7 @@ async function writeFile(path, content, message, env, sha) {
   if(sha)body.sha=sha;
   return gh(path,env,{method:"PUT",body:JSON.stringify(body)});
 }
-async function getPosts(env) {
+async function getPublicPosts(env, request) {\n  const u=new URL("/posts.json",request.url);\n  const r=await env.ASSETS.fetch(new Request(u.toString()));\n  if(!r.ok)throw new Error("Article index unavailable.");\n  const list=await r.json();\n  if(!Array.isArray(list))throw new Error("Article index is invalid.");\n  return list;\n}\nasync function getPosts(env) {
   const f=await readFile("posts.json",env);
   const list=JSON.parse(f.text);
   if(!Array.isArray(list))throw new Error("posts.json is invalid.");
