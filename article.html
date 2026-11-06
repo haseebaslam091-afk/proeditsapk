@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080d1c"><meta name="robots" content="index,follow">
+<meta name="theme-color" content="#080d1c"><meta name="robots" content="index,follow"><meta name="article-path" content="">
 <title>Article | ProEditsAPK</title>
 <meta name="description" content="Explore Android apps, video editing tools and AI apps on ProEditsAPK.">
 <link id="canonical" rel="canonical" href="https://proeditsapk.com/article.html">
@@ -17,6 +17,6 @@
 <main><a class="back" href="/">← Back to home</a><article id="article" class="article"><p>Loading article…</p></article></main><footer>© <span id="year"></span> ProEditsAPK · Apps, editing & AI guides</footer>
 <script>
 document.getElementById('year').textContent=new Date().getFullYear();
-(async()=>{const box=document.getElementById('article');const path=new URLSearchParams(location.search).get('path')||'';document.getElementById('canonical').href=location.href.split('#')[0];if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path)){box.innerHTML='<h1>Article not found</h1><p class="error">Please choose an article from the homepage.</p>';return}
+(async()=>{const box=document.getElementById('article');const path=document.querySelector('meta[name="article-path"]').content||new URLSearchParams(location.search).get('path')||'';document.getElementById('canonical').href=location.href.split('#')[0];if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path)){box.innerHTML='<h1>Article not found</h1><p class="error">Please choose an article from the homepage.</p>';return}
 try{const url='https://raw.githubusercontent.com/haseebaslam091-afk/proeditsapk/main/'+path;const res=await fetch(url);if(!res.ok)throw Error('Article could not be loaded');let md=await res.text();let title=path.split('/').pop().replace(/^\d{4}-\d{2}-\d{2}-/,'').replace(/\.md$/,'').replace(/[-_]/g,' ');let date='';const fm=md.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);if(fm){const t=fm[1].match(/^title:\s*["']?(.+?)["']?\s*$/m);const d=fm[1].match(/^date:\s*(.+)$/m);if(t)title=t[1].replace(/^["']|["']$/g,'');if(d)date=d[1];md=md.slice(fm[0].length)}document.title=title+' | ProEditsAPK';document.querySelector('meta[name="description"]').content='Read '+title+' on ProEditsAPK: Android apps, video editing and AI tools.';box.innerHTML='<div class="meta">'+(date||'ProEditsAPK Guide')+'</div><h1>'+DOMPurify.sanitize(title)+'</h1>'+DOMPurify.sanitize(marked.parse(md),{USE_PROFILES:{html:true}})}catch(e){box.innerHTML='<h1>Unable to load article</h1><p class="error">Please refresh the page or return to the homepage.</p>'}})();
 </script></body></html>
