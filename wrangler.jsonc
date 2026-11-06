@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "proeditsapk",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-07",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "run_worker_first": ["/admin/api/*"],
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "vars": {
+    "GITHUB_OWNER": "haseebaslam091-afk",
+    "GITHUB_REPO": "proeditsapk",
+    "GITHUB_BRANCH": "backend-foundation",
+    "CF_ACCESS_TEAM_DOMAIN": "https://delicate-frost-88ad.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "7577adf0dfee2defbe75e91fd32eaf699ed0e4c32fe67cfb9cde5ff123bb87df"
+  }
+}
