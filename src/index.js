@@ -82,8 +82,8 @@ async function generateAiArtwork(title,description,slug,env,kind="thumbnail"){
  const isIcon=kind==="icon";
  const prompt=isIcon
  ? "Create an original premium 3D app-icon concept inspired by the function and subject of this app: "+safeTitle+". Context: "+safeDescription+". Design a distinctive simple symbolic object, polished glass and enamel materials, rounded-square app icon composition, centered focal object, dramatic soft studio lighting, midnight navy and electric cyan with tasteful violet highlights, elegant premium mobile app aesthetic. This is original conceptual artwork, NOT the official trademark or logo. No letters, no words, no copied logos, no watermarks, no screenshots."
- : "Create a premium editorial blog thumbnail, landscape 16:9, about: "+safeTitle+". Context: "+safeDescription+". Choose the best visual metaphor for this exact subject. Polished cinematic 3D illustration, midnight navy, electric blue, cyan and restrained violet highlights, crisp focal subject, dramatic studio lighting, rich depth, premium technology publication art direction, visually striking but uncluttered. No words, no letters, no logos, no watermarks, no interface screenshots.";
- const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,steps:4,width:isIcon?512:1200,height:isIcon?512:675});
+ : "Create a premium editorial blog thumbnail, landscape 16:9, about: "+safeTitle+". Context: "+safeDescription+". Choose the best visual metaphor for this exact subject. Create a cinematic 3D environment with a clear central focal area reserved for the real official app icon, which will be layered separately on the webpage. Add topic-matched fire, ice, lightning, neon energy or glass effects around the outer edges only. Midnight navy, electric blue, cyan and violet highlights, rich depth, dramatic studio lighting. Do not draw any app logo, icon, letters, words, watermark or interface screenshot.";
+ const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,steps:4});
  let bytes;
  if(result instanceof Uint8Array)bytes=result;
  else if(result instanceof ArrayBuffer)bytes=new Uint8Array(result);
@@ -150,15 +150,14 @@ async function api(request, env) {
       const {list,sha}=await getPosts(env);let generated=0,changed=false;const missing=[];const limit=3;
       for(const post of list){
         if(generated>=limit)break;
-        if(post.generatedThumbnailUrl&&post.generatedIconUrl)continue;
+        if(post.generatedThumbnailUrl)continue;
         try{
           if(!post.generatedThumbnailUrl){const url=await generateArticleThumbnail(post.title,post.description||"",post.slug||safeSlug(post.title),env);if(url){post.generatedThumbnailUrl=url;changed=true}}
-          if(!post.generatedIconUrl){const url=await generateAppArtwork(post.title,post.description||"",post.slug||safeSlug(post.title),env);if(url){post.generatedIconUrl=url;changed=true}}
-          if(post.generatedThumbnailUrl&&post.generatedIconUrl)generated++;
+          if(post.generatedThumbnailUrl)generated++;
         }catch(e){missing.push(post.title+": "+(e.message||"AI generation failed"))}
       }
       if(changed)await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Save original AI app artwork and article thumbnails",env,sha);
-      const remaining=list.filter(p=>!p.generatedThumbnailUrl||!p.generatedIconUrl).length;
+      const remaining=list.filter(p=>!p.generatedThumbnailUrl).length;
       return json({ok:true,generated,total:list.length,remaining,missing,message:generated?"Generated original AI thumbnails and app-art concepts for "+generated+" articles. Run again for the next batch.":(!env.AI?"Enable the Cloudflare Workers AI binding to generate artwork.":"No new artwork was generated; existing articles remain available.")});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
@@ -166,7 +165,7 @@ async function api(request, env) {
       const title=String(data.title||"").trim();
       const content=String(data.content||"").trim();
       const description=String(data.description||"").trim();
-      const packageName=String(data.packageName||"").trim();const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
+      const suppliedIcon=String(data.officialIconUrl||"").trim();let officialIconUrl=null;if(suppliedIcon){try{const u=new URL(suppliedIcon);if(u.protocol==="https:"&&!u.username&&!u.password)officialIconUrl=u.toString()}catch(e){return json({error:"Official app icon must be a valid HTTPS image URL."},400)}}const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
       let slug=safeSlug(data.slug||title);
       if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)
         return json({error:"Add a valid title, URL slug, description and at least 80 characters of article content."},400);
@@ -185,8 +184,8 @@ draft: false
 ${content.replace(/\r/g,"")}
 `;
       await writeFile(path,markdown,"Publish article: "+title,env);
-      let generatedThumbnailUrl=null,generatedIconUrl=null;if(env.AI){try{generatedThumbnailUrl=await generateArticleThumbnail(title,description,slug,env);generatedIconUrl=await generateAppArtwork(title,description,slug,env)}catch(e){/* Publishing remains available if AI image generation is temporarily unavailable. */}}
-      const next=[{title,path,slug,iconUrl:null,thumbnailUrl:thumbnailUrl||null,generatedThumbnailUrl,generatedIconUrl,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
+      let generatedThumbnailUrl=null;if(env.AI){try{generatedThumbnailUrl=await generateArticleThumbnail(title,description,slug,env)}catch(e){/* Publishing remains available if AI image generation is temporarily unavailable. */}}
+      const next=[{title,path,slug,iconUrl:officialIconUrl,officialIconUrl,thumbnailUrl:thumbnailUrl||null,generatedThumbnailUrl,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
       await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Add published article: "+title,env,sha);
       await rebuildSitemap(next,env);
       return json({ok:true,article:next[0],url:SITE+"/articles/"+slug});
@@ -200,7 +199,7 @@ export default {
    if(url.pathname==="/api/article"&&request.method==="GET"){
      const path=String(url.searchParams.get("path")||"");
      if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
-     try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,generatedIconUrl:post.generatedIconUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
+     try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||post.officialIconUrl||null,officialIconUrl:post.officialIconUrl||post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,generatedIconUrl:post.generatedIconUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
    }
    if(url.pathname.startsWith("/admin/api/"))return api(request,env);
    if(url.pathname==="/admin"||url.pathname==="/admin/") {
