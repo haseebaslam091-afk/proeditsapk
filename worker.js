@@ -122,20 +122,40 @@ async function readPosts(env, branch) {
   return posts;
 }
 
+function validPostPath(value) {
+  return typeof value === "string" &&
+    /^_posts\/\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/.test(value) &&
+    !value.includes("..");
+}
+
+function articleMarkdown(title, date, description, content) {
+  return ["---", "title: " + yamlQuote(title), "date: " + date,
+    "description: " + yamlQuote(description), "layout: post", "---", "", content, ""].join("\n");
+}
+
+async function readArticle(env, branch, path) {
+  const result = await githubRequest(env, "/contents/" + path.split("/").map(encodeURIComponent).join("/") +
+    "?ref=" + encodeURIComponent(branch));
+  if (!result.content) throw new Error("Article content is empty or unavailable");
+  return decodeBase64Utf8(result.content);
+}
+
 async function createCommit(env, branch, files, message) {
   const ref = await githubRequest(env, "/git/ref/heads/" + encodeURIComponent(branch));
   const parentSha = ref.object.sha;
   const parent = await githubRequest(env, "/git/commits/" + parentSha);
   const treeEntries = [];
-
   for (const file of files) {
-    const blob = await githubRequest(env, "/git/blobs", {
-      method: "POST",
-      body: JSON.stringify({ content: file.content, encoding: "utf-8" })
-    });
-    treeEntries.push({ path: file.path, mode: "100644", type: "blob", sha: blob.sha });
+    if (file.delete) {
+      treeEntries.push({ path: file.path, mode: "100644", type: "blob", sha: null });
+    } else {
+      const blob = await githubRequest(env, "/git/blobs", {
+        method: "POST",
+        body: JSON.stringify({ content: file.content, encoding: "utf-8" })
+      });
+      treeEntries.push({ path: file.path, mode: "100644", type: "blob", sha: blob.sha });
+    }
   }
-
   const tree = await githubRequest(env, "/git/trees", {
     method: "POST",
     body: JSON.stringify({ base_tree: parent.tree.sha, tree: treeEntries })
@@ -154,45 +174,69 @@ async function createCommit(env, branch, files, message) {
 async function handleApi(request, env, url) {
   const branch = String(env.GITHUB_BRANCH || "main");
   if (request.method === "GET" && url.pathname === "/admin/api/health") {
-    return json({ ok: true, service: "proeditsapk-api", branch, storage: "github" });
+    const posts = await readPosts(env, branch);
+    return json({ ok: true, service: "proeditsapk-api", branch, storage: "github", articles: posts.length });
   }
+
   if (request.method === "GET" && url.pathname === "/admin/api/articles") {
-    const articles = await readPosts(env, branch);
-    return json({ ok: true, articles });
+    const posts = await readPosts(env, branch);
+    const path = url.searchParams.get("path");
+    if (path) {
+      if (!validPostPath(path) || !posts.some(p => p.path === path)) return json({ error: "Article not found" }, 404);
+      return json({ ok: true, article: posts.find(p => p.path === path), content: await readArticle(env, branch, path) });
+    }
+    return json({ ok: true, articles: posts });
   }
-  if (request.method === "POST" && url.pathname === "/admin/api/articles") {
+
+  if (["POST", "PUT"].includes(request.method) && url.pathname === "/admin/api/articles") {
     const length = Number(request.headers.get("content-length") || 0);
     if (length > 1_000_000) return json({ error: "Article request is too large (1 MB maximum)" }, 413);
     const body = await request.json();
-    const title = String(body.title || "").trim();
+    const title = String(body.title || "").trim().slice(0, 160);
     const content = String(body.content || "").trim();
     const description = String(body.description || "").trim().slice(0, 300);
-    const slug = slugify(body.slug || title);
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(body.date || "")) ? String(body.date) : new Date().toISOString().slice(0, 10);
-    if (!title || !content || !slug) return json({ error: "Title, slug and article content are required" }, 400);
+    const dateInput = String(body.date || "");
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(dateInput) ? dateInput : new Date().toISOString().slice(0, 10);
+    if (!title || content.length < 20) return json({ error: "A title and article content (at least 20 characters) are required" }, 400);
 
     const posts = await readPosts(env, branch);
-    const path = "_posts/" + date + "-" + slug + ".md";
-    const markdown = [
-      "---",
-      "title: " + yamlQuote(title),
-      "date: " + date,
-      "description: " + yamlQuote(description),
-      "layout: post",
-      "---",
-      "",
-      content,
-      ""
-    ].join("\n");
-    const rawUrl = "https://raw.githubusercontent.com/" + env.GITHUB_OWNER + "/" + env.GITHUB_REPO + "/" + branch + "/" + path;
-    const record = { title, path, rawUrl, date };
-    const filtered = posts.filter(item => item.path !== path);
-    filtered.unshift(record);
+    let path, record, message;
+    if (request.method === "PUT") {
+      path = String(body.path || "");
+      if (!validPostPath(path) || !posts.some(p => p.path === path)) return json({ error: "Article not found" }, 404);
+      const prior = posts.find(p => p.path === path);
+      record = { ...prior, title, date: prior.date || date, description };
+      message = "Update article: " + title.slice(0, 72);
+    } else {
+      const slug = slugify(body.slug || title);
+      if (!slug) return json({ error: "A valid article slug is required" }, 400);
+      path = "_posts/" + date + "-" + slug + ".md";
+      if (posts.some(p => p.path === path)) return json({ error: "This article URL already exists. Edit the existing article instead." }, 409);
+      const slugFromPath = path.slice(path.lastIndexOf("/") + 12, -3);
+      const rawUrl = "https://raw.githubusercontent.com/" + env.GITHUB_OWNER + "/" + env.GITHUB_REPO + "/" + branch + "/" + path;
+      record = { title, path, rawUrl, date, slug: slugFromPath, description };
+      message = "Publish article: " + title.slice(0, 72);
+    }
+    const markdown = articleMarkdown(title, record.date, description, content);
+    const updated = [record, ...posts.filter(p => p.path !== path)];
     const commit = await createCommit(env, branch, [
       { path, content: markdown },
-      { path: "posts.json", content: JSON.stringify(filtered, null, 2) + "\n" }
-    ], "Publish article: " + title.slice(0, 72));
-    return json({ ok: true, article: record, commit });
+      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "\n" }
+    ], message);
+    return json({ ok: true, article: record, commit, branch });
+  }
+
+  if (request.method === "DELETE" && url.pathname === "/admin/api/articles") {
+    const body = await request.json();
+    const path = String(body.path || "");
+    const posts = await readPosts(env, branch);
+    if (!validPostPath(path) || !posts.some(p => p.path === path)) return json({ error: "Article not found" }, 404);
+    const updated = posts.filter(p => p.path !== path);
+    const commit = await createCommit(env, branch, [
+      { path, delete: true },
+      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "\n" }
+    ], "Delete article: " + String(posts.find(p => p.path === path).title || "").slice(0, 72));
+    return json({ ok: true, deleted: path, commit, branch });
   }
   return json({ error: "API route not found" }, 404);
 }
@@ -201,19 +245,14 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/admin/api/")) return env.ASSETS.fetch(request);
-
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          "allow": "GET, POST, OPTIONS",
-          "access-control-allow-methods": "GET, POST, OPTIONS",
-          "access-control-allow-headers": "content-type, cf-access-jwt-assertion",
-          "cache-control": "no-store"
-        }
-      });
+      return new Response(null, { status: 204, headers: {
+        "allow": "GET, POST, PUT, DELETE, OPTIONS",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "access-control-allow-headers": "content-type, cf-access-jwt-assertion",
+        "cache-control": "no-store"
+      }});
     }
-
     try {
       await verifyAccess(request, env);
       return await handleApi(request, env, url);
