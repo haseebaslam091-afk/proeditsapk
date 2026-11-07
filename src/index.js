@@ -41,7 +41,8 @@ async function gh(path, env, options={}) {
     const detail=String(body.message||res.statusText||"Unknown GitHub API error");
     const requestId=res.headers.get("x-github-request-id");
     const rate=res.headers.get("x-ratelimit-remaining");
-    throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+(readFallbackTried?" (unauthenticated public-read retry also failed)":"")+": "+detail+(rate!==null?" (rate limit remaining "+rate+")":"")+(requestId?" (request ID "+requestId+")":""));
+    const permissionHint=method!=="GET"&&res.status===403?" Check the Worker runtime secret GITHUB_TOKEN: it must be a fine-grained token for "+OWNER+"/"+REPO+" with Contents: Read and write, and the token must not be expired or awaiting approval.":"";
+    throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+(readFallbackTried?" (unauthenticated public-read retry also failed)":"")+": "+detail+permissionHint+(rate!==null?" (rate limit remaining "+rate+")":"")+(requestId?" (request ID "+requestId+")":""));
   }
   return body;
 }
@@ -54,7 +55,8 @@ async function readFile(path, env) {
   const text=await response.text();
   // Contents API PUT requires the Git blob SHA. Recompute it from the raw file.
   const bytes=new TextEncoder().encode(text);
-  const header=new TextEncoder().encode("blob "+bytes.length+"\\0");
+  // Git computes blob IDs as SHA-1("blob "+byteLength+NUL+content).
+  const header=new TextEncoder().encode("blob "+bytes.length+"\0");
   const payload=new Uint8Array(header.length+bytes.length);
   payload.set(header,0);payload.set(bytes,header.length);
   const digest=await crypto.subtle.digest("SHA-1",payload);
