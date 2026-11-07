@@ -133,8 +133,7 @@ function articleMarkdown(title, date, description, iconUrl, content) {
     "description: " + yamlQuote(description)];
   if (iconUrl) lines.push("iconUrl: " + yamlQuote(iconUrl));
   lines.push("layout: post", "---", "", content, "");
-  return lines.join("
-");
+  return lines.join("\n");
 }
 
 async function readArticle(env, branch, path) {
@@ -255,8 +254,7 @@ async function handleApi(request, env, url) {
     const updated = [record, ...posts.filter(p => p.path !== path)];
     const commit = await createCommit(env, branch, [
       { path, content: markdown },
-      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "
-" }
+      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "\n" }
     ], message);
     return json({ ok: true, article: record, commit, branch });
   }
@@ -269,8 +267,7 @@ async function handleApi(request, env, url) {
     const updated = posts.filter(p => p.path !== path);
     const commit = await createCommit(env, branch, [
       { path, delete: true },
-      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "
-" }
+      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "\n" }
     ], "Delete article: " + String(posts.find(p => p.path === path).title || "").slice(0, 72));
     return json({ ok: true, deleted: path, commit, branch });
   }
