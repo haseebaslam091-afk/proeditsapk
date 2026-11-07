@@ -97,7 +97,7 @@ async function findPlayIcon(title,packageName,slug,env){
    // Keep the official Google Play artwork URL in posts.json instead of uploading
    // binary image files through the GitHub Contents API. This avoids a separate
    // binary PUT request and lets the browser load Google's official app icon.
-   return {iconUrl:imageUrl,packageName:id,storeTitle};
+   const screenshots=[];const shotRe=/https:\/\/play-lh\.googleusercontent\.com\/[^"\s<>]+/g;let sm;while((sm=shotRe.exec(html))&&screenshots.length<12){const candidate=sm[0].replace(/\\u003d/g,"=").replace(/&amp;/g,"&");const dims=candidate.match(/[=]w(\d+)-h(\d+)/);if(!dims)continue;const width=Number(dims[1]),height=Number(dims[2]);if(width>=300&&height>=150&&width/height>=1.25&&!screenshots.includes(candidate))screenshots.push(candidate)}return {iconUrl:imageUrl,packageName:id,storeTitle,screenshots};
   }
  }catch(e){
   // Do not hide repository permission/authentication failures behind a missing-icon result.
@@ -154,22 +154,17 @@ async function api(request, env) {
       return json({posts:list});
     }
     if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST") {
-      // Compatibility endpoint: verify matches only. Icons are rendered on demand by /api/app-icon.
-      const {list}=await getPosts(env);
-      let found=0;const missing=[];
-      for(const post of list) {
-        if(post.iconPath||post.iconUrl){found++;continue;}
-        const icon=await findPlayIcon(post.title,post.appPackage||"","",env);
-        if(icon?.iconUrl)found++;else missing.push(post.title);
-      }
-      return json({ok:true,updated:found,total:list.length,missing,message:"Official app icons now load automatically on the homepage; no GitHub file update is needed."});
+      const {list,sha}=await getPosts(env);let found=0,changed=false;const missing=[];
+      for(const post of list){const media=await findPlayIcon(post.title,post.appPackage||"","",env);if(!media?.iconUrl){missing.push(post.title);continue}found++;if(post.iconUrl!==media.iconUrl){post.iconUrl=media.iconUrl;changed=true}if(media.packageName&&post.appPackage!==media.packageName){post.appPackage=media.packageName;changed=true}if(!post.thumbnailUrl&&media.screenshots?.length){post.thumbnailUrl=media.screenshots[0];changed=true}}
+      if(changed)await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Save verified app icons and thumbnails",env,sha);
+      return json({ok:true,updated:found,total:list.length,missing,message:changed?"Verified Google Play icons and available screenshots have been saved to posts.json.":"No new verified media was found; existing article artwork was preserved."});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
       const data=await request.json();
       const title=String(data.title||"").trim();
       const content=String(data.content||"").trim();
       const description=String(data.description||"").trim();
-      const packageName=String(data.packageName||"").trim();
+      const packageName=String(data.packageName||"").trim();const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
       let slug=safeSlug(data.slug||title);
       if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)
         return json({error:"Add a valid title, URL slug, description and at least 80 characters of article content."},400);
@@ -189,7 +184,7 @@ ${content.replace(/\r/g,"")}
 `;
       await writeFile(path,markdown,"Publish article: "+title,env);
       const icon=await findPlayIcon(title,packageName,slug,env);
-      const next=[{title,path,slug,iconUrl:icon?.iconUrl||null,appPackage:icon?.packageName||null,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
+      const next=[{title,path,slug,iconUrl:icon?.iconUrl||null,thumbnailUrl:thumbnailUrl||icon?.screenshots?.[0]||null,appPackage:icon?.packageName||null,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
       await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Add published article: "+title,env,sha);
       await rebuildSitemap(next,env);
       return json({ok:true,article:next[0],url:SITE+"/articles/"+slug});
@@ -202,7 +197,8 @@ export default {
    const url=new URL(request.url);
    // Public, read-only icon lookup: fetches official Play Store artwork on demand
    // without writing posts.json or requiring a GitHub token.
-   if(url.pathname==="/api/app-icon"&&request.method==="GET") {
+   if(url.pathname==="/api/app-media"&&request.method==="GET"){const title=String(url.searchParams.get("title")||"").trim().slice(0,160),packageName=String(url.searchParams.get("package")||"").trim().slice(0,160);if(title.length<2)return json({error:"A valid app title is required."},400);try{const media=await findPlayIcon(title,packageName,"",env);if(!media)return json({iconUrl:null,screenshots:[]},404);return json({iconUrl:media.iconUrl,storeTitle:media.storeTitle,packageName:media.packageName,screenshots:media.screenshots||[]})}catch(e){return json({error:e.message||"App media lookup failed."},502)}}
+    if(url.pathname==="/api/app-icon"&&request.method==="GET") {
      const title=String(url.searchParams.get("title")||"").trim().slice(0,160);
      const packageName=String(url.searchParams.get("package")||"").trim().slice(0,160);
      if(title.length<2)return json({error:"A valid app title is required."},400);
