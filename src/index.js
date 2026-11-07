@@ -41,8 +41,13 @@ async function gh(path, env, options={}) {
     const detail=String(body.message||res.statusText||"Unknown GitHub API error");
     const requestId=res.headers.get("x-github-request-id");
     const rate=res.headers.get("x-ratelimit-remaining");
-    const permissionHint=method!=="GET"&&res.status===403?" Check the Worker runtime secret GITHUB_TOKEN: it must be a fine-grained token for "+OWNER+"/"+REPO+" with Contents: Read and write, and the token must not be expired or awaiting approval.":"";
-    throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+(readFallbackTried?" (unauthenticated public-read retry also failed)":"")+": "+detail+permissionHint+(rate!==null?" (rate limit remaining "+rate+")":"")+(requestId?" (request ID "+requestId+")":""));
+    const accepted=res.headers.get("x-accepted-github-permissions");
+    const sso=res.headers.get("x-github-sso");
+    const scopes=res.headers.get("x-oauth-scopes");
+    const tokenState=env.GITHUB_TOKEN?"GITHUB_TOKEN configured":"GITHUB_TOKEN MISSING";
+    const diagnostics=[tokenState,accepted?"accepted permissions: "+accepted:null,sso?"SSO: "+sso:null,scopes?"token scopes: "+scopes:null,rate!==null?"rate limit remaining: "+rate:null,requestId?"request ID: "+requestId:null].filter(Boolean).join("; ");
+    const permissionHint=method!=="GET"&&res.status===403?" Check GitHub token/repository write access.":"";
+    throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+": "+detail+permissionHint+(diagnostics?" ["+diagnostics+"]":""));
   }
   return body;
 }
