@@ -94,14 +94,10 @@ async function findPlayIcon(title,packageName,slug,env){
    const im=html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i)||html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
    const storeTitle=cleanPlayText(tm&&tm[1]);const imageUrl=String(im&&im[1]||"").replace(/&amp;/g,"&");
    if(!playTitleMatches(title,storeTitle)||!imageUrl.startsWith("https://"))continue;
-   const ir=await fetch(imageUrl);if(!ir.ok)continue;
-   const type=(ir.headers.get("content-type")||"").split(";")[0].toLowerCase();
-   const ext=type==="image/png"?"png":type==="image/webp"?"webp":type==="image/jpeg"?"jpg":null;if(!ext)continue;
-   const bytes=new Uint8Array(await ir.arrayBuffer());if(bytes.length<1000||bytes.length>1048576)continue;
-   let bin="";for(let n=0;n<bytes.length;n+=0x8000)bin+=String.fromCharCode(...bytes.subarray(n,n+0x8000));
-   const iconPath="assets/app-icons/"+slug+"."+ext;
-   await gh(iconPath,env,{method:"PUT",body:JSON.stringify({message:"Add verified Google Play icon for "+title,content:btoa(bin),branch:BRANCH})});
-   return {iconPath,packageName:id,storeTitle};
+   // Keep the official Google Play artwork URL in posts.json instead of uploading
+   // binary image files through the GitHub Contents API. This avoids a separate
+   // binary PUT request and lets the browser load Google's official app icon.
+   return {iconUrl:imageUrl,packageName:id,storeTitle};
   }
  }catch(e){
   // Do not hide repository permission/authentication failures behind a missing-icon result.
@@ -144,13 +140,13 @@ async function api(request, env) {
       const {list,sha}=await getPosts(env);
       const next=[];
       for(const post of list) {
-        if(post.iconPath) { next.push(post); continue; }
+        if(post.iconPath||post.iconUrl) { next.push(post); continue; }
         const slug=post.slug||safeSlug(post.title);
         const icon=await findPlayIcon(post.title,post.appPackage||"",slug,env);
-        next.push({...post,iconPath:icon?.iconPath||null,appPackage:icon?.packageName||post.appPackage||null});
+        next.push({...post,iconUrl:icon?.iconUrl||null,appPackage:icon?.packageName||post.appPackage||null});
       }
       await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Fetch official app icons for existing articles",env,sha);
-      return json({ok:true,updated:next.filter(p=>p.iconPath).length,total:next.length,missing:next.filter(p=>!p.iconPath).map(p=>p.title)});
+      return json({ok:true,updated:next.filter(p=>p.iconPath||p.iconUrl).length,total:next.length,missing:next.filter(p=>!p.iconPath).map(p=>p.title)});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
       const data=await request.json();
@@ -177,7 +173,7 @@ ${content.replace(/\r/g,"")}
 `;
       await writeFile(path,markdown,"Publish article: "+title,env);
       const icon=await findPlayIcon(title,packageName,slug,env);
-      const next=[{title,path,slug,iconPath:icon?.iconPath||null,appPackage:icon?.packageName||null,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
+      const next=[{title,path,slug,iconUrl:icon?.iconUrl||null,appPackage:icon?.packageName||null,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
       await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Add published article: "+title,env,sha);
       await rebuildSitemap(next,env);
       return json({ok:true,article:next[0],url:SITE+"/articles/"+slug});
