@@ -216,6 +216,18 @@ ${content.replace(/\r/g,"")}
 export default {
  async fetch(request,env) {
    const url=new URL(request.url);
+   // Permanently redirect legacy query-string article URLs to clean, date-free SEO routes.
+   if((url.pathname==="/article"||url.pathname==="/article.html")&&request.method==="GET"){
+     const legacyPath=String(url.searchParams.get("path")||"");
+     if(/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(legacyPath)){
+       try{
+         const posts=await getPublicPosts(env,request);
+         const post=posts.find(p=>p.path===legacyPath&&p.published!==false);
+         if(post){const clean=articleSlug(post.slug||post.title);if(clean)return Response.redirect(SITE+"/articles/"+encodeURIComponent(clean),301)}
+       }catch(e){}
+     }
+     return new Response("Article not found",{status:404});
+   }
    if(url.pathname==="/api/article"&&request.method==="GET"){
      const path=String(url.searchParams.get("path")||"");
      if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
