@@ -211,12 +211,23 @@ async function api(request, env) {
       const title=String(data.title||"").trim();
       const content=String(data.content||"").trim();
       const description=String(data.description||"").trim();
-      const suppliedIcon=String(data.officialIconUrl||"").trim();let officialIconUrl=null;if(suppliedIcon){try{const u=new URL(suppliedIcon);if(u.protocol==="https:"&&!u.username&&!u.password)officialIconUrl=u.toString()}catch(e){return json({error:"Official app icon must be a valid HTTPS image URL."},400)}}if(!officialIconUrl)officialIconUrl=await resolveOfficialAppIcon(title,env);const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
+      const suppliedIcon=String(data.officialIconUrl||"").trim();let officialIconUrl=null;if(suppliedIcon){try{const u=new URL(suppliedIcon);if(u.protocol==="https:"&&!u.username&&!u.password)officialIconUrl=u.toString()}catch(e){return json({error:"Official app icon must be a valid HTTPS image URL."},400)}}const uploadedIcon=data.uploadedIcon&&typeof data.uploadedIcon==="object"?data.uploadedIcon:null;const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
       let slug=articleSlug(data.slug||title);
       if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)
         return json({error:"Add a valid title, URL slug, description and at least 80 characters of article content."},400);
       const {list,sha}=await getPosts(env);
       if(list.some(p=>articleSlug(p.slug||p.title)===slug))return json({error:"That URL slug already exists. Choose a unique slug."},409);
+      if(uploadedIcon){
+        const allowed={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/avif":"avif"};
+        const ext=allowed[String(uploadedIcon.mimeType||"").toLowerCase()];
+        const encoded=String(uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
+        if(!ext||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Upload a PNG, JPG, WEBP or AVIF app logo smaller than 1.5 MB."},400);
+        let bytes;try{const binary=atob(encoded);bytes=Uint8Array.from(binary,c=>c.charCodeAt(0))}catch(e){return json({error:"The uploaded app logo could not be read."},400)}
+        if(!bytes.length||bytes.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);
+        const iconPath="assets/app-icons/"+slug+"."+ext;
+        await writeBinaryFile(iconPath,bytes,"Upload official app logo: "+title,env);
+        officialIconUrl="/"+iconPath;
+      }else if(!officialIconUrl)officialIconUrl=await resolveOfficialAppIcon(title,env);
       const date=new Date().toISOString().slice(0,10);
       const filename=date+"-"+slug+".md";
       const path="_posts/"+filename;
