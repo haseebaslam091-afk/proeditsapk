@@ -17,19 +17,25 @@ function safeSlug(s) {
 function escYaml(s) { return String(s||"").replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\r?\n/g," "); }
 function b64utf8(s) { const bytes=new TextEncoder().encode(s); let bin=""; for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000)); return btoa(bin); }
 async function gh(path, env, options={}) {
-  if(!env.GITHUB_TOKEN) throw new Error("GitHub publishing token is not configured.");
-  const res=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path,{
-    ...options, headers:{
-      "authorization":"Bearer "+env.GITHUB_TOKEN,
-      "accept":"application/vnd.github+json",
-      "x-github-api-version":"2022-11-28",
-      "content-type":"application/json",
-      ...(options.headers||{})
-    }
-  });
+  const method=String(options.method||"GET").toUpperCase();
+  const url="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path;
+  const headers={
+    "accept":"application/vnd.github+json",
+    "x-github-api-version":"2022-11-28",
+    "content-type":"application/json",
+    ...(options.headers||{})
+  };
+  if(env.GITHUB_TOKEN)headers.authorization="Bearer "+env.GITHUB_TOKEN;
+  let res=await fetch(url,{...options,headers});
+  // This repository is public: allow unauthenticated reads if the configured PAT is rejected.
+  // Writes still require a valid token with Contents: Read and write.
+  if(method==="GET"&&(res.status===401||res.status===403)){
+    const publicHeaders={...headers};
+    delete publicHeaders.authorization;
+    res=await fetch(url,{...options,headers:publicHeaders});
+  }
   const body=await res.json().catch(()=>({}));
   if(!res.ok) {
-    const method=String(options.method||"GET").toUpperCase();
     const detail=String(body.message||res.statusText||"Unknown GitHub API error");
     const requestId=res.headers.get("x-github-request-id");
     throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+": "+detail+(requestId?" (request ID "+requestId+")":""));
