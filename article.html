@@ -17,6 +17,14 @@
 .post-visual .post-icon{z-index:3}
 @media(prefers-reduced-motion:reduce){.post-visual:before,.post-visual:after,.post-visual .post-icon{animation:none}}
 
+
+/* Hidden failed preview images must never expose their alt text */
+.post-visual img[hidden],
+.post-visual [hidden]{
+ display:none!important;
+ visibility:hidden!important;
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script><script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
 </head>
