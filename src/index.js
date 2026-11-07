@@ -74,6 +74,24 @@ async function writeFile(path, content, message, env, sha) {
   return gh(path,env,{method:"PUT",body:JSON.stringify(body)});
 }
 
+function b64bytes(bytes){let bin="";for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(bin)}
+async function writeBinaryFile(path,bytes,message,env){const body={message,content:b64bytes(bytes),branch:BRANCH};return gh(path,env,{method:"PUT",body:JSON.stringify(body)})}
+async function generateArticleThumbnail(title,description,slug,env){
+ if(!env.AI||typeof env.AI.run!=="function")return null;
+ const safeTitle=String(title||"Android app").slice(0,140),safeDescription=String(description||"").slice(0,240);
+ const prompt="Create a premium editorial blog thumbnail image, landscape 16:9, for a technology article about: "+safeTitle+". Context: "+safeDescription+". Visual direction: polished cinematic 3D editorial illustration, rich midnight navy and electric blue with cyan light accents, sophisticated app-inspired abstract visual metaphor, dramatic studio lighting, crisp focal subject, elegant depth, high contrast, premium technology publication art direction. No words, no letters, no logos, no watermarks, no fake app icon, no interface screenshots. Compose for a small mobile blog card with clear focal point.";
+ const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,width:1200,height:675,num_steps:4});
+ let bytes;
+ if(result instanceof Uint8Array)bytes=result;
+ else if(result instanceof ArrayBuffer)bytes=new Uint8Array(result);
+ else if(result instanceof ReadableStream)bytes=new Uint8Array(await new Response(result).arrayBuffer());
+ else if(result&&result.image){const raw=atob(String(result.image));bytes=Uint8Array.from(raw,c=>c.charCodeAt(0))}
+ else throw new Error("AI image model returned an unsupported image format.");
+ if(!bytes.length||bytes.length>8*1024*1024)throw new Error("Generated thumbnail has an invalid file size.");
+ const assetPath="assets/generated-thumbnails/"+slug+".png";
+ await writeBinaryFile(assetPath,bytes,"Generate AI article thumbnail: "+safeTitle,env);
+ return "/"+assetPath;
+}
 function cleanPlayText(v){return String(v||"").replace(/<[^>]*>/g," ").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g," ").trim();}
 function normPlayTitle(v){return String(v||"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]+/g," ").trim();}
 function playTitleMatches(expected,actual){const a=normPlayTitle(expected),b=normPlayTitle(actual);if(!a||!b)return false;if(a===b||a.startsWith(b)||b.startsWith(a))return true;const stop=new Set(["the","app","android","latest","version","pro","apk","official","free","video","editor","features","effects","templates","download","for","with","ai","private","vault","photo","hider","cloner"]);const words=a.split(" ").filter(x=>x.length>2&&!stop.has(x));return words.length>0&&words.filter(w=>b.includes(w)).length/words.length>=0.7;}
@@ -154,10 +172,16 @@ async function api(request, env) {
       return json({posts:list});
     }
     if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST") {
-      const {list,sha}=await getPosts(env);let found=0,changed=false;const missing=[];
-      for(const post of list){const media=await findPlayIcon(post.title,post.appPackage||"","",env);if(!media?.iconUrl){missing.push(post.title);continue}found++;if(post.iconUrl!==media.iconUrl){post.iconUrl=media.iconUrl;changed=true}if(media.packageName&&post.appPackage!==media.packageName){post.appPackage=media.packageName;changed=true}if(!post.thumbnailUrl&&media.screenshots?.length){post.thumbnailUrl=media.screenshots[0];changed=true}}
-      if(changed)await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Save verified app icons and thumbnails",env,sha);
-      return json({ok:true,updated:found,total:list.length,missing,message:changed?"Verified Google Play icons and available screenshots have been saved to posts.json.":"No new verified media was found; existing article artwork was preserved."});
+      const {list,sha}=await getPosts(env);let found=0,changed=false,generated=0;const missing=[];const limit=4;
+      for(const post of list){
+        const media=await findPlayIcon(post.title,post.appPackage||"","",env);
+        if(media?.iconUrl){found++;if(post.iconUrl!==media.iconUrl){post.iconUrl=media.iconUrl;changed=true}if(media.packageName&&post.appPackage!==media.packageName){post.appPackage=media.packageName;changed=true}}
+        if(!post.generatedThumbnailUrl&&generated<limit&&env.AI){try{const url=await generateArticleThumbnail(post.title,post.description||"",post.slug||safeSlug(post.title),env);if(url){post.generatedThumbnailUrl=url;generated++;changed=true}}catch(e){missing.push(post.title+": "+(e.message||"AI generation failed"))}}
+        if(!post.iconUrl&&!post.generatedThumbnailUrl)missing.push(post.title);
+      }
+      if(changed)await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Save official icons and generated article thumbnails",env,sha);
+      const remaining=list.filter(p=>!p.generatedThumbnailUrl).length;
+      return json({ok:true,updated:found,generated,total:list.length,remaining,missing,message:generated?"Generated and saved "+generated+" AI thumbnails. Run again to process the next batch.":(!env.AI?"Official icon lookup ran. Enable the Workers AI binding to generate premium thumbnails.":"No new thumbnails generated; existing artwork remains in place.")});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
       const data=await request.json();
@@ -183,8 +207,8 @@ draft: false
 ${content.replace(/\r/g,"")}
 `;
       await writeFile(path,markdown,"Publish article: "+title,env);
-      const icon=await findPlayIcon(title,packageName,slug,env);
-      const next=[{title,path,slug,iconUrl:icon?.iconUrl||null,thumbnailUrl:thumbnailUrl||icon?.screenshots?.[0]||null,appPackage:icon?.packageName||null,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
+      const icon=await findPlayIcon(title,packageName,slug,env);let generatedThumbnailUrl=null;if(!thumbnailUrl&&env.AI){try{generatedThumbnailUrl=await generateArticleThumbnail(title,description,slug,env)}catch(e){/* Publishing remains available if AI image generation is temporarily unavailable. */}}
+      const next=[{title,path,slug,iconUrl:icon?.iconUrl||null,thumbnailUrl:thumbnailUrl||icon?.screenshots?.[0]||null,generatedThumbnailUrl,appPackage:icon?.packageName||null,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
       await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Add published article: "+title,env,sha);
       await rebuildSitemap(next,env);
       return json({ok:true,article:next[0],url:SITE+"/articles/"+slug});
@@ -195,6 +219,11 @@ ${content.replace(/\r/g,"")}
 export default {
  async fetch(request,env) {
    const url=new URL(request.url);
+   if(url.pathname==="/api/article"&&request.method==="GET"){
+     const path=String(url.searchParams.get("path")||"");
+     if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
+     try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,date:post.date||""},{headers:{"cache-control":"public, max-age=60, s-maxage=300"}})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
+   }
    // Public, read-only icon lookup: fetches official Play Store artwork on demand
    // without writing posts.json or requiring a GitHub token.
    if(url.pathname==="/api/app-media"&&request.method==="GET"){const title=String(url.searchParams.get("title")||"").trim().slice(0,160),packageName=String(url.searchParams.get("package")||"").trim().slice(0,160);if(title.length<2)return json({error:"A valid app title is required."},400);try{const media=await findPlayIcon(title,packageName,"",env);if(!media)return json({iconUrl:null,screenshots:[]},404);return json({iconUrl:media.iconUrl,storeTitle:media.storeTitle,packageName:media.packageName,screenshots:media.screenshots||[]})}catch(e){return json({error:e.message||"App media lookup failed."},502)}}
