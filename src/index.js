@@ -109,11 +109,11 @@ async function resolveOfficialAppIcon(title,env){
  const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,""),wanted=norm(query);
  try{
   const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=20",{headers:{"accept":"application/json"}});
-  if(r.ok){const data=await r.json();const matches=(data.results||[]).map(x=>({x,n:norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.startsWith(wanted)));matches.sort((a,b)=>(a.n===wanted?0:1)-(b.n===wanted?0:1));if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(/^https:\/\//.test(url))return url}}
+  if(r.ok){const data=await r.json();const matches=(data.results||[]).map(x=>({x,n:norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.startsWith(wanted)));matches.sort((a,b)=>(a.n===wanted?0:1)-(b.n===wanted?0:1));if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(url.startsWith("https://"))return url}}
  }catch(e){}
  try{
   const r=await fetch("https://play.google.com/store/search?q="+encodeURIComponent(query)+"&c=apps&hl=en&gl=US",{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
-  if(r.ok){const html=await r.text(),lower=html.toLowerCase(),at=lower.indexOf(query.toLowerCase());if(at>=0){const part=html.slice(Math.max(0,at-6500),Math.min(html.length,at+6500));const urls=part.split("https://play-lh.googleusercontent.com/").slice(1).map(v=>"https://play-lh.googleusercontent.com/"+v.split(/[\s"<>]/)[0]);if(urls.length){const u=urls.sort((x,y)=>y.length-x.length)[0];if(/^https:\/\//.test(u))return u}}}
+  if(r.ok){const html=await r.text(),lower=html.toLowerCase(),at=lower.indexOf(query.toLowerCase());if(at>=0){const part=html.slice(Math.max(0,at-6500),Math.min(html.length,at+6500));const urls=part.split("https://play-lh.googleusercontent.com/").slice(1).map(v=>"https://play-lh.googleusercontent.com/"+v.split(/[\s"<>]/)[0]);if(urls.length){const u=urls.sort((x,y)=>y.length-x.length)[0];if(u.startsWith("https://"))return u}}}
  }catch(e){}
  return null;
 }
