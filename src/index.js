@@ -206,18 +206,38 @@ async function api(request, env) {
       const {list,sha}=await getPosts(env);const index=list.findIndex(p=>p.path===path);
       if(index<0)return json({error:"Article not found."},404);
       if(list.some((p,i)=>i!==index&&articleSlug(p.slug||p.title)===slug))return json({error:"That URL slug is already in use."},409);
+      let officialIconUrl=list[index].officialIconUrl||list[index].iconUrl||null;
+      const suppliedIcon=String(data.officialIconUrl||"").trim();
+      if(suppliedIcon){
+        if(/^\/assets\/app-icons\/[a-zA-Z0-9._-]+$/.test(suppliedIcon))officialIconUrl=suppliedIcon;
+        else{try{const u=new URL(suppliedIcon);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Official app icon must be a valid HTTPS URL or an uploaded app logo."},400);officialIconUrl=u.toString()}catch(e){return json({error:"Official app icon must be a valid HTTPS URL or an uploaded app logo."},400)}}
+      }
+      const uploadedIcon=data.uploadedIcon&&typeof data.uploadedIcon==="object"?data.uploadedIcon:null;
+      if(uploadedIcon){
+        const allowed={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/avif":"avif"};
+        const ext=allowed[String(uploadedIcon.mimeType||"").toLowerCase()];
+        const encoded=String(uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
+        if(!ext||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Upload a PNG, JPG, WEBP or AVIF app logo smaller than 1.5 MB."},400);
+        let bytes;try{const binary=atob(encoded);bytes=Uint8Array.from(binary,c=>c.charCodeAt(0))}catch(e){return json({error:"The uploaded app logo could not be read."},400)}
+        if(!bytes.length||bytes.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);
+        const iconPath="assets/app-icons/"+slug+"-"+Date.now()+"."+ext;
+        await writeBinaryFile(iconPath,bytes,"Update official app logo: "+title,env);
+        officialIconUrl="/"+iconPath;
+      }
+      let thumbnailUrl=null;const suppliedThumbnail=String(data.thumbnailUrl||"").trim();
+      if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400);thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
       const old=await readFile(path,env);const date=list[index].date||new Date().toISOString().slice(0,10);
-      const markdown=`---
-title: "${escYaml(title)}"
-description: "${escYaml(description)}"
-date: ${date}
+      const markdown=\`---
+title: "\${escYaml(title)}"
+description: "\${escYaml(description)}"
+date: \${date}
 draft: false
 ---
 
-${content.replace(/\r/g,"")}
-`;
+\${content.replace(/\\r/g,"")}
+\`;
       await writeFile(path,markdown,"Update article: "+title,env,old.sha);
-      const post={...list[index],title,slug,description,date,thumbnailUrl:data.thumbnailUrl?String(data.thumbnailUrl):null};
+      const post={...list[index],title,slug,description,date,thumbnailUrl,iconUrl:officialIconUrl,officialIconUrl};
       list[index]=post;await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Update article index: "+title,env,sha);
       await rebuildSitemap(list,env);
       return json({ok:true,article:post,url:SITE+"/articles/"+slug});
