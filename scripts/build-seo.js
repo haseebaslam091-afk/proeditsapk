@@ -1,78 +1,44 @@
 const fs = require('fs');
 const path = require('path');
-const https = require('https');
 
 const SITE_URL = 'https://proeditsapk.com';
-const INDEXNOW_KEY = 'proeditsapk-seo-indexnow-key';
 
-// 1. Generate Dynamic Sitemap.xml
+// Keep the generated sitemap aligned with the public Worker article routes.
+// Source Markdown filenames may contain dates; public SEO slugs never do.
 function generateSitemap() {
-    console.log('⚡ Generating Dynamic Sitemap.xml...');
+    console.log('Generating ProEditsAPK sitemap...');
     const postsDir = path.join(__dirname, '../_posts');
-    let urls = [
-        `  <url>\n    <loc>${SITE_URL}/</loc>\n    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`
+    const urls = [
+        `  <url><loc>${SITE_URL}/</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`
     ];
 
     if (fs.existsSync(postsDir)) {
-        const files = fs.readdirSync(postsDir);
-        files.forEach(file => {
-            if (file.endsWith('.md') || file.endsWith('.html')) {
-                const cleanSlug = file.replace(/\.md$/, '').replace(/\.html$/, '').replace(/^\d{4}-\d{2}-\d{2}-/, '');
-                urls.push(`  <url>\n    <loc>${SITE_URL}/${cleanSlug}</loc>\n    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`);
-            }
-        });
+        for (const file of fs.readdirSync(postsDir).sort()) {
+            if (!/\.md$/i.test(file)) continue;
+            const slug = file
+                .replace(/\.md$/i, '')
+                .replace(/^\d{4}-\d{2}-\d{2}-/, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-|-$/g, '')
+                .slice(0, 90);
+            if (!slug) continue;
+            const fullPath = path.join(postsDir, file);
+            const lastmod = fs.statSync(fullPath).mtime.toISOString().slice(0, 10);
+            urls.push(`  <url><loc>${SITE_URL}/articles/${encodeURIComponent(slug)}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
+        }
     }
 
-    const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
-    
-    fs.writeFileSync(path.join(__dirname, '../sitemap.xml'), sitemapContent);
-    console.log('✅ Sitemap.xml generated successfully!');
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+    fs.writeFileSync(path.join(__dirname, '../sitemap.xml'), xml);
+    console.log(`Sitemap generated with ${urls.length} URLs.`);
 }
 
-// 2. Generate Optimized Robots.txt
 function generateRobotsTxt() {
-    console.log('⚡ Generating Robots.txt...');
-    const robotsContent = `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /private/\n\nSitemap: ${SITE_URL}/sitemap.xml`;
-    fs.writeFileSync(path.join(__dirname, '../robots.txt'), robotsContent);
-    console.log('✅ Robots.txt generated successfully!');
+    const robots = `User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /private/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`;
+    fs.writeFileSync(path.join(__dirname, '../robots.txt'), robots);
+    console.log('robots.txt generated.');
 }
 
-// 3. Instant IndexNow Ping Engine
-function pingIndexNow() {
-    console.log('🚀 Triggering IndexNow API for Fast Indexing...');
-    
-    const data = JSON.stringify({
-        host: 'proeditsapk.com',
-        key: INDEXNOW_KEY,
-        keyLocation: `${SITE_URL}/${INDEXNOW_KEY}.txt`,
-        urlList: [`${SITE_URL}/`, `${SITE_URL}/sitemap.xml`]
-    });
-
-    const options = {
-        hostname: 'api.indexnow.org',
-        port: 443,
-        path: '/indexnow',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Content-Length': Buffer.byteLength(data)
-        }
-    };
-
-    const req = https.request(options, (res) => {
-        console.log(`📡 IndexNow Ping Response Status: ${res.statusCode}`);
-    });
-
-    req.on('error', (error) => {
-        console.error('❌ IndexNow Ping Error:', error.message);
-    });
-
-    req.write(data);
-    req.end();
-}
-
-// Run All Actions
 generateSitemap();
 generateRobotsTxt();
-pingIndexNow();
-
