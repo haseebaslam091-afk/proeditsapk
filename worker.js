@@ -177,19 +177,26 @@ async function createCommit(env, branch, files, message) {
 
 async function handleIconLookup(request, env, url) {
   if (request.method !== "GET") return json({ error: "Method not allowed" }, 405);
-  const pkg = String(url.searchParams.get("package") || "");
-  if (!/^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)+$/.test(pkg)) return json({ error: "Valid Android package name required" }, 400);
-  const response = await fetch("https://play.google.com/store/apps/details?id=" + encodeURIComponent(pkg) + "&hl=en", {
-    headers: { "user-agent": "Mozilla/5.0 (compatible; ProEditsAPK/1.0)" },
-    cf: { cacheTtl: 86400, cacheEverything: true }
-  });
+  let pkg = String(url.searchParams.get("package") || "");
+  const query = String(url.searchParams.get("q") || "").trim().slice(0, 100);
+  const headers = { "user-agent": "Mozilla/5.0 (compatible; ProEditsAPK/1.0)" };
+  if (pkg && !/^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)+$/.test(pkg)) return json({ error: "Invalid Android package name" }, 400);
+  if (!pkg && query.length >= 2) {
+    const searchResponse = await fetch("https://play.google.com/store/search?q=" + encodeURIComponent(query) + "&c=apps&hl=en", { headers, cf: { cacheTtl: 3600, cacheEverything: true } });
+    if (!searchResponse.ok) return json({ error: "Google Play search failed" }, 502);
+    const searchHtml = await searchResponse.text();
+    const found = searchHtml.match(/\\/store\\/apps\\/details\\?id=([a-zA-Z0-9_.]+)/);
+    if (found) pkg = found[1];
+  }
+  if (!pkg) return json({ error: "No matching Google Play app found" }, 404);
+  const response = await fetch("https://play.google.com/store/apps/details?id=" + encodeURIComponent(pkg) + "&hl=en", { headers, cf: { cacheTtl: 86400, cacheEverything: true } });
   if (!response.ok) return json({ error: "App icon not found on Google Play" }, 404);
   const html = await response.text();
   const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
     html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
   if (!match) return json({ error: "Google Play did not provide an app icon" }, 404);
   const icon = match[1].replace(/&amp;/g, "&");
-  if (!/^https:\/\/(play-lh|lh3)\.googleusercontent\.com\//.test(icon)) return json({ error: "Untrusted icon source" }, 502);
+  if (!/^https:\\/(play-lh|lh3)\\.googleusercontent\\.com\\//.test(icon)) return json({ error: "Untrusted icon source" }, 502);
   return Response.redirect(icon, 302);
 }
 
