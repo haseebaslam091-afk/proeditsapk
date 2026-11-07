@@ -201,6 +201,18 @@ ${content.replace(/\r/g,"")}
 export default {
  async fetch(request,env) {
    const url=new URL(request.url);
+   // Public, read-only icon lookup: fetches official Play Store artwork on demand
+   // without writing posts.json or requiring a GitHub token.
+   if(url.pathname==="/api/app-icon"&&request.method==="GET") {
+     const title=String(url.searchParams.get("title")||"").trim().slice(0,160);
+     const packageName=String(url.searchParams.get("package")||"").trim().slice(0,160);
+     if(title.length<2)return json({error:"A valid app title is required."},400);
+     try {
+       const icon=await findPlayIcon(title,packageName,"",env);
+       if(!icon)return json({iconUrl:null,error:"No matching Google Play listing found."},404);
+       return json({iconUrl:icon.iconUrl,storeTitle:icon.storeTitle,packageName:icon.packageName},200);
+     } catch(e) { return json({error:e.message||"Icon lookup failed."},502); }
+   }
    if(url.pathname.startsWith("/admin/api/"))return api(request,env);
    if(url.pathname==="/admin"||url.pathname==="/admin/") {
      const target=new URL("/admin/index.html",url);
