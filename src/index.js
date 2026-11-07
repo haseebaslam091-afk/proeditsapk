@@ -116,7 +116,7 @@ async function resolveOfficialAppIcon(title,env){
   const r=await fetch("https://play.google.com/store/search?q="+encodeURIComponent(query)+"&c=apps&hl=en&gl=US",{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
   if(r.ok){
    const html=await r.text(),needle=query.toLowerCase(),at=html.toLowerCase().indexOf(needle);
-   if(at>=0){const part=html.slice(Math.max(0,at-5000),Math.min(html.length,at+5000));const urls=part.split("https://play-lh.googleusercontent.com/").slice(1).map(v=>"https://play-lh.googleusercontent.com/"+v.split(/[\\s"<>]/)[0]);if(urls.length){const u=urls.sort((a,b)=>b.length-a.length)[0];if(/^https:\/\//.test(u))return u}}
+   if(at>=0){const part=html.slice(Math.max(0,at-5000),Math.min(html.length,at+5000));const urls=part.split("https://play-lh.googleusercontent.com/").slice(1).map(v=>"https://play-lh.googleusercontent.com/"+v.split(/[\s"<>]/)[0]);if(urls.length){const u=urls.sort((a,b)=>b.length-a.length)[0];if(/^https:\/\//.test(u))return u}}
   }
  }catch(e){}
  return null;
