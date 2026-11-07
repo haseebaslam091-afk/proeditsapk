@@ -98,6 +98,29 @@ async function generateAiArtwork(title,description,slug,env,kind="thumbnail"){
  return "/"+assetPath;
 }
 async function generateArticleThumbnail(title,description,slug,env){return generateAiArtwork(title,description,slug,env,"thumbnail")}
+async function resolveOfficialAppIcon(title,env){
+ const query=String(title||"").replace(/\b(latest version|download|free for android|apk)\b/gi," ").trim().slice(0,120);
+ if(!query)return null;
+ // Prefer a real App Store listing with an exact or very close app-name match.
+ try{
+  const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=8",{headers:{"accept":"application/json"}});
+  if(r.ok){
+   const data=await r.json();const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"");
+   const wanted=norm(query);
+   const matches=(data.results||[]).map(x=>({x,n: norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.includes(wanted)||wanted.includes(v.n)));
+   if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(/^https:\/\//.test(url))return url}
+  }
+ }catch(e){}
+ // Google Play fallback: only accept an image found close to the exact app title in its listing markup.
+ try{
+  const r=await fetch("https://play.google.com/store/search?q="+encodeURIComponent(query)+"&c=apps&hl=en&gl=US",{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
+  if(r.ok){
+   const html=await r.text(),needle=query.toLowerCase(),at=html.toLowerCase().indexOf(needle);
+   if(at>=0){const part=html.slice(Math.max(0,at-5000),Math.min(html.length,at+5000));const urls=[...part.matchAll(/https:\\/\\/play-lh\\.googleusercontent\\.com\\/[^\\s"'<>\\\\]+/g)].map(m=>m[0].replace(/\\\\u003d/g,"="));if(urls.length){const u=urls.sort((a,b)=>b.length-a.length)[0];if(/^https:\/\//.test(u))return u}}
+  }
+ }catch(e){}
+ return null;
+}
 async function generateAppArtwork(title,description,slug,env){return generateAiArtwork(title,description,slug,env,"icon")}
 async function getPublicPosts(env, request) {
   const u=new URL("/posts.json",request.url);
@@ -150,14 +173,14 @@ async function api(request, env) {
       const {list,sha}=await getPosts(env);let generated=0,changed=false;const missing=[];const limit=3;
       for(const post of list){
         if(generated>=limit)break;
-        if(post.generatedThumbnailUrl)continue;
+        if(post.generatedThumbnailUrl&&(post.officialIconUrl||post.iconUrl))continue;
         try{
           if(!post.generatedThumbnailUrl){const url=await generateArticleThumbnail(post.title,post.description||"",post.slug||safeSlug(post.title),env);if(url){post.generatedThumbnailUrl=url;changed=true}}
-          if(post.generatedThumbnailUrl)generated++;
+          if(!post.officialIconUrl&&!post.iconUrl){const icon=await resolveOfficialAppIcon(post.title,env);if(icon){post.officialIconUrl=icon;post.iconUrl=icon;changed=true}}\n          if(post.generatedThumbnailUrl&&(post.officialIconUrl||post.iconUrl))generated++;
         }catch(e){missing.push(post.title+": "+(e.message||"AI generation failed"))}
       }
       if(changed)await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Save original AI app artwork and article thumbnails",env,sha);
-      const remaining=list.filter(p=>!p.generatedThumbnailUrl).length;
+      const remaining=list.filter(p=>!p.generatedThumbnailUrl||!(p.officialIconUrl||p.iconUrl)).length;
       return json({ok:true,generated,total:list.length,remaining,missing,message:generated?"Generated original AI thumbnails and app-art concepts for "+generated+" articles. Run again for the next batch.":(!env.AI?"Enable the Cloudflare Workers AI binding to generate artwork.":"No new artwork was generated; existing articles remain available.")});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
@@ -165,7 +188,7 @@ async function api(request, env) {
       const title=String(data.title||"").trim();
       const content=String(data.content||"").trim();
       const description=String(data.description||"").trim();
-      const suppliedIcon=String(data.officialIconUrl||"").trim();let officialIconUrl=null;if(suppliedIcon){try{const u=new URL(suppliedIcon);if(u.protocol==="https:"&&!u.username&&!u.password)officialIconUrl=u.toString()}catch(e){return json({error:"Official app icon must be a valid HTTPS image URL."},400)}}const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
+      const suppliedIcon=String(data.officialIconUrl||"").trim();let officialIconUrl=null;if(suppliedIcon){try{const u=new URL(suppliedIcon);if(u.protocol==="https:"&&!u.username&&!u.password)officialIconUrl=u.toString()}catch(e){return json({error:"Official app icon must be a valid HTTPS image URL."},400)}}if(!officialIconUrl)officialIconUrl=await resolveOfficialAppIcon(title,env);const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
       let slug=safeSlug(data.slug||title);
       if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)
         return json({error:"Add a valid title, URL slug, description and at least 80 characters of article content."},400);
