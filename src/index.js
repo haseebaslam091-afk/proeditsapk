@@ -166,7 +166,7 @@ async function api(request, env) {
       return json({posts:list});
     }
     if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST") {
-      const {list,sha}=await getPosts(env);let generated=0,changed=false;const missing=[];const limit=3;
+      const {list,sha}=await getPosts(env);let generated=0,changed=false;const missing=[];const limit=10;
       for(const post of list){
         if(generated>=limit)break;
         if(post.generatedThumbnailUrl&&(post.officialIconUrl||post.iconUrl))continue;
