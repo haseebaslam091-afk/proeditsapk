@@ -174,6 +174,50 @@
  box-shadow:inset 0 2px 4px rgba(255,255,255,.8),inset 0 -3px 8px rgba(180,220,255,.28),0 6px 0 rgba(155,190,225,.3),0 12px 28px rgba(0,0,0,.32),0 0 28px rgba(235,250,255,.65);
 }
 
+
+/* Slow-motion crystal glass CTA: sharp reflections, no blurred colour halo */
+.post-action.single-cta{
+ position:relative;isolation:isolate;overflow:hidden;
+ color:#10243b!important;
+ border:1px solid rgba(255,255,255,.98)!important;
+ background:linear-gradient(155deg,#ffffff 0%,#eaf4ff 34%,#cbdced 51%,#fdfefe 72%,#dce9f7 100%)!important;
+ background-size:100% 100%!important;
+ text-shadow:0 1px 0 rgba(255,255,255,.9)!important;
+ box-shadow:inset 0 2px 2px #fff,inset 0 -3px 5px rgba(76,111,150,.22),0 4px 0 #9fb5cb,0 7px 15px rgba(0,0,0,.32),0 0 12px rgba(225,243,255,.25)!important;
+ animation:crystalBreath 12s ease-in-out infinite!important;
+}
+.post-action.single-cta:before{
+ content:"";position:absolute;z-index:0;inset:1px;border-radius:inherit;
+ background:linear-gradient(112deg,transparent 0%,rgba(255,255,255,.18) 27%,rgba(255,255,255,.94) 48%,rgba(255,255,255,.24) 63%,transparent 82%);
+ background-size:240% 100%;background-position:140% 0;
+ filter:none!important;opacity:.78!important;
+ animation:crystalSweep 18s ease-in-out infinite!important;
+}
+.post-action.single-cta:after{
+ content:"";position:absolute;z-index:1;left:8%;right:8%;top:2px;height:42%;
+ border-radius:99px;pointer-events:none;
+ background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,255,255,.25) 58%,transparent);
+ opacity:.72;animation:crystalGlint 14s ease-in-out infinite;
+}
+.post-action.single-cta span{position:relative;z-index:2;color:#10243b!important;text-shadow:0 1px 0 #fff!important}
+.feature-actions .single-cta{
+ color:#172235!important;
+ background:linear-gradient(145deg,#fff 0%,#f2f5fb 38%,#b9c9df 55%,#fff 78%,#e0e8f3 100%)!important;
+ border-radius:14px!important;letter-spacing:.65px;
+ box-shadow:inset 0 2px 3px #fff,inset 0 -4px 7px #8da4c244,0 5px 0 #9aaec5,0 9px 20px #0005!important;
+}
+.post-actions .single-cta{
+ color:#102d42!important;
+ background:linear-gradient(145deg,#f9feff 0%,#e5f4fb 38%,#b9d7e8 56%,#fff 82%,#d9eaf4 100%)!important;
+ border-radius:10px!important;letter-spacing:.3px;
+ box-shadow:inset 0 2px 3px #fff,inset 0 -3px 6px #7ca8c533,0 3px 0 #91afc4,0 6px 13px #0005!important;
+}
+.post-action.single-cta:hover{transform:translateY(-1px)!important;filter:brightness(1.035)}
+@keyframes crystalSweep{0%,12%{background-position:140% 0}72%,100%{background-position:-140% 0}}
+@keyframes crystalGlint{0%,18%,100%{opacity:.48}48%{opacity:.9}65%{opacity:.62}}
+@keyframes crystalBreath{0%,100%{filter:brightness(1)}50%{filter:brightness(1.035)}}
+@media(prefers-reduced-motion:reduce){.post-action.single-cta,.post-action.single-cta:before,.post-action.single-cta:after{animation:none!important}}
+
 </style>
 </head>
 <body>
