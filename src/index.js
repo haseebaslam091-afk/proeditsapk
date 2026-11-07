@@ -153,6 +153,10 @@ export default {
  async fetch(request,env) {
    const url=new URL(request.url);
    if(url.pathname.startsWith("/admin/api/"))return api(request,env);
+   if(url.pathname==="/admin"||url.pathname==="/admin/") {
+     const target=new URL("/admin/index.html",url);
+     return env.ASSETS.fetch(new Request(target.toString(),request));
+   }
    if(url.pathname.startsWith("/articles/")) {
      const slug=decodeURIComponent(url.pathname.slice("/articles/".length)).replace(/\/$/,"");
      if(!/^[a-z0-9-]{3,90}$/.test(slug))return new Response("Not found",{status:404});
