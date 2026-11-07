@@ -227,15 +227,15 @@ async function api(request, env) {
       let thumbnailUrl=null;const suppliedThumbnail=String(data.thumbnailUrl||"").trim();
       if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400);thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
       const old=await readFile(path,env);const date=list[index].date||new Date().toISOString().slice(0,10);
-      const markdown=\`---
-title: "\${escYaml(title)}"
-description: "\${escYaml(description)}"
-date: \${date}
+      const markdown=`---
+title: "${escYaml(title)}"
+description: "${escYaml(description)}"
+date: ${date}
 draft: false
 ---
 
-\${content.replace(/\\r/g,"")}
-\`;
+${content.replace(/\r/g,"")}
+`;
       await writeFile(path,markdown,"Update article: "+title,env,old.sha);
       const post={...list[index],title,slug,description,date,thumbnailUrl,iconUrl:officialIconUrl,officialIconUrl};
       list[index]=post;await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Update article index: "+title,env,sha);
