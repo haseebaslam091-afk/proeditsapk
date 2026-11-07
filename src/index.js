@@ -154,16 +154,15 @@ async function api(request, env) {
       return json({posts:list});
     }
     if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST") {
-      const {list,sha}=await getPosts(env);
-      const next=[];
+      // Compatibility endpoint: verify matches only. Icons are rendered on demand by /api/app-icon.
+      const {list}=await getPosts(env);
+      let found=0;const missing=[];
       for(const post of list) {
-        if(post.iconPath||post.iconUrl) { next.push(post); continue; }
-        const slug=post.slug||safeSlug(post.title);
-        const icon=await findPlayIcon(post.title,post.appPackage||"",slug,env);
-        next.push({...post,iconUrl:icon?.iconUrl||null,appPackage:icon?.packageName||post.appPackage||null});
+        if(post.iconPath||post.iconUrl){found++;continue;}
+        const icon=await findPlayIcon(post.title,post.appPackage||"","",env);
+        if(icon?.iconUrl)found++;else missing.push(post.title);
       }
-      await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Fetch official app icons for existing articles",env,sha);
-      return json({ok:true,updated:next.filter(p=>p.iconPath||p.iconUrl).length,total:next.length,missing:next.filter(p=>!p.iconPath).map(p=>p.title)});
+      return json({ok:true,updated:found,total:list.length,missing,message:"Official app icons now load automatically on the homepage; no GitHub file update is needed."});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
       const data=await request.json();
