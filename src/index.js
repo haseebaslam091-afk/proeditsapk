@@ -105,7 +105,14 @@ async function generateAiArtwork(title,description,slug,env){
 async function generateArticleThumbnail(title,description,slug,env){return generateAiArtwork(title,description,slug,env)}
 async function resolveOfficialAppIcon(title,env){
  const raw=String(title||"").trim();
- const query=raw.split(/[:|–—-]/)[0].replace(/\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features)\b/gi," ").replace(/\s+/g," ").trim().slice(0,100);
+ const known=[
+  [/\bcapcut\b/i,"CapCut"],
+  [/\bvivacut\b/i,"VivaCut"],
+  [/\bapp\s*locker\b|\bapplock\b/i,"App Locker"],
+  [/\bpop\s*maker\b|\bpopmaker\b/i,"Pop Maker"]
+ ];
+ const matched=known.find(([pattern])=>pattern.test(raw));
+ const query=matched?matched[1]:raw.split(/[:|–—-]/)[0].replace(/\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features|private|vault|cloner|photo|hider|video|generator|effects|templates)\b/gi," ").replace(/\s+/g," ").trim().split(/\s+/).slice(0,3).join(" ").slice(0,100);
  if(!query||query.split(/\s+/).length>4)return null;
  const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,""),wanted=norm(query);
  try{
