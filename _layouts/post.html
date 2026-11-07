@@ -91,7 +91,28 @@
 
         footer { text-align: center; margin-top: 60px; color: var(--text-muted); font-size: 13px; }
     </style>
-</head>
+
+<style>
+:root{color-scheme:dark;--bg-dark:#06050f;--card-bg:rgba(18,14,34,.88);--primary:#a855f7;--accent:#38bdf8;--text-main:#f8f7ff;--text-muted:#aaa7bd;--glass-border:rgba(192,132,252,.18)}
+*{font-family:'Plus Jakarta Sans',sans-serif}
+body{background:radial-gradient(ellipse at 50% 0,#26113f 0,transparent 38%),#06050f;color:var(--text-main)}
+header{background:#080714eF;border-color:#29243f;padding:18px max(22px,calc((100% - 1080px)/2))}
+.logo{background:linear-gradient(120deg,#c084fc,#60a5fa);-webkit-background-clip:text}
+.back-btn{color:#c4b5fd}
+.article-container{max-width:900px;margin:46px auto}
+.post-header{padding:42px 28px 34px;border:1px solid #35264c;border-radius:28px;background:radial-gradient(ellipse at 50% 0,#432064 0,transparent 60%),linear-gradient(145deg,#121020,#090914);box-shadow:0 20px 60px #0008}
+.post-app-icon{width:126px;height:126px;border-radius:28px;box-shadow:0 0 42px #a855f766}
+.badge{background:#18372f;color:#6ee7b7;letter-spacing:1px}
+.post-title{font-size:clamp(30px,5vw,48px);letter-spacing:-1.6px;line-height:1.15}
+.post-meta{color:#aaa7bd}
+.download-box{border:1px solid #543276;border-radius:23px;background:radial-gradient(ellipse at 50% 0,#37164f 0,transparent 70%),#100d1d;padding:30px}
+.btn-download-large{background:linear-gradient(120deg,#9333ea,#4f46e5);box-shadow:0 10px 28px #7c3aed55;border-radius:15px}
+.content{font-size:16px;color:#c7c3d5;background:#0d0b18;border:1px solid #27223b;border-radius:23px;padding:clamp(22px,5vw,42px);line-height:1.85}
+.content h2{color:#f8f7ff;border-color:#a855f7}
+.content a{color:#c084fc}
+footer{color:#aaa7bd}
+@media(max-width:620px){.article-container{margin:22px auto}.post-header{padding:30px 18px 25px;border-radius:22px}.post-title{font-size:30px}.download-box{padding:22px 16px}.btn-download-large{font-size:15px;padding:14px 22px}.content{font-size:15px;padding:22px 18px}}
+</style></head>
 <body>
 
     <header>
