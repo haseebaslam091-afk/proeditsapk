@@ -258,10 +258,13 @@ export default {
     }
     try {
       await verifyAccess(request, env);
+    } catch {
+      return json({ error: "Access verification failed" }, 403);
+    }
+    try {
       return await handleApi(request, env, url);
     } catch (error) {
-      const status = error.status || 403;
-      return json({ error: status === 403 ? "Access verification failed" : error.message }, status);
+      return json({ error: error.message || "Backend request failed" }, error.status || 500);
     }
   }
 };
