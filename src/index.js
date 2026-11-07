@@ -46,8 +46,20 @@ async function gh(path, env, options={}) {
   return body;
 }
 async function readFile(path, env) {
-  const r=await gh(path+"?ref="+BRANCH,env);
-  const binary=atob(r.content.replace(/\n/g,"")); const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0)); return {text:new TextDecoder().decode(bytes),sha:r.sha};
+  // Read public repository files from raw.githubusercontent.com instead of the
+  // GitHub Contents API, which can return 403 on shared Cloudflare egress IPs.
+  const url="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");
+  const response=await fetch(url,{headers:{"accept":"text/plain","cache-control":"no-cache"}});
+  if(!response.ok)throw new Error("GitHub raw read "+response.status+" for "+path+": "+(response.statusText||"Request failed"));
+  const text=await response.text();
+  // Contents API PUT requires the Git blob SHA. Recompute it from the raw file.
+  const bytes=new TextEncoder().encode(text);
+  const header=new TextEncoder().encode("blob "+bytes.length+"\\0");
+  const payload=new Uint8Array(header.length+bytes.length);
+  payload.set(header,0);payload.set(bytes,header.length);
+  const digest=await crypto.subtle.digest("SHA-1",payload);
+  const sha=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+  return {text,sha};
 }
 async function writeFile(path, content, message, env, sha) {
   const body={message,content:b64utf8(content),branch:BRANCH};
