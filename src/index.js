@@ -107,15 +107,15 @@ async function resolveOfficialAppIcon(title,env){
  const raw=String(title||"").trim();
  // Exact, verified Android package IDs prevent a similarly named app's logo being used.
  const known=[
-  [/\\bcapcut\\b/i,{name:"CapCut",packageId:"com.lemon.lvoverseas"}],
-  [/\\bvivacut\\b/i,{name:"VivaCut",packageId:"com.videoeditorpro.android"}],
-  [/\\bpop\\s*maker\\b|\\bpopmaker\\b/i,{name:"PopMaker",packageId:"com.cuyikeji.popmaker"}]
+  [/\bcapcut\b/i,{name:"CapCut",packageId:"com.lemon.lvoverseas"}],
+  [/\bvivacut\b/i,{name:"VivaCut",packageId:"com.videoeditorpro.android"}],
+  [/\bpop\s*maker\b|\bpopmaker\b/i,{name:"PopMaker",packageId:"com.cuyikeji.popmaker"}]
  ];
  const matched=known.find(([pattern])=>pattern.test(raw));
  // "App Locker" is intentionally not guessed: many unrelated apps use that name.
- if(/\\bapp\\s*locker\\b|\\bapplock\\b/i.test(raw)&&!matched)return null;
- const query=matched?matched[1].name:raw.split(/[:|–—-]/)[0].replace(/\\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features|private|vault|cloner|photo|hider|video|generator|effects|templates)\\b/gi," ").replace(/\\s+/g," ").trim().split(/\\s+/).slice(0,3).join(" ").slice(0,100);
- if(!query||query.split(/\\s+/).length>4)return null;
+ if(/\bapp\s*locker\b|\bapplock\b/i.test(raw)&&!matched)return null;
+ const query=matched?matched[1].name:raw.split(/[:|–—-]/)[0].replace(/\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features|private|vault|cloner|photo|hider|video|generator|effects|templates)\b/gi," ").replace(/\s+/g," ").trim().split(/\s+/).slice(0,3).join(" ").slice(0,100);
+ if(!query||query.split(/\s+/).length>4)return null;
  if(matched){
   try{
    const url="https://play.google.com/store/apps/details?id="+encodeURIComponent(matched[1].packageId)+"&hl=en&gl=US";
@@ -123,7 +123,7 @@ async function resolveOfficialAppIcon(title,env){
    if(r.ok){
     const html=await r.text();
     const titleMatch=html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)||html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
-    const iconMatch=html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https:\\/\\/[^"']+)["']/i)||html.match(/<meta[^>]+content=["'](https:\\/\\/[^"']+)["'][^>]+property=["']og:image["']/i);
+    const iconMatch=html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https:\/\/[^"']+)["']/i)||html.match(/<meta[^>]+content=["'](https:\/\/[^"']+)["'][^>]+property=["']og:image["']/i);
     if(iconMatch&&iconMatch[1]&&(!titleMatch||titleMatch[1].toLowerCase().includes(matched[1].name.toLowerCase()))){
      const icon=iconMatch[1].replace(/&amp;/g,"&");
      if(icon.startsWith("https://"))return icon;
