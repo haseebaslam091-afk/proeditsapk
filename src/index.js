@@ -104,12 +104,12 @@ async function generateAiArtwork(title,description,slug,env){
 async function generateArticleThumbnail(title,description,slug,env){return generateAiArtwork(title,description,slug,env)}
 async function resolveOfficialAppIcon(title,env){
  const raw=String(title||"").trim();
- const query=raw.split(/[:|–—-]/)[0].replace(/\b(latest version|download|free for android|apk|202[4-9]|guide|review|features)\b/gi," ").replace(/\s+/g," ").trim().slice(0,100);
- if(!query)return null;
+ const query=raw.split(/[:|–—-]/)[0].replace(/\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features)\b/gi," ").replace(/\s+/g," ").trim().slice(0,100);
+ if(!query||query.split(/\s+/).length>4)return null;
  const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,""),wanted=norm(query);
  try{
   const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=20",{headers:{"accept":"application/json"}});
-  if(r.ok){const data=await r.json();const matches=(data.results||[]).map(x=>({x,n:norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.startsWith(wanted)||wanted.startsWith(v.n)));matches.sort((a,b)=>(a.n===wanted?0:1)-(b.n===wanted?0:1));if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(/^https:\/\//.test(url))return url}}
+  if(r.ok){const data=await r.json();const matches=(data.results||[]).map(x=>({x,n:norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.startsWith(wanted)));matches.sort((a,b)=>(a.n===wanted?0:1)-(b.n===wanted?0:1));if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(/^https:\/\//.test(url))return url}}
  }catch(e){}
  try{
   const r=await fetch("https://play.google.com/store/search?q="+encodeURIComponent(query)+"&c=apps&hl=en&gl=US",{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
