@@ -75,6 +75,11 @@ async function writeFile(path, content, message, env, sha) {
   return gh(path,env,{method:"PUT",body:JSON.stringify(body)});
 }
 
+
+async function deleteFile(path, message, env, sha) {
+  return gh(path,env,{method:"DELETE",body:JSON.stringify({message,sha,branch:BRANCH})});
+}
+
 function b64bytes(bytes){let bin="";for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(bin)}
 async function writeBinaryFile(path,bytes,message,env){const body={message,content:b64bytes(bytes),branch:BRANCH};return gh(path,env,{method:"PUT",body:JSON.stringify(body)})}
 async function generateAiArtwork(title,description,slug,env){
@@ -190,6 +195,44 @@ async function api(request, env) {
     if(url.pathname==="/admin/api/posts"&&request.method==="GET") {
       const {list}=await getPosts(env);
       return json({posts:list});
+    }
+    if(url.pathname==="/admin/api/update"&&request.method==="POST") {
+      const data=await request.json();
+      const path=String(data.path||"");
+      if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
+      const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim();
+      const slug=articleSlug(data.slug||title);
+      if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Check title, slug, description and article content (minimum 80 characters)."},400);
+      const {list,sha}=await getPosts(env);const index=list.findIndex(p=>p.path===path);
+      if(index<0)return json({error:"Article not found."},404);
+      if(list.some((p,i)=>i!==index&&articleSlug(p.slug||p.title)===slug))return json({error:"That URL slug is already in use."},409);
+      const old=await readFile(path,env);const date=list[index].date||new Date().toISOString().slice(0,10);
+      const markdown=`---
+title: "${escYaml(title)}"
+description: "${escYaml(description)}"
+date: ${date}
+draft: false
+---
+
+${content.replace(/\r/g,"")}
+`;
+      await writeFile(path,markdown,"Update article: "+title,env,old.sha);
+      const post={...list[index],title,slug,description,date,thumbnailUrl:data.thumbnailUrl?String(data.thumbnailUrl):null};
+      list[index]=post;await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Update article index: "+title,env,sha);
+      await rebuildSitemap(list,env);
+      return json({ok:true,article:post,url:SITE+"/articles/"+slug});
+    }
+    if(url.pathname==="/admin/api/delete"&&request.method==="POST") {
+      const data=await request.json();const path=String(data.path||"");
+      if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
+      const {list,sha}=await getPosts(env);const index=list.findIndex(p=>p.path===path);
+      if(index<0)return json({error:"Article not found."},404);
+      const post=list[index];const file=await readFile(path,env);
+      await deleteFile(path,"Delete article: "+String(post.title||path),env,file.sha);
+      const next=list.filter((_,i)=>i!==index);
+      await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Remove article: "+String(post.title||path),env,sha);
+      await rebuildSitemap(next,env);
+      return json({ok:true,deleted:path});
     }
     if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST") {
       const {list,sha}=await getPosts(env);let generated=0,changed=false;const missing=[];const limit=10;
