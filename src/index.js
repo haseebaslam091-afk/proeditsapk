@@ -177,14 +177,22 @@ async function githubDiagnostic(env) {
     const r=await fetch(url,{headers});
     const body=await r.json().catch(()=>({}));
     return {status:r.status,ok:r.ok,message:r.ok?undefined:String(body.message||r.statusText||"Request failed"),
-      acceptedPermissions:r.headers.get("x-accepted-github-permissions"),tokenScopes:r.headers.get("x-oauth-scopes"),
-      sso:r.headers.get("x-github-sso"),rateLimitRemaining:r.headers.get("x-ratelimit-remaining"),body};
+      acceptedPermissions:r.headers.get("x-accepted-github-permissions"),sso:r.headers.get("x-github-sso"),
+      rateLimitRemaining:r.headers.get("x-ratelimit-remaining")};
   }
-  const [user,repo]=await Promise.all([check("https://api.github.com/user"),check("https://api.github.com/repos/"+OWNER+"/"+REPO)]);
+  // Fine-grained PATs are repository-scoped and do not provide the classic
+  // /user identity endpoint. Verify the selected repository and its contents
+  // directly instead of incorrectly treating /user 403 as authentication failure.
+  const repoUrl="https://api.github.com/repos/"+OWNER+"/"+REPO;
+  const [repo,contents]=await Promise.all([
+    check(repoUrl),
+    check(repoUrl+"/contents/posts.json?ref="+encodeURIComponent(BRANCH))
+  ]);
   return {tokenConfigured:!!env.GITHUB_TOKEN,
-    identity:{status:user.status,ok:user.ok,login:user.body?.login||null,message:user.message,acceptedPermissions:user.acceptedPermissions,tokenScopes:user.tokenScopes,sso:user.sso},
-    repository:{status:repo.status,ok:repo.ok,fullName:repo.body?.full_name||null,permissions:repo.body?.permissions||null,message:repo.message,acceptedPermissions:repo.acceptedPermissions,sso:repo.sso},
-    rateLimitRemaining:user.rateLimitRemaining||repo.rateLimitRemaining||null};
+    authentication:{method:"repository-scoped token",note:"Fine-grained PAT identity is not checked through /user."},
+    repository:{status:repo.status,ok:repo.ok,fullName:repo.ok?OWNER+"/"+REPO:null,message:repo.message,acceptedPermissions:repo.acceptedPermissions,sso:repo.sso},
+    contents:{status:contents.status,ok:contents.ok,path:"posts.json",message:contents.message,acceptedPermissions:contents.acceptedPermissions},
+    rateLimitRemaining:repo.rateLimitRemaining||contents.rateLimitRemaining||null};
 }
 async function api(request, env) {
   if(request.method==="OPTIONS")return new Response(null,{status:204,headers:{"access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","access-control-max-age":"86400"}});
