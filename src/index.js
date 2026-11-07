@@ -28,7 +28,12 @@ async function gh(path, env, options={}) {
     }
   });
   const body=await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(body.message||("GitHub API error "+res.status));
+  if(!res.ok) {
+    const method=String(options.method||"GET").toUpperCase();
+    const detail=String(body.message||res.statusText||"Unknown GitHub API error");
+    const requestId=res.headers.get("x-github-request-id");
+    throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+": "+detail+(requestId?" (request ID "+requestId+")":""));
+  }
   return body;
 }
 async function readFile(path, env) {
@@ -70,7 +75,10 @@ async function findPlayIcon(title,packageName,slug,env){
    await gh(iconPath,env,{method:"PUT",body:JSON.stringify({message:"Add verified Google Play icon for "+title,content:btoa(bin),branch:BRANCH})});
    return {iconPath,packageName:id,storeTitle};
   }
- }catch(e){}
+ }catch(e){
+  // Do not hide repository permission/authentication failures behind a missing-icon result.
+  if(String(e&&e.message||e).startsWith("GitHub API ")) throw e;
+ }
  return null;
 }
 
