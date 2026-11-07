@@ -112,7 +112,7 @@ async function resolveOfficialAppIcon(title,env){
  const raw=String(title||"").trim();
  // Exact, verified Android package IDs prevent a similarly named app's logo being used.
  const known=[
-  [/\bcapcut\b/i,{name:"CapCut",packageId:"com.lemon.lvoverseas"}],
+  [/\bcapcut\b/i,{name:"CapCut",packageId:"com.lemon.lvoverseas",iosBundleId:"com.lemon.lvoverseas"}],
   [/\bvivacut\b/i,{name:"VivaCut",packageId:"com.videoeditorpro.android"}],
   [/\bpop\s*maker\b|\bpopmaker\b/i,{name:"PopMaker",packageId:"com.cuyikeji.popmaker"}]
  ];
@@ -136,13 +136,18 @@ async function resolveOfficialAppIcon(title,env){
    }
   }catch(e){}
  }
- // Apple lookup is accepted only for an exact app-name match, never a fuzzy prefix.
+ // Search using the app's clean name, never the full SEO article title.
+ // Prefer a known bundle identifier where available; otherwise require an exact
+ // normalized app-name match so a similarly named app cannot supply the wrong logo.
  try{
   const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=25",{headers:{"accept":"application/json"}});
   if(r.ok){
    const data=await r.json();
    const wanted=query.toLowerCase().replace(/[^a-z0-9]+/g,"");
-   const match=(data.results||[]).find(x=>String(x.trackName||"").toLowerCase().replace(/[^a-z0-9]+/g,"")===wanted);
+   const results=Array.isArray(data.results)?data.results:[];
+   const match=(matched&&matched[1].iosBundleId
+    ?results.find(x=>String(x.bundleId||"").toLowerCase()===matched[1].iosBundleId.toLowerCase())
+    :null)||results.find(x=>String(x.trackName||"").toLowerCase().replace(/[^a-z0-9]+/g,"")===wanted);
    const url=String(match?.artworkUrl512||match?.artworkUrl100||"");
    if(url.startsWith("https://"))return url;
   }
