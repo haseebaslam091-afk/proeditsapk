@@ -16,5 +16,10 @@
       "/article",
       "/article.html"
     ]
+  },
+  "previews": {
+    "ai": {
+      "binding": "AI"
+    }
   }
 }
