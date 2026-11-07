@@ -83,7 +83,7 @@ async function generateAiArtwork(title,description,slug,env,kind="thumbnail"){
  const prompt=isIcon
  ? "Create an original premium 3D app-icon concept inspired by the function and subject of this app: "+safeTitle+". Context: "+safeDescription+". Design a distinctive simple symbolic object, polished glass and enamel materials, rounded-square app icon composition, centered focal object, dramatic soft studio lighting, midnight navy and electric cyan with tasteful violet highlights, elegant premium mobile app aesthetic. This is original conceptual artwork, NOT the official trademark or logo. No letters, no words, no copied logos, no watermarks, no screenshots."
  : "Create a premium editorial blog thumbnail, landscape 16:9, about: "+safeTitle+". Context: "+safeDescription+". Choose the best visual metaphor for this exact subject. Polished cinematic 3D illustration, midnight navy, electric blue, cyan and restrained violet highlights, crisp focal subject, dramatic studio lighting, rich depth, premium technology publication art direction, visually striking but uncluttered. No words, no letters, no logos, no watermarks, no interface screenshots.";
- const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,steps:4});
+ const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,steps:4,width:isIcon?512:1200,height:isIcon?512:675});
  let bytes;
  if(result instanceof Uint8Array)bytes=result;
  else if(result instanceof ArrayBuffer)bytes=new Uint8Array(result);
