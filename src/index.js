@@ -105,23 +105,42 @@ async function generateAiArtwork(title,description,slug,env){
 async function generateArticleThumbnail(title,description,slug,env){return generateAiArtwork(title,description,slug,env)}
 async function resolveOfficialAppIcon(title,env){
  const raw=String(title||"").trim();
+ // Exact, verified Android package IDs prevent a similarly named app's logo being used.
  const known=[
-  [/\bcapcut\b/i,"CapCut"],
-  [/\bvivacut\b/i,"VivaCut"],
-  [/\bapp\s*locker\b|\bapplock\b/i,"App Locker"],
-  [/\bpop\s*maker\b|\bpopmaker\b/i,"Pop Maker"]
+  [/\\bcapcut\\b/i,{name:"CapCut",packageId:"com.lemon.lvoverseas"}],
+  [/\\bvivacut\\b/i,{name:"VivaCut",packageId:"com.videoeditorpro.android"}],
+  [/\\bpop\\s*maker\\b|\\bpopmaker\\b/i,{name:"PopMaker",packageId:"com.cuyikeji.popmaker"}]
  ];
  const matched=known.find(([pattern])=>pattern.test(raw));
- const query=matched?matched[1]:raw.split(/[:|–—-]/)[0].replace(/\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features|private|vault|cloner|photo|hider|video|generator|effects|templates)\b/gi," ").replace(/\s+/g," ").trim().split(/\s+/).slice(0,3).join(" ").slice(0,100);
- if(!query||query.split(/\s+/).length>4)return null;
- const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,""),wanted=norm(query);
+ // "App Locker" is intentionally not guessed: many unrelated apps use that name.
+ if(/\\bapp\\s*locker\\b|\\bapplock\\b/i.test(raw)&&!matched)return null;
+ const query=matched?matched[1].name:raw.split(/[:|–—-]/)[0].replace(/\\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features|private|vault|cloner|photo|hider|video|generator|effects|templates)\\b/gi," ").replace(/\\s+/g," ").trim().split(/\\s+/).slice(0,3).join(" ").slice(0,100);
+ if(!query||query.split(/\\s+/).length>4)return null;
+ if(matched){
+  try{
+   const url="https://play.google.com/store/apps/details?id="+encodeURIComponent(matched[1].packageId)+"&hl=en&gl=US";
+   const r=await fetch(url,{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
+   if(r.ok){
+    const html=await r.text();
+    const titleMatch=html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)||html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+    const iconMatch=html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https:\\/\\/[^"']+)["']/i)||html.match(/<meta[^>]+content=["'](https:\\/\\/[^"']+)["'][^>]+property=["']og:image["']/i);
+    if(iconMatch&&iconMatch[1]&&(!titleMatch||titleMatch[1].toLowerCase().includes(matched[1].name.toLowerCase()))){
+     const icon=iconMatch[1].replace(/&amp;/g,"&");
+     if(icon.startsWith("https://"))return icon;
+    }
+   }
+  }catch(e){}
+ }
+ // Apple lookup is accepted only for an exact app-name match, never a fuzzy prefix.
  try{
-  const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=20",{headers:{"accept":"application/json"}});
-  if(r.ok){const data=await r.json();const matches=(data.results||[]).map(x=>({x,n:norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.startsWith(wanted)));matches.sort((a,b)=>(a.n===wanted?0:1)-(b.n===wanted?0:1));if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(url.startsWith("https://"))return url}}
- }catch(e){}
- try{
-  const r=await fetch("https://play.google.com/store/search?q="+encodeURIComponent(query)+"&c=apps&hl=en&gl=US",{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
-  if(r.ok){const html=await r.text(),lower=html.toLowerCase(),at=lower.indexOf(query.toLowerCase());if(at>=0){const part=html.slice(Math.max(0,at-6500),Math.min(html.length,at+6500));const urls=part.split("https://play-lh.googleusercontent.com/").slice(1).map(v=>"https://play-lh.googleusercontent.com/"+v.split(/[\s"<>]/)[0]);if(urls.length){const u=urls.sort((x,y)=>y.length-x.length)[0];if(u.startsWith("https://"))return u}}}
+  const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=25",{headers:{"accept":"application/json"}});
+  if(r.ok){
+   const data=await r.json();
+   const wanted=query.toLowerCase().replace(/[^a-z0-9]+/g,"");
+   const match=(data.results||[]).find(x=>String(x.trackName||"").toLowerCase().replace(/[^a-z0-9]+/g,"")===wanted);
+   const url=String(match?.artworkUrl512||match?.artworkUrl100||"");
+   if(url.startsWith("https://"))return url;
+  }
  }catch(e){}
  return null;
 }
