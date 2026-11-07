@@ -240,8 +240,10 @@ async function handleApi(request, env, url) {
       message = "Publish article: " + title.slice(0, 72);
     }
     const iconUrl = /^https:\/\/(play-lh|lh3)\.googleusercontent\.com\//.test(String(body.iconUrl || "")) ? String(body.iconUrl) : "";
+    const packageName = /^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)+$/.test(String(body.packageName || "")) ? String(body.packageName) : "";
     record.description = description;
     if (iconUrl) record.iconUrl = iconUrl; else delete record.iconUrl;
+    if (packageName) record.packageName = packageName; else if (request.method === "PUT") delete record.packageName;
     const markdown = articleMarkdown(title, record.date, description, iconUrl, content);
     const updated = [record, ...posts.filter(p => p.path !== path)];
     const commit = await createCommit(env, branch, [
