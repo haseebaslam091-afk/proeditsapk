@@ -27,9 +27,11 @@ async function gh(path, env, options={}) {
   };
   if(env.GITHUB_TOKEN)headers.authorization="Bearer "+env.GITHUB_TOKEN;
   let res=await fetch(url,{...options,headers});
+  let readFallbackTried=false;
   // This repository is public: allow unauthenticated reads if the configured PAT is rejected.
   // Writes still require a valid token with Contents: Read and write.
   if(method==="GET"&&(res.status===401||res.status===403)){
+    readFallbackTried=true;
     const publicHeaders={...headers};
     delete publicHeaders.authorization;
     res=await fetch(url,{...options,headers:publicHeaders});
@@ -38,7 +40,8 @@ async function gh(path, env, options={}) {
   if(!res.ok) {
     const detail=String(body.message||res.statusText||"Unknown GitHub API error");
     const requestId=res.headers.get("x-github-request-id");
-    throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+": "+detail+(requestId?" (request ID "+requestId+")":""));
+    const rate=res.headers.get("x-ratelimit-remaining");
+    throw new Error("GitHub API "+res.status+" during "+method+" /contents/"+path+(readFallbackTried?" (unauthenticated public-read retry also failed)":"")+": "+detail+(rate!==null?" (rate limit remaining "+rate+")":"")+(requestId?" (request ID "+requestId+")":""));
   }
   return body;
 }
