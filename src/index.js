@@ -80,7 +80,7 @@ async function generateArticleThumbnail(title,description,slug,env){
  if(!env.AI||typeof env.AI.run!=="function")return null;
  const safeTitle=String(title||"Android app").slice(0,140),safeDescription=String(description||"").slice(0,240);
  const prompt="Create a premium editorial blog thumbnail image, landscape 16:9, for a technology article about: "+safeTitle+". Context: "+safeDescription+". Visual direction: polished cinematic 3D editorial illustration, rich midnight navy and electric blue with cyan light accents, sophisticated app-inspired abstract visual metaphor, dramatic studio lighting, crisp focal subject, elegant depth, high contrast, premium technology publication art direction. No words, no letters, no logos, no watermarks, no fake app icon, no interface screenshots. Compose for a small mobile blog card with clear focal point.";
- const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,width:1200,height:675,num_steps:4});
+ const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,steps:4});
  let bytes;
  if(result instanceof Uint8Array)bytes=result;
  else if(result instanceof ArrayBuffer)bytes=new Uint8Array(result);
@@ -88,7 +88,7 @@ async function generateArticleThumbnail(title,description,slug,env){
  else if(result&&result.image){const raw=atob(String(result.image));bytes=Uint8Array.from(raw,c=>c.charCodeAt(0))}
  else throw new Error("AI image model returned an unsupported image format.");
  if(!bytes.length||bytes.length>8*1024*1024)throw new Error("Generated thumbnail has an invalid file size.");
- const assetPath="assets/generated-thumbnails/"+slug+".png";
+ const assetPath="assets/generated-thumbnails/"+slug+".jpg";
  await writeBinaryFile(assetPath,bytes,"Generate AI article thumbnail: "+safeTitle,env);
  return "/"+assetPath;
 }
