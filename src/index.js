@@ -254,9 +254,11 @@ export default {
        const post=list.find(p=>articleSlug(p.slug||p.title)===slug);
        if(!post)return new Response("Article not found",{status:404});
        if(requestedSlug!==slug)return Response.redirect(SITE+"/articles/"+encodeURIComponent(slug),301);
+       if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(String(post.path||"")))return new Response("Article content path is invalid.",{status:404,headers:{"content-type":"text/plain; charset=utf-8"}});
        const target=new URL("/article.html",url);
        target.searchParams.set("path",post.path);
-       const asset=await env.ASSETS.fetch(new Request(target.toString(),request));
+       const asset=await env.ASSETS.fetch(new Request(target.toString(),{method:"GET",headers:request.headers}));
+       if(!asset.ok)return new Response("Article page template could not be loaded. Please try again shortly.",{status:503,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}});
        const html=await asset.text();
        const canonical=SITE+"/articles/"+slug;
        let injected=html.replace('<meta name="article-path" content="">', '<meta name="article-path" content="'+post.path+'">');
@@ -265,7 +267,7 @@ export default {
        if(post.description)injected=injected.replace('content="Explore Android apps, video editing tools and AI apps on ProEditsAPK."', 'content="'+String(post.description).replace(/[&<>"]/g,"")+'"');
        const headers=new Headers(asset.headers); headers.delete("content-length"); headers.delete("etag"); headers.set("content-type","text/html; charset=utf-8");
        return new Response(injected,{status:asset.status,headers});
-     } catch(e) { return new Response("Article temporarily unavailable",{status:503}); }
+     } catch(e) { return new Response("Article temporarily unavailable. Please refresh or return to the homepage.",{status:503,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}}); }
    }
    return env.ASSETS.fetch(request);
  }
