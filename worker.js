@@ -133,7 +133,8 @@ function articleMarkdown(title, date, description, iconUrl, content) {
     "description: " + yamlQuote(description)];
   if (iconUrl) lines.push("iconUrl: " + yamlQuote(iconUrl));
   lines.push("layout: post", "---", "", content, "");
-  return lines.join("\n");
+  return lines.join("
+");
 }
 
 async function readArticle(env, branch, path) {
@@ -172,6 +173,24 @@ async function createCommit(env, branch, files, message) {
     body: JSON.stringify({ sha: commit.sha, force: false })
   });
   return commit.sha;
+}
+
+async function handleIconLookup(request, env, url) {
+  if (request.method !== "GET") return json({ error: "Method not allowed" }, 405);
+  const pkg = String(url.searchParams.get("package") || "");
+  if (!/^[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)+$/.test(pkg)) return json({ error: "Valid Android package name required" }, 400);
+  const response = await fetch("https://play.google.com/store/apps/details?id=" + encodeURIComponent(pkg) + "&hl=en", {
+    headers: { "user-agent": "Mozilla/5.0 (compatible; ProEditsAPK/1.0)" },
+    cf: { cacheTtl: 86400, cacheEverything: true }
+  });
+  if (!response.ok) return json({ error: "App icon not found on Google Play" }, 404);
+  const html = await response.text();
+  const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+  if (!match) return json({ error: "Google Play did not provide an app icon" }, 404);
+  const icon = match[1].replace(/&amp;/g, "&");
+  if (!/^https:\/\/(play-lh|lh3)\.googleusercontent\.com\//.test(icon)) return json({ error: "Untrusted icon source" }, 502);
+  return Response.redirect(icon, 302);
 }
 
 async function handleApi(request, env, url) {
@@ -220,11 +239,15 @@ async function handleApi(request, env, url) {
       record = { title, path, rawUrl, date, slug: slugFromPath, description };
       message = "Publish article: " + title.slice(0, 72);
     }
-    const iconUrl = /^https:\/\/(play-lh|lh3)\.googleusercontent\.com\//.test(String(body.iconUrl || "")) ? String(body.iconUrl) : "";\n    record.description = description;\n    if (iconUrl) record.iconUrl = iconUrl; else delete record.iconUrl;\n    const markdown = articleMarkdown(title, record.date, description, iconUrl, content);
+    const iconUrl = /^https:\/\/(play-lh|lh3)\.googleusercontent\.com\//.test(String(body.iconUrl || "")) ? String(body.iconUrl) : "";
+    record.description = description;
+    if (iconUrl) record.iconUrl = iconUrl; else delete record.iconUrl;
+    const markdown = articleMarkdown(title, record.date, description, iconUrl, content);
     const updated = [record, ...posts.filter(p => p.path !== path)];
     const commit = await createCommit(env, branch, [
       { path, content: markdown },
-      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "\n" }
+      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "
+" }
     ], message);
     return json({ ok: true, article: record, commit, branch });
   }
@@ -237,7 +260,8 @@ async function handleApi(request, env, url) {
     const updated = posts.filter(p => p.path !== path);
     const commit = await createCommit(env, branch, [
       { path, delete: true },
-      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "\n" }
+      { path: "posts.json", content: JSON.stringify(updated, null, 2) + "
+" }
     ], "Delete article: " + String(posts.find(p => p.path === path).title || "").slice(0, 72));
     return json({ ok: true, deleted: path, commit, branch });
   }
@@ -247,6 +271,10 @@ async function handleApi(request, env, url) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/app-icon") {
+      try { return await handleIconLookup(request, env, url); }
+      catch (error) { return json({ error: error.message || "Icon lookup failed" }, 502); }
+    }
     if (!url.pathname.startsWith("/admin/api/")) return env.ASSETS.fetch(request);
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: {
