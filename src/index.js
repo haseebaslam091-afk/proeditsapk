@@ -127,11 +127,28 @@ async function rebuildSitemap(list, env) {
   const old=await readFile("sitemap.xml",env).catch(()=>null);
   await writeFile("sitemap.xml",xml,"Update sitemap after publishing",env,old?.sha);
 }
+async function githubDiagnostic(env) {
+  const headers={"accept":"application/vnd.github+json","x-github-api-version":"2022-11-28"};
+  if(env.GITHUB_TOKEN)headers.authorization="Bearer "+env.GITHUB_TOKEN;
+  async function check(url){
+    const r=await fetch(url,{headers});
+    const body=await r.json().catch(()=>({}));
+    return {status:r.status,ok:r.ok,message:r.ok?undefined:String(body.message||r.statusText||"Request failed"),
+      acceptedPermissions:r.headers.get("x-accepted-github-permissions"),tokenScopes:r.headers.get("x-oauth-scopes"),
+      sso:r.headers.get("x-github-sso"),rateLimitRemaining:r.headers.get("x-ratelimit-remaining"),body};
+  }
+  const [user,repo]=await Promise.all([check("https://api.github.com/user"),check("https://api.github.com/repos/"+OWNER+"/"+REPO)]);
+  return {tokenConfigured:!!env.GITHUB_TOKEN,
+    identity:{status:user.status,ok:user.ok,login:user.body?.login||null,message:user.message,acceptedPermissions:user.acceptedPermissions,tokenScopes:user.tokenScopes,sso:user.sso},
+    repository:{status:repo.status,ok:repo.ok,fullName:repo.body?.full_name||null,permissions:repo.body?.permissions||null,message:repo.message,acceptedPermissions:repo.acceptedPermissions,sso:repo.sso},
+    rateLimitRemaining:user.rateLimitRemaining||repo.rateLimitRemaining||null};
+}
 async function api(request, env) {
   if(request.method==="OPTIONS")return new Response(null,{status:204,headers:{"access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","access-control-max-age":"86400"}});
   if(!request.headers.get("cf-access-jwt-assertion"))return json({error:"Cloudflare Access authentication required."},401);
   const url=new URL(request.url);
   try {
+    if(url.pathname==="/admin/api/github-status"&&request.method==="GET") return json(await githubDiagnostic(env));
     if(url.pathname==="/admin/api/posts"&&request.method==="GET") {
       const {list}=await getPosts(env);
       return json({posts:list});
