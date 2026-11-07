@@ -121,7 +121,6 @@ async function resolveOfficialAppIcon(title,env){
  }catch(e){}
  return null;
 }
-async function generateAppArtwork(title,description,slug,env){return generateAiArtwork(title,description,slug,env,"icon")}
 async function getPublicPosts(env, request) {
   const u=new URL("/posts.json",request.url);
   const r=await env.ASSETS.fetch(new Request(u.toString()));
