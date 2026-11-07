@@ -40,6 +40,40 @@ async function writeFile(path, content, message, env, sha) {
   if(sha)body.sha=sha;
   return gh(path,env,{method:"PUT",body:JSON.stringify(body)});
 }
+
+function cleanPlayText(v){return String(v||"").replace(/<[^>]*>/g," ").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g," ").trim();}
+function normPlayTitle(v){return String(v||"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]+/g," ").trim();}
+function playTitleMatches(expected,actual){const a=normPlayTitle(expected),b=normPlayTitle(actual);if(!a||!b)return false;if(a===b||a.startsWith(b)||b.startsWith(a))return true;const stop=new Set(["the","app","android","latest","version","pro","apk","official","free"]);const words=a.split(" ").filter(x=>x.length>2&&!stop.has(x));return words.length>0&&words.filter(w=>b.includes(w)).length/words.length>=0.7;}
+async function findPlayIcon(title,packageName,slug,env){
+ try{
+  let ids=[];
+  if(packageName&&/^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$/.test(packageName))ids=[packageName];
+  else{
+   const sr=await fetch("https://play.google.com/store/search?q="+encodeURIComponent(title)+"&c=apps&hl=en&gl=US",{headers:{"user-agent":"Mozilla/5.0"}});
+   if(!sr.ok)return null;
+   const html=await sr.text();const re=/(?:\?|&amp;)id=([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+)/g;let m;
+   while((m=re.exec(html))&&ids.length<8)if(!ids.includes(m[1]))ids.push(m[1]);
+  }
+  for(const id of ids){
+   const page=await fetch("https://play.google.com/store/apps/details?id="+encodeURIComponent(id)+"&hl=en&gl=US",{headers:{"user-agent":"Mozilla/5.0"}});
+   if(!page.ok)continue;const html=await page.text();
+   const tm=html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)/i)||html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+   const im=html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i)||html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+   const storeTitle=cleanPlayText(tm&&tm[1]);const imageUrl=String(im&&im[1]||"").replace(/&amp;/g,"&");
+   if(!playTitleMatches(title,storeTitle)||!imageUrl.startsWith("https://"))continue;
+   const ir=await fetch(imageUrl);if(!ir.ok)continue;
+   const type=(ir.headers.get("content-type")||"").split(";")[0].toLowerCase();
+   const ext=type==="image/png"?"png":type==="image/webp"?"webp":type==="image/jpeg"?"jpg":null;if(!ext)continue;
+   const bytes=new Uint8Array(await ir.arrayBuffer());if(bytes.length<1000||bytes.length>1048576)continue;
+   let bin="";for(let n=0;n<bytes.length;n+=0x8000)bin+=String.fromCharCode(...bytes.subarray(n,n+0x8000));
+   const iconPath="assets/app-icons/"+slug+"."+ext;
+   await gh(iconPath,env,{method:"PUT",body:JSON.stringify({message:"Add verified Google Play icon for "+title,content:btoa(bin),branch:BRANCH})});
+   return {iconPath,packageName:id,storeTitle};
+  }
+ }catch(e){}
+ return null;
+}
+
 async function getPublicPosts(env, request) {
   const u=new URL("/posts.json",request.url);
   const r=await env.ASSETS.fetch(new Request(u.toString()));
@@ -75,6 +109,7 @@ async function api(request, env) {
       const title=String(data.title||"").trim();
       const content=String(data.content||"").trim();
       const description=String(data.description||"").trim();
+      const packageName=String(data.packageName||"").trim();
       let slug=safeSlug(data.slug||title);
       if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)
         return json({error:"Add a valid title, URL slug, description and at least 80 characters of article content."},400);
@@ -93,7 +128,8 @@ draft: false
 ${content.replace(/\r/g,"")}
 `;
       await writeFile(path,markdown,"Publish article: "+title,env);
-      const next=[{title,path,slug,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
+      const icon=await findPlayIcon(title,packageName,slug,env);
+      const next=[{title,path,slug,iconPath:icon?.iconPath||null,appPackage:icon?.packageName||null,rawUrl:"https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path,date,description,published:true},...list];
       await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Add published article: "+title,env,sha);
       await rebuildSitemap(next,env);
       return json({ok:true,article:next[0],url:SITE+"/articles/"+slug});
