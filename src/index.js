@@ -76,13 +76,17 @@ async function writeFile(path, content, message, env, sha) {
 
 function b64bytes(bytes){let bin="";for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(bin)}
 async function writeBinaryFile(path,bytes,message,env){const body={message,content:b64bytes(bytes),branch:BRANCH};return gh(path,env,{method:"PUT",body:JSON.stringify(body)})}
-async function generateAiArtwork(title,description,slug,env,kind="thumbnail"){
+async function generateAiArtwork(title,description,slug,env){
  if(!env.AI||typeof env.AI.run!=="function")return null;
  const safeTitle=String(title||"App").slice(0,140),safeDescription=String(description||"").slice(0,240);
- const isIcon=kind==="icon";
- const prompt=isIcon
- ? "Create an original premium 3D app-icon concept inspired by the function and subject of this app: "+safeTitle+". Context: "+safeDescription+". Design a distinctive simple symbolic object, polished glass and enamel materials, rounded-square app icon composition, centered focal object, dramatic soft studio lighting, midnight navy and electric cyan with tasteful violet highlights, elegant premium mobile app aesthetic. This is original conceptual artwork, NOT the official trademark or logo. No letters, no words, no copied logos, no watermarks, no screenshots."
- : "Create a premium editorial blog thumbnail, landscape 16:9, about: "+safeTitle+". Context: "+safeDescription+". Choose the best visual metaphor for this exact subject. Create a cinematic 3D environment with a clear central focal area reserved for the real official app icon, which will be layered separately on the webpage. Add topic-matched fire, ice, lightning, neon energy or glass effects around the outer edges only. Midnight navy, electric blue, cyan and violet highlights, rich depth, dramatic studio lighting. Do not draw any app logo, icon, letters, words, watermark or interface screenshot.";
+ const subject=(safeTitle+" "+safeDescription).toLowerCase();
+ let effect="electric cyan and blue lightning arcs, energetic light trails and subtle glowing particles";
+ if(/ice|snow|cold|frost|winter/.test(subject))effect="crystalline ice shards, frozen mist, frosted glass and cool blue refractions";
+ else if(/fire|flame|burn|heat|hot/.test(subject))effect="controlled cinematic flames, glowing embers and warm orange-red energy";
+ else if(/music|audio|song|sound|beat/.test(subject))effect="neon sound waves, luminous equalizer ribbons and pulsing violet-blue energy";
+ else if(/photo|camera|image|design|art|edit|video/.test(subject))effect="iridescent glass ribbons, luminous lens flares and elegant holographic light trails";
+ else if(/ai|artificial|chat|assistant|bot/.test(subject))effect="holographic neural light paths, floating data particles and violet-cyan energy";
+ const prompt="Create a premium editorial blog thumbnail, landscape 16:9, about: "+safeTitle+". Context: "+safeDescription+". Build a cinematic 3D environment with "+effect+". Leave a clear central focal zone because the genuine official app icon will be placed over the center separately by the website. Put dramatic effects around the icon zone and outer edges. Never create or imitate any logo, app icon, trademark, letters, words, watermark or user interface. Premium midnight navy atmosphere, rich depth, dramatic studio lighting, polished editorial quality.";
  const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt,steps:4});
  let bytes;
  if(result instanceof Uint8Array)bytes=result;
@@ -93,31 +97,23 @@ async function generateAiArtwork(title,description,slug,env,kind="thumbnail"){
  else if(result&&typeof result.image==="string"){const raw=atob(result.image);bytes=Uint8Array.from(raw,c=>c.charCodeAt(0))}
  else throw new Error("AI image model returned an unsupported image format.");
  if(!bytes.length||bytes.length>8*1024*1024)throw new Error("Generated artwork has an invalid file size.");
- const assetPath="assets/generated-thumbnails/"+slug+(isIcon?"-icon":"")+".png";
- await writeBinaryFile(assetPath,bytes,"Generate original AI "+kind+": "+safeTitle,env);
+ const assetPath="assets/generated-thumbnails/"+slug+".png";
+ await writeBinaryFile(assetPath,bytes,"Generate themed AI background: "+safeTitle,env);
  return "/"+assetPath;
 }
-async function generateArticleThumbnail(title,description,slug,env){return generateAiArtwork(title,description,slug,env,"thumbnail")}
+async function generateArticleThumbnail(title,description,slug,env){return generateAiArtwork(title,description,slug,env)}
 async function resolveOfficialAppIcon(title,env){
- const query=String(title||"").replace(/\b(latest version|download|free for android|apk)\b/gi," ").trim().slice(0,120);
+ const raw=String(title||"").trim();
+ const query=raw.split(/[:|–—-]/)[0].replace(/\\b(latest version|download|free for android|apk|202[4-9]|guide|review|features)\\b/gi," ").replace(/\\s+/g," ").trim().slice(0,100);
  if(!query)return null;
- // Prefer a real App Store listing with an exact or very close app-name match.
+ const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,""),wanted=norm(query);
  try{
-  const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=8",{headers:{"accept":"application/json"}});
-  if(r.ok){
-   const data=await r.json();const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"");
-   const wanted=norm(query);
-   const matches=(data.results||[]).map(x=>({x,n: norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.includes(wanted)||wanted.includes(v.n)));
-   if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(/^https:\/\//.test(url))return url}
-  }
+  const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=20",{headers:{"accept":"application/json"}});
+  if(r.ok){const data=await r.json();const matches=(data.results||[]).map(x=>({x,n:norm(x.trackName)})).filter(v=>v.n&&(v.n===wanted||v.n.startsWith(wanted)||wanted.startsWith(v.n)));matches.sort((a,b)=>(a.n===wanted?0:1)-(b.n===wanted?0:1));if(matches.length){const url=String(matches[0].x.artworkUrl512||matches[0].x.artworkUrl100||"");if(/^https:\\/\\//.test(url))return url}}
  }catch(e){}
- // Google Play fallback: only accept an image found close to the exact app title in its listing markup.
  try{
   const r=await fetch("https://play.google.com/store/search?q="+encodeURIComponent(query)+"&c=apps&hl=en&gl=US",{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
-  if(r.ok){
-   const html=await r.text(),needle=query.toLowerCase(),at=html.toLowerCase().indexOf(needle);
-   if(at>=0){const part=html.slice(Math.max(0,at-5000),Math.min(html.length,at+5000));const urls=part.split("https://play-lh.googleusercontent.com/").slice(1).map(v=>"https://play-lh.googleusercontent.com/"+v.split(/[\s"<>]/)[0]);if(urls.length){const u=urls.sort((a,b)=>b.length-a.length)[0];if(/^https:\/\//.test(u))return u}}
-  }
+  if(r.ok){const html=await r.text(),lower=html.toLowerCase(),at=lower.indexOf(query.toLowerCase());if(at>=0){const part=html.slice(Math.max(0,at-6500),Math.min(html.length,at+6500));const urls=part.split("https://play-lh.googleusercontent.com/").slice(1).map(v=>"https://play-lh.googleusercontent.com/"+v.split(/[\\s"<>]/)[0]);if(urls.length){const u=urls.sort((x,y)=>y.length-x.length)[0];if(/^https:\\/\\//.test(u))return u}}}
  }catch(e){}
  return null;
 }
@@ -175,12 +171,12 @@ async function api(request, env) {
         if(post.generatedThumbnailUrl&&(post.officialIconUrl||post.iconUrl))continue;
         try{
           if(!post.generatedThumbnailUrl){const url=await generateArticleThumbnail(post.title,post.description||"",post.slug||safeSlug(post.title),env);if(url){post.generatedThumbnailUrl=url;changed=true}}
-          if(!post.officialIconUrl&&!post.iconUrl){const icon=await resolveOfficialAppIcon(post.title,env);if(icon){post.officialIconUrl=icon;post.iconUrl=icon;changed=true}}\n          if(post.generatedThumbnailUrl&&(post.officialIconUrl||post.iconUrl))generated++;
+          if(!post.officialIconUrl&&!post.iconUrl){const icon=await resolveOfficialAppIcon(post.title,env);if(icon){post.officialIconUrl=icon;post.iconUrl=icon;changed=true}}\n          if(post.generatedThumbnailUrl||post.officialIconUrl||post.iconUrl)generated++;
         }catch(e){missing.push(post.title+": "+(e.message||"AI generation failed"))}
       }
       if(changed)await writeFile("posts.json",JSON.stringify(list,null,2)+"\n","Save original AI app artwork and article thumbnails",env,sha);
       const remaining=list.filter(p=>!p.generatedThumbnailUrl||!(p.officialIconUrl||p.iconUrl)).length;
-      return json({ok:true,generated,total:list.length,remaining,missing,message:generated?"Generated original AI thumbnails and app-art concepts for "+generated+" articles. Run again for the next batch.":(!env.AI?"Enable the Cloudflare Workers AI binding to generate artwork.":"No new artwork was generated; existing articles remain available.")});
+      return json({ok:true,generated,total:list.length,remaining,missing,message:generated?"Generated themed AI backgrounds and preserved official app icons for "+generated+" articles. Run again for the next batch.":(!env.AI?"Enable the Cloudflare Workers AI binding to generate artwork.":"No new artwork was generated; existing articles remain available.")});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
       const data=await request.json();
@@ -221,7 +217,7 @@ export default {
    if(url.pathname==="/api/article"&&request.method==="GET"){
      const path=String(url.searchParams.get("path")||"");
      if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
-     try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||post.officialIconUrl||null,officialIconUrl:post.officialIconUrl||post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,generatedIconUrl:post.generatedIconUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
+     try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||post.officialIconUrl||null,officialIconUrl:post.officialIconUrl||post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
    }
    if(url.pathname.startsWith("/admin/api/"))return api(request,env);
    if(url.pathname==="/admin"||url.pathname==="/admin/") {
