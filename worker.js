@@ -212,7 +212,7 @@ async function handleApi(request, env, url) {
       if (!slug) return json({ error: "A valid article slug is required" }, 400);
       path = "_posts/" + date + "-" + slug + ".md";
       if (posts.some(p => p.path === path)) return json({ error: "This article URL already exists. Edit the existing article instead." }, 409);
-      const slugFromPath = path.slice(path.lastIndexOf("/") + 12, -3);
+      const slugFromPath = path.slice(18, -3);
       const rawUrl = "https://raw.githubusercontent.com/" + env.GITHUB_OWNER + "/" + env.GITHUB_REPO + "/" + branch + "/" + path;
       record = { title, path, rawUrl, date, slug: slugFromPath, description };
       message = "Publish article: " + title.slice(0, 72);
