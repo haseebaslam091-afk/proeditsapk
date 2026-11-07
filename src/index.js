@@ -14,6 +14,7 @@ function safeSlug(s) {
   return String(s||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
     .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,90);
 }
+function articleSlug(s) { return safeSlug(s).replace(/^\d{4}-\d{2}-\d{2}-/,"").slice(0,90); }
 function escYaml(s) { return String(s||"").replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\r?\n/g," "); }
 function b64utf8(s) { const bytes=new TextEncoder().encode(s); let bin=""; for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000)); return btoa(bin); }
 async function gh(path, env, options={}) {
@@ -133,7 +134,7 @@ async function getPosts(env) {
 }
 async function rebuildSitemap(list, env) {
   const urls=[`  <url><loc>${SITE}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>`];
-  for(const p of list) if(p.published!==false) urls.push(`  <url><loc>${SITE}/articles/${encodeURIComponent(p.slug||safeSlug(p.title))}</loc><lastmod>${p.date||new Date().toISOString().slice(0,10)}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
+  for(const p of list) if(p.published!==false) urls.push(`  <url><loc>${SITE}/articles/${encodeURIComponent(articleSlug(p.slug||p.title))}</loc><lastmod>${p.date||new Date().toISOString().slice(0,10)}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
   const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join("\n")+'\n</urlset>\n';
   const old=await readFile("sitemap.xml",env).catch(()=>null);
   await writeFile("sitemap.xml",xml,"Update sitemap after publishing",env,old?.sha);
@@ -185,11 +186,11 @@ async function api(request, env) {
       const content=String(data.content||"").trim();
       const description=String(data.description||"").trim();
       const suppliedIcon=String(data.officialIconUrl||"").trim();let officialIconUrl=null;if(suppliedIcon){try{const u=new URL(suppliedIcon);if(u.protocol==="https:"&&!u.username&&!u.password)officialIconUrl=u.toString()}catch(e){return json({error:"Official app icon must be a valid HTTPS image URL."},400)}}if(!officialIconUrl)officialIconUrl=await resolveOfficialAppIcon(title,env);const suppliedThumbnail=String(data.thumbnailUrl||"").trim();let thumbnailUrl=null;if(suppliedThumbnail){try{const u=new URL(suppliedThumbnail);if(u.protocol==="https:"&&!u.username&&!u.password)thumbnailUrl=u.toString()}catch(e){return json({error:"Thumbnail URL must be a valid HTTPS image URL."},400)}}
-      let slug=safeSlug(data.slug||title);
+      let slug=articleSlug(data.slug||title);
       if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)
         return json({error:"Add a valid title, URL slug, description and at least 80 characters of article content."},400);
       const {list,sha}=await getPosts(env);
-      if(list.some(p=>(p.slug||safeSlug(p.title))===slug))return json({error:"That URL slug already exists. Choose a unique slug."},409);
+      if(list.some(p=>articleSlug(p.slug||p.title)===slug))return json({error:"That URL slug already exists. Choose a unique slug."},409);
       const date=new Date().toISOString().slice(0,10);
       const filename=date+"-"+slug+".md";
       const path="_posts/"+filename;
@@ -226,12 +227,14 @@ export default {
      return env.ASSETS.fetch(new Request(target.toString(),request));
    }
    if(url.pathname.startsWith("/articles/")) {
-     const slug=decodeURIComponent(url.pathname.slice("/articles/".length)).replace(/\/$/,"");
-     if(!/^[a-z0-9-]{3,90}$/.test(slug))return new Response("Not found",{status:404});
+     const requestedSlug=decodeURIComponent(url.pathname.slice("/articles/".length)).replace(/\/$/,"");
+     if(!/^[a-z0-9-]{3,90}$/.test(requestedSlug))return new Response("Not found",{status:404});
+     const slug=articleSlug(requestedSlug);
      try {
        const list=await getPublicPosts(env,request);
-       const post=list.find(p=>(p.slug||safeSlug(p.title))===slug);
+       const post=list.find(p=>articleSlug(p.slug||p.title)===slug);
        if(!post)return new Response("Article not found",{status:404});
+       if(requestedSlug!==slug)return Response.redirect(SITE+"/articles/"+encodeURIComponent(slug),301);
        const target=new URL("/article.html",url);
        target.searchParams.set("path",post.path);
        const asset=await env.ASSETS.fetch(new Request(target.toString(),request));
