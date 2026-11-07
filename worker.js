@@ -128,9 +128,12 @@ function validPostPath(value) {
     !value.includes("..");
 }
 
-function articleMarkdown(title, date, description, content) {
-  return ["---", "title: " + yamlQuote(title), "date: " + date,
-    "description: " + yamlQuote(description), "layout: post", "---", "", content, ""].join("\n");
+function articleMarkdown(title, date, description, iconUrl, content) {
+  const lines = ["---", "title: " + yamlQuote(title), "date: " + date,
+    "description: " + yamlQuote(description)];
+  if (iconUrl) lines.push("iconUrl: " + yamlQuote(iconUrl));
+  lines.push("layout: post", "---", "", content, "");
+  return lines.join("\n");
 }
 
 async function readArticle(env, branch, path) {
@@ -217,7 +220,7 @@ async function handleApi(request, env, url) {
       record = { title, path, rawUrl, date, slug: slugFromPath, description };
       message = "Publish article: " + title.slice(0, 72);
     }
-    const markdown = articleMarkdown(title, record.date, description, content);
+    const iconUrl = /^https:\/\/(play-lh|lh3)\.googleusercontent\.com\//.test(String(body.iconUrl || "")) ? String(body.iconUrl) : "";\n    record.description = description;\n    if (iconUrl) record.iconUrl = iconUrl; else delete record.iconUrl;\n    const markdown = articleMarkdown(title, record.date, description, iconUrl, content);
     const updated = [record, ...posts.filter(p => p.path !== path)];
     const commit = await createCommit(env, branch, [
       { path, content: markdown },
