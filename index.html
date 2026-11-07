@@ -218,6 +218,64 @@
 @keyframes crystalBreath{0%,100%{filter:brightness(1)}50%{filter:brightness(1.035)}}
 @media(prefers-reduced-motion:reduce){.post-action.single-cta,.post-action.single-cta:before,.post-action.single-cta:after{animation:none!important}}
 
+
+/* iOS-inspired liquid-water glass CTAs: dimensional surface, restrained highlights */
+.post-action.single-cta{
+  position:relative;isolation:isolate;overflow:hidden;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  color:#f4fbff!important;
+  border:1px solid rgba(210,239,255,.58)!important;
+  border-radius:13px!important;
+  background:
+    radial-gradient(130% 170% at 18% -45%,rgba(255,255,255,.48),transparent 48%),
+    radial-gradient(110% 120% at 100% 120%,rgba(99,195,255,.22),transparent 55%),
+    linear-gradient(155deg,rgba(91,166,210,.34),rgba(16,55,91,.72) 48%,rgba(8,34,65,.86))!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  text-shadow:0 1px 1px rgba(0,15,35,.5)!important;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.48),
+    inset 0 -2px 4px rgba(0,12,35,.24),
+    0 1px 0 rgba(255,255,255,.16),
+    0 4px 0 rgba(5,25,48,.55),
+    0 7px 16px rgba(0,0,0,.24)!important;
+  animation:waterSurface 4.8s ease-in-out infinite!important;
+}
+.post-action.single-cta:before{
+  content:"";position:absolute;inset:1px;z-index:0;border-radius:inherit;
+  background:
+    linear-gradient(112deg,transparent 8%,rgba(255,255,255,.12) 28%,rgba(255,255,255,.34) 42%,rgba(255,255,255,.08) 55%,transparent 76%);
+  background-size:190% 100%;background-position:120% 0;
+  opacity:.7;filter:none!important;
+  animation:waterGlide 5.6s ease-in-out infinite!important;
+}
+.post-action.single-cta:after{
+  content:"";position:absolute;z-index:1;left:7%;right:7%;top:2px;height:35%;
+  border-radius:100% 100% 55% 55% / 80% 80% 45% 45%;
+  background:linear-gradient(180deg,rgba(255,255,255,.25),rgba(255,255,255,.035) 72%,transparent);
+  opacity:.75;pointer-events:none;filter:none;
+}
+.post-action.single-cta span{position:relative;z-index:2;color:#f6fcff!important;text-shadow:0 1px 2px rgba(0,18,40,.65)!important}
+.feature-actions .single-cta{
+  color:#f7fcff!important;border-color:rgba(223,244,255,.7)!important;
+  border-radius:16px!important;
+  background:
+    radial-gradient(120% 150% at 20% -55%,rgba(255,255,255,.55),transparent 52%),
+    linear-gradient(145deg,rgba(118,180,220,.48),rgba(30,76,119,.82) 52%,rgba(11,39,72,.92))!important;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.56),inset 0 -3px 6px rgba(0,15,40,.3),0 5px 0 rgba(4,27,52,.7),0 8px 18px rgba(0,0,0,.28)!important;
+}
+.post-actions .single-cta{
+  color:#f5fbff!important;border-color:rgba(189,229,249,.55)!important;
+  border-radius:11px!important;
+  background:
+    radial-gradient(120% 140% at 18% -48%,rgba(255,255,255,.38),transparent 50%),
+    linear-gradient(150deg,rgba(72,139,178,.42),rgba(16,57,87,.82) 58%,rgba(8,32,55,.92))!important;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -2px 4px rgba(0,12,30,.28),0 3px 0 rgba(4,24,42,.72),0 6px 13px rgba(0,0,0,.25)!important;
+}
+.post-action.single-cta:hover{transform:translateY(-1px)!important;filter:brightness(1.07)}
+@keyframes waterGlide{0%,15%{background-position:120% 0}65%,100%{background-position:-90% 0}}
+@keyframes waterSurface{0%,100%{filter:brightness(1)}50%{filter:brightness(1.025)}}
+@media(prefers-reduced-motion:reduce){.post-action.single-cta,.post-action.single-cta:before{animation:none!important}}
+
 </style>
 </head>
 <body>
