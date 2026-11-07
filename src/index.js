@@ -43,7 +43,7 @@ async function writeFile(path, content, message, env, sha) {
 
 function cleanPlayText(v){return String(v||"").replace(/<[^>]*>/g," ").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g," ").trim();}
 function normPlayTitle(v){return String(v||"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]+/g," ").trim();}
-function playTitleMatches(expected,actual){const a=normPlayTitle(expected),b=normPlayTitle(actual);if(!a||!b)return false;if(a===b||a.startsWith(b)||b.startsWith(a))return true;const stop=new Set(["the","app","android","latest","version","pro","apk","official","free"]);const words=a.split(" ").filter(x=>x.length>2&&!stop.has(x));return words.length>0&&words.filter(w=>b.includes(w)).length/words.length>=0.7;}
+function playTitleMatches(expected,actual){const a=normPlayTitle(expected),b=normPlayTitle(actual);if(!a||!b)return false;if(a===b||a.startsWith(b)||b.startsWith(a))return true;const stop=new Set(["the","app","android","latest","version","pro","apk","official","free","video","editor","features","effects","templates","download","for","with","ai","private","vault","photo","hider","cloner"]);const words=a.split(" ").filter(x=>x.length>2&&!stop.has(x));return words.length>0&&words.filter(w=>b.includes(w)).length/words.length>=0.7;}
 async function findPlayIcon(title,packageName,slug,env){
  try{
   let ids=[];
@@ -103,6 +103,18 @@ async function api(request, env) {
     if(url.pathname==="/admin/api/posts"&&request.method==="GET") {
       const {list}=await getPosts(env);
       return json({posts:list});
+    }
+    if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST") {
+      const {list,sha}=await getPosts(env);
+      const next=[];
+      for(const post of list) {
+        if(post.iconPath) { next.push(post); continue; }
+        const slug=post.slug||safeSlug(post.title);
+        const icon=await findPlayIcon(post.title,post.appPackage||"",slug,env);
+        next.push({...post,iconPath:icon?.iconPath||null,appPackage:icon?.packageName||post.appPackage||null});
+      }
+      await writeFile("posts.json",JSON.stringify(next,null,2)+"\n","Fetch official app icons for existing articles",env,sha);
+      return json({ok:true,updated:next.filter(p=>p.iconPath).length,total:next.length,missing:next.filter(p=>!p.iconPath).map(p=>p.title)});
     }
     if(url.pathname==="/admin/api/publish"&&request.method==="POST") {
       const data=await request.json();
