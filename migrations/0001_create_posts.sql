@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS posts (
   date TEXT NOT NULL,
   published INTEGER NOT NULL DEFAULT 1,
   app_name TEXT,
+  icon_blob BLOB,
+  icon_mime TEXT,
   official_icon_url TEXT,
   thumbnail_url TEXT,
   generated_thumbnail_url TEXT,
