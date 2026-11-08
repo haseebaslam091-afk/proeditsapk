@@ -16,7 +16,8 @@
       "/article",
       "/article.html",
       "/media/icons/*",
-      "/sitemap.xml"
+      "/sitemap.xml",
+      "/posts.json"
     ]
   },
   "previews": {
