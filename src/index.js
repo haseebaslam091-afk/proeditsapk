@@ -212,8 +212,10 @@ async function d1List(env, includeDrafts=false){
   const r=await env.DB.prepare(q).all(); return (r.results||[]).map(d1Post);
 }
 async function d1Api(request,env,url){
-  if(url.pathname==="/admin/api/github-status"&&request.method==="GET")
-    return json({tokenConfigured:false,authentication:{method:"Cloudflare D1",note:"GitHub token is not used for article publishing."},repository:{status:200,ok:true,fullName:"Cloudflare D1"},contents:{status:200,ok:true,path:"posts table"},rateLimitRemaining:null});
+  if(url.pathname==="/admin/api/github-status"&&request.method==="GET"){
+    const result=await env.DB.prepare("SELECT COUNT(*) AS count FROM posts").first();
+    return json({ok:true,tokenRequired:false,repository:{status:200,ok:true,fullName:"Cloudflare D1"},database:{connected:true,articleCount:Number(result?.count||0)}});
+  }
   if(url.pathname==="/admin/api/migrate-d1"&&request.method==="POST"){
     const count=await env.DB.prepare("SELECT COUNT(*) AS n FROM posts").first();
     if(Number(count?.n||0)>0)return json({ok:true,alreadyMigrated:true,count:Number(count.n)});
@@ -222,14 +224,19 @@ async function d1Api(request,env,url){
     const posts=await asset.json();const statements=[];
     for(const p of posts){
       const rawUrl=String(p.rawUrl||("https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+String(p.path||"").split("/").map(encodeURIComponent).join("/")));
-      const response=await fetch(rawUrl);
+      const response=await fetch(rawUrl,{headers:{"accept":"text/plain","cache-control":"no-cache"}});
       if(!response.ok)throw new Error("Could not import article: "+String(p.title||p.path)+" (HTTP "+response.status+").");
       const markdown=await response.text();
       const content=markdown.replace(/^---\s*\r?\n[\s\S]*?\r?\n---\s*\r?\n?/,"").trim();
       const slug=articleSlug(p.slug||p.title);
-      if(!slug||!content)continue;
-      statements.push(env.DB.prepare("INSERT OR IGNORE INTO posts (title,slug,path,description,content,date,published,official_icon_url,thumbnail_url,generated_thumbnail_url,raw_url) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
-        .bind(String(p.title||slug),slug,String(p.path||("_posts/"+slug+".md")),String(p.description||""),content,String(p.date||new Date().toISOString().slice(0,10)),p.published===false?0:1,p.officialIconUrl||p.iconUrl||null,p.thumbnailUrl||null,p.generatedThumbnailUrl||null,rawUrl));
+      if(!slug||!content)throw new Error("Article source is empty; migration stopped before reporting success: "+String(p.title||p.path));
+      const contentBytes=new TextEncoder().encode(content).byteLength;
+      if(contentBytes>1900000)throw new Error("Article exceeds D1's 2 MB row limit and needs R2 content storage: "+String(p.title||p.path));
+      const descriptionMatch=markdown.match(/^description:\s*["']([\s\S]*?)["']\s*$/m);
+      const description=String(p.description||(descriptionMatch?descriptionMatch[1].replace(/\\(["'])/g,"$1"):""));
+      const appName=/capcut/i.test(p.title)?"CapCut":/vivacut/i.test(p.title)?"VivaCut":/pop\s*maker/i.test(p.title)?"PopMaker":/app locker/i.test(p.title)?"App Locker":"";
+      statements.push(env.DB.prepare("INSERT OR IGNORE INTO posts (title,slug,path,description,content,date,published,app_name,official_icon_url,thumbnail_url,generated_thumbnail_url,raw_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+        .bind(String(p.title||slug),slug,String(p.path||("_posts/"+slug+".md")),description,content,String(p.date||new Date().toISOString().slice(0,10)),p.published===false?0:1,appName,p.officialIconUrl||p.iconUrl||null,p.thumbnailUrl||null,p.generatedThumbnailUrl||null,rawUrl));
     }
     if(statements.length)await env.DB.batch(statements);
     const finalCount=await env.DB.prepare("SELECT COUNT(*) AS n FROM posts").first();
@@ -263,13 +270,20 @@ async function d1Api(request,env,url){
     const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim(),slug=articleSlug(data.slug||title);
     if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Check title, slug, description and article content."},400);
     const duplicate=await env.DB.prepare("SELECT id FROM posts WHERE slug=? AND id<>?").bind(slug,old.id).first();if(duplicate)return json({error:"That URL slug is already in use."},409);
-    let icon=String(data.officialIconUrl||old.official_icon_url||"").trim()||null,blob=old.icon_blob||null,mime=old.icon_mime||null;
+    let icon=old.official_icon_url||null,blob=old.icon_blob||null,mime=old.icon_mime||null;
+    const iconInput=String(data.officialIconUrl||"").trim();
     if(data.uploadedIcon&&typeof data.uploadedIcon==="object"){
       mime=String(data.uploadedIcon.mimeType||"").toLowerCase();const encoded=String(data.uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
       if(!["image/png","image/jpeg","image/webp","image/avif"].includes(mime)||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Invalid logo upload."},400);
       const binary=atob(encoded);if(binary.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);blob=Uint8Array.from(binary,c=>c.charCodeAt(0));icon=null;
+    }else if(iconInput.startsWith("/media/icons/")&&old.icon_blob){
+      // The form echoes the existing D1-hosted logo URL. Keep its BLOB unchanged.
+      icon=null;
+    }else if(iconInput.startsWith("/assets/app-icons/")&&/^\/assets\/app-icons\/[a-zA-Z0-9._-]+$/.test(iconInput)){
+      icon=iconInput;blob=null;mime=null;
+    }else if(iconInput){
+      try{const u=new URL(iconInput);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString();blob=null;mime=null}catch(e){return json({error:"Logo URL must be HTTPS."},400)}
     }
-    if(icon){try{const u=new URL(icon);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString()}catch(e){return json({error:"Logo URL must be HTTPS."},400)}}
     await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
       .bind(title,slug,description,content,String(data.appName||old.app_name||""),blob,mime,icon,String(data.thumbnailUrl||old.thumbnail_url||"")||null,old.id).run();
     const row=await env.DB.prepare("SELECT * FROM posts WHERE id=?").bind(old.id).first();
@@ -280,9 +294,9 @@ async function d1Api(request,env,url){
     if(!result.meta?.changes)return json({error:"Article not found."},404);return json({ok:true,deleted:data.path});
   }
   if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST"){
-    const rows=await env.DB.prepare("SELECT id,title,app_name FROM posts WHERE official_icon_url IS NULL AND icon_blob IS NULL").all();let found=0;
-    for(const p of rows.results||[]){const icon=await resolveOfficialAppIcon(p.app_name||p.title,env);if(icon){await env.DB.prepare("UPDATE posts SET official_icon_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(icon,p.id).run();found++}}
-    return json({ok:true,generated:found,total:(rows.results||[]).length,remaining:(rows.results||[]).length-found,missing:[],message:"Official app logo lookup finished. No invented logos were created."});
+    const rows=await env.DB.prepare("SELECT id,title,app_name FROM posts WHERE official_icon_url IS NULL AND icon_blob IS NULL").all();let found=0;const missing=[];
+    for(const p of rows.results||[]){const icon=await resolveOfficialAppIcon(p.app_name||p.title,env);if(icon){await env.DB.prepare("UPDATE posts SET official_icon_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(icon,p.id).run();found++}else missing.push(p.app_name||p.title)}
+    return json({ok:true,generated:found,total:(rows.results||[]).length,remaining:missing.length,missing,message:"Official app logo lookup finished. No invented logos were created."});
   }
   return json({error:"D1 API endpoint not found."},404);
 }
