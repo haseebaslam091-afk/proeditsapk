@@ -7,10 +7,10 @@ const admin = await readFile("admin/index.html", "utf8");
 const configText = await readFile("wrangler.jsonc", "utf8");
 const config = JSON.parse(configText);
 
-const adminScript = admin.match(/<script>([\\s\\S]*?)<\\/script>/);
+const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(adminScript, "Admin page must contain its application script");
 new Script(adminScript[1], { filename: "admin/index.html inline script" });
-new Script(worker.replace(/^export default\\s*\\{/m, "const workerDefault = {"), { filename: "src/index.js" });
+new Script(worker.replace(/^export default\s*\{/m, "const workerDefault = {"), { filename: "src/index.js" });
 
 assert.equal(config.name, "proeditsapk");
 assert.ok(config.d1_databases?.some((binding) => binding.binding === "DB"), "D1 DB binding is required");
