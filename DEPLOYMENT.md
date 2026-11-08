@@ -1,38 +1,70 @@
-# ProEditsAPK deployment and Cloudflare D1 setup
+# ProEditsAPK deployment and Cloudflare Free setup
 
-## Worker deployment
-The repository is connected to the Cloudflare Worker `proeditsapk`.
+## Production architecture
 
-- Build command: leave blank
-- Deploy command: `npx wrangler deploy`
-- Root directory: leave blank
+- Production site: https://proeditsapk.com
+- Worker: `proeditsapk`
+- Static assets: Cloudflare Workers Static Assets
+- Database: Cloudflare D1 `proeditsapk-db`, binding `DB`
+- AI binding: `AI` (existing Worker functionality)
+- Admin protection: Cloudflare Access
 - Production branch: `main`
 
-`wrangler.jsonc` binds the existing D1 database `proeditsapk-db` as `env.DB`. The Worker automatically creates the posts table and indexes on its first request, so the initial deployment does not depend on a separate CLI migration command. The tracked migration is retained at `migrations/0001_create_posts.sql` for reproducible schema management.
+The Worker is deployed from this repository using Cloudflare's Git integration. The Wrangler deploy command is `npx wrangler deploy`; there is no separate build step.
 
-## Database and publishing
-- D1 database: `proeditsapk-db`
-- Article metadata and content are stored in D1.
-- Uploaded official app logos (up to 1.5 MB) are stored as BLOBs in the separate `post_media` D1 table, so large article content does not consume the logo row's 2 MB limit. Logos are served from `/media/icons/<slug>`.
-- On the first authenticated Admin Panel load, the Worker imports the four existing published articles and their Markdown content into D1. The migration is idempotent and does not overwrite an already-populated database.
-- The Admin Panel Publish, Edit and Delete actions use D1.
-- The admin API remains protected by Cloudflare Access. Keep the Access application and Allow policy protecting `proeditsapk.com/admin/*`; do not create a public bypass.
-- The Worker CMS contains no GitHub token or GitHub API dependency. GitHub remains the source-code repository and Cloudflare's Git integration can continue deploying code. After the D1 migration and all admin tests pass, the unused `GITHUB_TOKEN` secret can be removed from the Worker Production and Preview environments.
+## Free-plan storage
 
-## Test after deployment
-1. Open `https://proeditsapk.com/` and confirm the homepage loads.
-2. Open `https://proeditsapk.com/admin/` and complete Cloudflare Access login.
-3. Confirm the D1 connection check reports the number of stored articles. On the first Admin Panel load, the existing four articles should be imported.
-4. Confirm all four existing articles appear in Published articles.
-5. Publish a test article, edit it, then delete it; confirm each action succeeds.
-6. Open an article at `https://proeditsapk.com/articles/<slug>` and confirm its content loads.
-7. Open `https://proeditsapk.com/sitemap.xml` and confirm it lists published D1 articles.
-8. Upload an official app logo, save the article, edit it again, and confirm the logo remains visible.
-9. Submit the sitemap in Google Search Console.
+The project intentionally uses the existing D1 database and does not require Cloudflare R2, Cloudflare Images, or a paid storage subscription.
 
-## Notes
-- Existing Markdown files in `_posts/` remain in GitHub as the original backup; the live CMS no longer writes them.
-- Published article URLs use `/articles/<slug>`.
-- Uploaded official app logos are stored in D1 and served from `/media/icons/<slug>`.
-- The D1 migration is designed to stop with an explicit error if an article exceeds D1's 2 MB row limit; do not treat a partial migration as successful.
-- Search Console indexing and rankings are controlled by Google and cannot be guaranteed by deployment.
+- Article records and Markdown content are stored in D1.
+- Small uploaded PNG, JPEG, WEBP and AVIF images are stored in the D1 `media_assets` table (maximum 1.5 MB per image).
+- App logos are stored in the D1 `post_media` table and served from `/media/icons/<slug>`.
+- Media-library images are served from `/media/library/<uuid>`.
+- D1 is not intended for videos or large media collections. Do not increase the upload limit without moving large objects to a suitable object-storage service.
+- No R2 binding or paid storage service is configured.
+
+## Admin and content
+
+Open `https://proeditsapk.com/admin/` and authenticate through Cloudflare Access.
+
+The Admin Panel supports:
+- Listing, creating, editing and deleting D1 articles.
+- Uploading small images to the D1 media library, adding alt text, inserting image Markdown, and deleting media.
+- Uploading app logos and setting verified HTTPS logo URLs.
+- Refreshing verified official app-logo lookups.
+- Browser-local draft autosave and restore.
+- D1 connection and article-count checks.
+
+The Admin API checks for the Cloudflare Access JWT header. Keep the Cloudflare Access application and Allow policy protecting `proeditsapk.com/admin/*`; never add a public bypass.
+
+The CMS does not use GitHub for publishing and does not need a GitHub personal access token. Do not recreate a `GITHUB_TOKEN` Worker secret. GitHub is used for source control and the connected deployment pipeline only.
+
+## Database behavior
+
+The Worker creates the required D1 tables and indexes on first request when they are missing. The existing production database has already been populated with the four original articles. The migration endpoint is only for an empty database and is not part of normal Admin refresh; do not run it to refresh existing content.
+
+The original Markdown files in `_posts/` remain in GitHub as a source backup. The live Admin Panel writes to D1.
+
+## Verification checklist
+
+After a deployment, verify:
+
+1. `/` loads and displays the homepage.
+2. `/articles/` lists published articles.
+3. `/admin/` redirects through Cloudflare Access and loads after authentication.
+4. The Admin D1 check reports the expected article count.
+5. Existing article URLs under `/articles/<slug>` load their content and images.
+6. `/sitemap.xml` lists the published articles.
+7. `/robots.txt` allows public pages and disallows `/admin/`.
+8. In a controlled test, create, edit and delete a disposable test article.
+9. In a controlled test, upload, view, insert and delete a disposable media image.
+
+Do not use an existing published article or its media as a test record. The Admin Panel's Delete action is permanent.
+
+## Automated checks and known limits
+
+GitHub Actions runs `node scripts/check.mjs` on pull requests and pushes to `main`. It validates Worker/Admin JavaScript syntax, Wrangler configuration, Access guardrails, media upload limits and key SEO/security wiring. This is a static validation suite, not a full browser or production integration test.
+
+The editor preview is plain text rather than a pixel-perfect rendered preview. Draft autosave is local to the current browser and does not sync across devices. The download helper inserts a normal Markdown link, not a managed attachment block. Server-side image resizing, generated thumbnails and video/large-file storage are not configured on the free D1-only setup.
+
+Search indexing and rankings are controlled by search engines and cannot be guaranteed by deployment.
