@@ -291,7 +291,7 @@ async function api(request, env) {
   if(request.method==="OPTIONS")return new Response(null,{status:204,headers:{"access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","access-control-max-age":"86400"}});
   if(!request.headers.get("cf-access-jwt-assertion"))return json({error:"Cloudflare Access authentication required."},401);
   const url=new URL(request.url);
-  if(env.DB)return d1Api(request,env,url);
+  if(env.DB){try{return await d1Api(request,env,url)}catch(e){return json({error:e.message||"D1 request failed."},500)}}
   try {
     if(url.pathname==="/admin/api/github-status"&&request.method==="GET") return json(await githubDiagnostic(env));
     if(url.pathname==="/admin/api/posts"&&request.method==="GET") {
@@ -444,6 +444,7 @@ export default {
      try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||post.officialIconUrl||null,officialIconUrl:post.officialIconUrl||post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
    }
 
+   if(url.pathname==="/posts.json"&&env.DB&&request.method==="GET")return json(await d1List(env,false));
    if(url.pathname.startsWith("/media/icons/")&&env.DB&&request.method==="GET"){
      const slug=decodeURIComponent(url.pathname.slice("/media/icons/".length));
      const row=await env.DB.prepare("SELECT icon_blob,icon_mime FROM posts WHERE slug=?").bind(slug).first();
