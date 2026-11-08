@@ -307,7 +307,7 @@ async function d1Api(request,env,url){
       .bind(title,slug,path,description,content,date,1,appName,null,null,icon,thumb).run();
     if(iconBlob)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP")
       .bind(slug,iconBlob,iconMime).run();
-    const row=await env.DB.prepare("SELECT * FROM posts WHERE slug=?").bind(slug).first();
+    const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE slug=?").bind(slug).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
   if(url.pathname==="/admin/api/update"&&request.method==="POST"){
@@ -316,7 +316,7 @@ async function d1Api(request,env,url){
     const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim(),slug=articleSlug(data.slug||title);
     if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Check title, slug, description and article content."},400);
     const duplicate=await env.DB.prepare("SELECT id FROM posts WHERE slug=? AND id<>?").bind(slug,old.id).first();if(duplicate)return json({error:"That URL slug is already in use."},409);
-    let icon=old.official_icon_url||null,blob=null,mime=null,replaceMedia=false,removeMedia=false;
+    let icon=old.official_icon_url||null,blob=null,mime=null,replaceMedia=false,removeMedia=false,preserveMedia=false;
     const iconInput=String(data.officialIconUrl||"").trim();
     if(data.uploadedIcon&&typeof data.uploadedIcon==="object"){
       mime=String(data.uploadedIcon.mimeType||"").toLowerCase();const encoded=String(data.uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
@@ -324,7 +324,7 @@ async function d1Api(request,env,url){
       const binary=atob(encoded);if(binary.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);blob=Uint8Array.from(binary,c=>c.charCodeAt(0));icon=null;replaceMedia=true;
     }else if(iconInput.startsWith("/media/icons/")){
       // The form echoes the existing D1-hosted logo URL. Keep the separate media row unchanged.
-      icon=null;
+      icon=null;preserveMedia=true;if(old.icon_blob){blob=old.icon_blob;mime=old.icon_mime;replaceMedia=true}
     }else if(iconInput.startsWith("/assets/app-icons/")&&/^\/assets\/app-icons\/[a-zA-Z0-9._-]+$/.test(iconInput)){
       icon=iconInput;removeMedia=true;
     }else if(iconInput){
@@ -334,8 +334,9 @@ async function d1Api(request,env,url){
       .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||old.thumbnail_url||"")||null,old.id).run();
     if(replaceMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime).run();
     else if(removeMedia)await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+    else if(preserveMedia&&slug!==old.slug)await env.DB.prepare("UPDATE post_media SET slug=?,updated_at=CURRENT_TIMESTAMP WHERE slug=?").bind(slug,old.slug).run();
     if(slug!==old.slug&&replaceMedia){await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run()}
-    const row=await env.DB.prepare("SELECT * FROM posts WHERE id=?").bind(old.id).first();
+    const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE id=?").bind(old.id).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
   if(url.pathname==="/admin/api/delete"&&request.method==="POST"){
@@ -499,7 +500,7 @@ export default {
      if(env.DB){
        const path=String(url.searchParams.get("path")||"");
        if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
-       const row=await env.DB.prepare("SELECT * FROM posts WHERE path=? AND published=1").bind(path).first();
+       const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE path=? AND published=1").bind(path).first();
        if(!row)return json({error:"Article not found."},404);
        const post=d1Post(row);
        return json({content:row.content,title:row.title,description:row.description||"",iconUrl:post.iconUrl,officialIconUrl:post.officialIconUrl,thumbnailUrl:post.thumbnailUrl,generatedThumbnailUrl:post.generatedThumbnailUrl,date:row.date||""});
