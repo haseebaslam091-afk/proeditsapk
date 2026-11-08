@@ -33,6 +33,20 @@ The username is a display name. Supabase email/password sign-in uses the admin e
 
 Only the public publishable/anon key belongs in this static page. Never paste a `service_role` key, secret API key, GitHub token, or Worker secret into HTML, JavaScript, chat, or localStorage.
 
+## Database preparation — private article table
+
+A first database migration is included at `cms-v2/database/001_cms_articles.sql`.
+
+1. In your Supabase project, open **SQL Editor**.
+2. Tap **New query**.
+3. Open `cms-v2/database/001_cms_articles.sql` in GitHub, copy the complete SQL, and paste it into the query editor.
+4. Tap **Run**.
+5. Confirm the final result says `row_level_security_enabled = true`. In **Table Editor**, you should also see `cms_articles`.
+
+The table stores article fields and applies Row Level Security (RLS) to all four operations. A signed-in user can select, add, edit, and delete only rows whose `owner_id` equals their Supabase Auth user ID. Anonymous access is not granted. The table defaults `owner_id` to the signed-in user.
+
+This prepares the database only; the current article editor still uses this browser's local storage. The next code milestone is to connect the editor to this table and verify create/edit/delete under the authenticated account. Do not merge or deploy the CMS until that integration and the live Auth tests pass.
+
 ## Important limits — do not skip
 
 - The CMS page currently stores article drafts, media metadata, and workspace preferences in this browser's localStorage. They are not yet in a cloud database and do not sync across devices.
