@@ -13,7 +13,7 @@ The repository is connected to the Cloudflare Worker `proeditsapk`.
 ## Database and publishing
 - D1 database: `proeditsapk-db`
 - Article metadata and content are stored in D1.
-- Uploaded official app logos (up to 1.5 MB) are stored as D1 BLOBs and served from `/media/icons/<slug>`.
+- Uploaded official app logos (up to 1.5 MB) are stored as BLOBs in the separate `post_media` D1 table, so large article content does not consume the logo row's 2 MB limit. Logos are served from `/media/icons/<slug>`.
 - On the first authenticated Admin Panel load, the Worker imports the four existing published articles and their Markdown content into D1. The migration is idempotent and does not overwrite an already-populated database.
 - The Admin Panel Publish, Edit and Delete actions use D1.
 - The admin API remains protected by Cloudflare Access. Keep the Access application and Allow policy protecting `proeditsapk.com/admin/*`; do not create a public bypass.
