@@ -282,9 +282,17 @@ export default {
      return new Response('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join("\n")+'\n</urlset>',{headers:{"content-type":"application/xml; charset=utf-8","cache-control":"public, max-age=300"}});
    }
    if(url.pathname.startsWith("/admin/api/"))return api(request,env);
-   if(url.pathname==="/admin"||url.pathname==="/admin/") {
+   if(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html") {
+     // Admin HTML must not be cached: Access sessions and newly deployed UI fixes
+     // should be evaluated on every visit, especially on mobile Safari.
      const target=new URL("/admin/index.html",url);
-     return env.ASSETS.fetch(new Request(target.toString(),request));
+     const asset=await env.ASSETS.fetch(new Request(target.toString(),request));
+     const headers=new Headers(asset.headers);
+     headers.set("cache-control","no-store, no-cache, must-revalidate");
+     headers.set("pragma","no-cache");
+     headers.delete("etag");
+     headers.delete("last-modified");
+     return new Response(asset.body,{status:asset.status,statusText:asset.statusText,headers});
    }
    if(url.pathname==="/articles"||url.pathname==="/articles/") {
      const target=new URL("/articles.html",url);
