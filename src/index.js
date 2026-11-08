@@ -232,6 +232,13 @@ async function ensureD1Schema(env){
         env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)")
       ]);
     }
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS post_media (
+      slug TEXT PRIMARY KEY,
+      icon_blob BLOB NOT NULL,
+      icon_mime TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (slug) REFERENCES posts(slug) ON DELETE CASCADE
+    )`).run();
     d1SchemaReady=true;
   })();
   try{await d1SchemaPromise}catch(e){d1SchemaPromise=null;throw e}
@@ -244,7 +251,7 @@ function d1Post(row){
     thumbnailUrl:row.thumbnail_url||null,generatedThumbnailUrl:row.generated_thumbnail_url||null,rawUrl:row.raw_url||null};
 }
 async function d1List(env, includeDrafts=false){
-  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,raw_url";
+  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,raw_url";
   const q=includeDrafts?"SELECT "+columns+" FROM posts ORDER BY date DESC, id DESC":"SELECT "+columns+" FROM posts WHERE published=1 ORDER BY date DESC, id DESC";
   const r=await env.DB.prepare(q).all(); return (r.results||[]).map(d1Post);
 }
@@ -297,7 +304,9 @@ async function d1Api(request,env,url){
     if(icon){try{const u=new URL(icon);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString()}catch(e){return json({error:"Logo URL must be HTTPS."},400)}}
     const thumb=String(data.thumbnailUrl||"").trim()||null;
     await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(title,slug,path,description,content,date,1,appName,iconBlob,iconMime,icon,thumb).run();
+      .bind(title,slug,path,description,content,date,1,appName,null,null,icon,thumb).run();
+    if(iconBlob)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP")
+      .bind(slug,iconBlob,iconMime).run();
     const row=await env.DB.prepare("SELECT * FROM posts WHERE slug=?").bind(slug).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
@@ -307,31 +316,35 @@ async function d1Api(request,env,url){
     const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim(),slug=articleSlug(data.slug||title);
     if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Check title, slug, description and article content."},400);
     const duplicate=await env.DB.prepare("SELECT id FROM posts WHERE slug=? AND id<>?").bind(slug,old.id).first();if(duplicate)return json({error:"That URL slug is already in use."},409);
-    let icon=old.official_icon_url||null,blob=old.icon_blob||null,mime=old.icon_mime||null;
+    let icon=old.official_icon_url||null,blob=null,mime=null,replaceMedia=false,removeMedia=false;
     const iconInput=String(data.officialIconUrl||"").trim();
     if(data.uploadedIcon&&typeof data.uploadedIcon==="object"){
       mime=String(data.uploadedIcon.mimeType||"").toLowerCase();const encoded=String(data.uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
       if(!["image/png","image/jpeg","image/webp","image/avif"].includes(mime)||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Invalid logo upload."},400);
-      const binary=atob(encoded);if(binary.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);blob=Uint8Array.from(binary,c=>c.charCodeAt(0));icon=null;
-    }else if(iconInput.startsWith("/media/icons/")&&old.icon_blob){
-      // The form echoes the existing D1-hosted logo URL. Keep its BLOB unchanged.
+      const binary=atob(encoded);if(binary.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);blob=Uint8Array.from(binary,c=>c.charCodeAt(0));icon=null;replaceMedia=true;
+    }else if(iconInput.startsWith("/media/icons/")){
+      // The form echoes the existing D1-hosted logo URL. Keep the separate media row unchanged.
       icon=null;
     }else if(iconInput.startsWith("/assets/app-icons/")&&/^\/assets\/app-icons\/[a-zA-Z0-9._-]+$/.test(iconInput)){
-      icon=iconInput;blob=null;mime=null;
+      icon=iconInput;removeMedia=true;
     }else if(iconInput){
-      try{const u=new URL(iconInput);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString();blob=null;mime=null}catch(e){return json({error:"Logo URL must be HTTPS."},400)}
+      try{const u=new URL(iconInput);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString();removeMedia=true}catch(e){return json({error:"Logo URL must be HTTPS."},400)}
     }
     await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
-      .bind(title,slug,description,content,String(data.appName||old.app_name||""),blob,mime,icon,String(data.thumbnailUrl||old.thumbnail_url||"")||null,old.id).run();
+      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||old.thumbnail_url||"")||null,old.id).run();
+    if(replaceMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime).run();
+    else if(removeMedia)await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+    if(slug!==old.slug&&replaceMedia){await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run()}
     const row=await env.DB.prepare("SELECT * FROM posts WHERE id=?").bind(old.id).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
   if(url.pathname==="/admin/api/delete"&&request.method==="POST"){
-    const data=await request.json();const result=await env.DB.prepare("DELETE FROM posts WHERE path=?").bind(String(data.path||"")).run();
-    if(!result.meta?.changes)return json({error:"Article not found."},404);return json({ok:true,deleted:data.path});
+    const data=await request.json();const target=await env.DB.prepare("SELECT slug FROM posts WHERE path=?").bind(String(data.path||"")).first();if(!target)return json({error:"Article not found."},404);
+    await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(target.slug).run();
+    await env.DB.prepare("DELETE FROM posts WHERE path=?").bind(String(data.path||"")).run();return json({ok:true,deleted:data.path});
   }
   if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST"){
-    const rows=await env.DB.prepare("SELECT id,title,app_name FROM posts WHERE official_icon_url IS NULL AND icon_blob IS NULL").all();let found=0;const missing=[];
+    const rows=await env.DB.prepare("SELECT id,title,app_name FROM posts p WHERE official_icon_url IS NULL AND icon_blob IS NULL AND NOT EXISTS (SELECT 1 FROM post_media m WHERE m.slug=p.slug)").all();let found=0;const missing=[];
     for(const p of rows.results||[]){const icon=await resolveOfficialAppIcon(p.app_name||p.title,env);if(icon){await env.DB.prepare("UPDATE posts SET official_icon_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(icon,p.id).run();found++}else missing.push(p.app_name||p.title)}
     return json({ok:true,generated:found,total:(rows.results||[]).length,remaining:missing.length,missing,message:"Official app logo lookup finished. No invented logos were created."});
   }
@@ -499,7 +512,7 @@ export default {
    if(url.pathname==="/posts.json"&&env.DB&&request.method==="GET")return json(await d1List(env,false));
    if(url.pathname.startsWith("/media/icons/")&&env.DB&&request.method==="GET"){
      const slug=decodeURIComponent(url.pathname.slice("/media/icons/".length));
-     const row=await env.DB.prepare("SELECT icon_blob,icon_mime FROM posts WHERE slug=?").bind(slug).first();
+     const row=await env.DB.prepare("SELECT icon_blob,icon_mime FROM post_media WHERE slug=?").bind(slug).first()||await env.DB.prepare("SELECT icon_blob,icon_mime FROM posts WHERE slug=?").bind(slug).first();
      if(!row?.icon_blob)return new Response("Not found",{status:404});
      return new Response(row.icon_blob,{headers:{"content-type":row.icon_mime||"application/octet-stream","cache-control":"public, max-age=31536000, immutable","x-content-type-options":"nosniff"}});
    }
