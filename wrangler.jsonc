@@ -16,6 +16,7 @@
       "/article",
       "/article.html",
       "/media/icons/*",
+      "/media/library/*",
       "/sitemap.xml",
       "/posts.json"
     ]
