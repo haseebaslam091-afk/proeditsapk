@@ -282,7 +282,7 @@ async function d1Api(request,env,url){
   if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST"){
     const rows=await env.DB.prepare("SELECT id,title,app_name FROM posts WHERE official_icon_url IS NULL AND icon_blob IS NULL").all();let found=0;
     for(const p of rows.results||[]){const icon=await resolveOfficialAppIcon(p.app_name||p.title,env);if(icon){await env.DB.prepare("UPDATE posts SET official_icon_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(icon,p.id).run();found++}}
-    return json({ok:true,generated:found,total:(rows.results||[]).length,remaining:(rows.results||[]).length-found,message:"Official app logo lookup finished. No invented logos were created."});
+    return json({ok:true,generated:found,total:(rows.results||[]).length,remaining:(rows.results||[]).length-found,missing:[],message:"Official app logo lookup finished. No invented logos were created."});
   }
   return json({error:"D1 API endpoint not found."},404);
 }
