@@ -101,6 +101,15 @@ async function ensureD1Schema(env){
         env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)")
       ]);
     }
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
+      id TEXT PRIMARY KEY,
+      filename TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      alt_text TEXT NOT NULL DEFAULT '',
+      data BLOB NOT NULL,
+      size INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`).run();
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS post_media (
       slug TEXT PRIMARY KEY,
       icon_blob BLOB NOT NULL,
@@ -154,6 +163,33 @@ async function d1Api(request,env,url){
     if(statements.length)await env.DB.batch(statements);
     const finalCount=await env.DB.prepare("SELECT COUNT(*) AS n FROM posts").first();
     return json({ok:true,migrated:statements.length,count:Number(finalCount?.n||0)});
+  }
+  if(url.pathname==="/admin/api/media"&&request.method==="GET"){
+    const rows=await env.DB.prepare("SELECT id,filename,mime_type,alt_text,size,created_at FROM media_assets ORDER BY created_at DESC LIMIT 100").all();
+    return json({media:(rows.results||[]).map(row=>({id:row.id,filename:row.filename,mimeType:row.mime_type,alt:row.alt_text,size:row.size,createdAt:row.created_at,url:"/media/library/"+row.id}))});
+  }
+  if(url.pathname==="/admin/api/media-upload"&&request.method==="POST"){
+    const data=await request.json(),mime=String(data.mimeType||"").toLowerCase(),filename=String(data.filename||"image").replace(/[^a-zA-Z0-9._-]+/g,"-").slice(0,120)||"image",alt=String(data.alt||"").trim().slice(0,250);
+    const encoded=String(data.data||"").replace(/^data:[^,]*;base64,/i,"");
+    const allowed=["image/png","image/jpeg","image/webp","image/avif"];
+    if(!allowed.includes(mime)||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Upload a PNG, JPG, WEBP or AVIF image smaller than 1.5 MB."},400);
+    const binary=atob(encoded),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+    if(bytes.length>1572864)return json({error:"Image must be smaller than 1.5 MB."},400);
+    const signatureOk=mime==="image/png"?bytes.length>8&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)
+      :mime==="image/jpeg"?bytes.length>3&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255
+      :mime==="image/webp"?bytes.length>12&&String.fromCharCode(...bytes.slice(0,4))==="RIFF"&&String.fromCharCode(...bytes.slice(8,12))==="WEBP"
+      :bytes.length>12&&String.fromCharCode(...bytes.slice(4,8))==="ftyp"&&/^(avif|avis)$/.test(String.fromCharCode(...bytes.slice(8,12)));
+    if(!signatureOk)return json({error:"The uploaded file does not match its declared image type."},400);
+    const id=crypto.randomUUID();
+    await env.DB.prepare("INSERT INTO media_assets (id,filename,mime_type,alt_text,data,size) VALUES (?,?,?,?,?,?)").bind(id,filename,mime,alt,bytes,bytes.length).run();
+    return json({ok:true,media:{id,filename,mimeType:mime,alt,size:bytes.length,url:"/media/library/"+id}});
+  }
+  if(url.pathname==="/admin/api/media-delete"&&request.method==="POST"){
+    const data=await request.json(),id=String(data.id||"");
+    if(!/^[0-9a-f-]{36}$/i.test(id))return json({error:"Invalid media ID."},400);
+    const result=await env.DB.prepare("DELETE FROM media_assets WHERE id=?").bind(id).run();
+    if(!result.meta?.changes)return json({error:"Media item not found."},404);
+    return json({ok:true,deleted:id});
   }
   if(url.pathname==="/admin/api/posts"&&request.method==="GET")return json({posts:await d1List(env,true)});
   if(url.pathname==="/admin/api/publish"&&request.method==="POST"){
@@ -270,6 +306,13 @@ export default {
    }
 
    if(url.pathname==="/posts.json"&&env.DB&&request.method==="GET")return json(await d1List(env,false));
+   if(url.pathname.startsWith("/media/library/")&&env.DB&&request.method==="GET"){
+     const id=url.pathname.slice("/media/library/".length);
+     if(!/^[0-9a-f-]{36}$/i.test(id))return new Response("Not found",{status:404});
+     const row=await env.DB.prepare("SELECT filename,mime_type,data FROM media_assets WHERE id=?").bind(id).first();
+     if(!row?.data)return new Response("Not found",{status:404});
+     return new Response(row.data,{headers:{"content-type":row.mime_type,"content-disposition":"inline; filename*=UTF-8''"+encodeURIComponent(row.filename),"cache-control":"public, max-age=31536000, immutable","x-content-type-options":"nosniff","content-security-policy":"default-src 'none'; sandbox"}});
+   }
    if(url.pathname.startsWith("/media/icons/")&&env.DB&&request.method==="GET"){
      const slug=decodeURIComponent(url.pathname.slice("/media/icons/".length));
      const row=await env.DB.prepare("SELECT icon_blob,icon_mime FROM post_media WHERE slug=?").bind(slug).first()||await env.DB.prepare("SELECT icon_blob,icon_mime FROM posts WHERE slug=?").bind(slug).first();
