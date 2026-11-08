@@ -365,7 +365,9 @@ async function api(request, env) {
   if(request.method==="OPTIONS")return new Response(null,{status:204,headers:{"access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","access-control-max-age":"86400"}});
   if(!request.headers.get("cf-access-jwt-assertion"))return json({error:"Cloudflare Access authentication required."},401);
   const url=new URL(request.url);
-  if(env.DB){try{return await d1Api(request,env,url)}catch(e){return json({error:e.message||"D1 request failed."},500)}}
+  if(!env.DB)return json({error:"Cloudflare D1 binding is missing. Configure the DB binding before using the Admin Panel; GitHub tokens are not used for publishing."},503);
+  try{return await d1Api(request,env,url)}catch(e){return json({error:e.message||"D1 request failed."},500)}
+  /* Legacy GitHub CMS implementation retained below only as historical source; it is unreachable. */
   try {
     if(url.pathname==="/admin/api/github-status"&&request.method==="GET") return json(await githubDiagnostic(env));
     if(url.pathname==="/admin/api/posts"&&request.method==="GET") {
