@@ -19,3 +19,11 @@ CREATE TABLE IF NOT EXISTS posts (
 );
 CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, date DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+
+CREATE TABLE IF NOT EXISTS post_media (
+  slug TEXT PRIMARY KEY,
+  icon_blob BLOB NOT NULL,
+  icon_mime TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (slug) REFERENCES posts(slug) ON DELETE CASCADE
+);
