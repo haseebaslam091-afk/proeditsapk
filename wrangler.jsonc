@@ -21,5 +21,13 @@
     "ai": {
       "binding": "AI"
     }
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "proeditsapk-db",
+      "database_id": "b4a03583-f791-41b8-97a5-534eedfd00f9",
+      "migrations_dir": "migrations"
+    }
+  ]
 }
