@@ -155,6 +155,7 @@ async function resolveOfficialAppIcon(title,env){
  return null;
 }
 async function getPublicPosts(env, request) {
+  if(env.DB)return d1List(env,false);
   const u=new URL("/posts.json",request.url);
   const r=await env.ASSETS.fetch(new Request(u.toString()));
   if(!r.ok)throw new Error("Article index unavailable.");
@@ -199,10 +200,98 @@ async function githubDiagnostic(env) {
     contents:{status:contents.status,ok:contents.ok,path:"posts.json",message:contents.message,acceptedPermissions:contents.acceptedPermissions},
     rateLimitRemaining:repo.rateLimitRemaining||contents.rateLimitRemaining||null};
 }
+
+function d1Post(row){
+  return {title:row.title,path:row.path,slug:row.slug,description:row.description||"",date:row.date,
+    published:row.published!==0,appName:row.app_name||"",iconUrl:row.icon_blob?"/media/icons/"+encodeURIComponent(row.slug):(row.official_icon_url||null),
+    officialIconUrl:row.icon_blob?"/media/icons/"+encodeURIComponent(row.slug):(row.official_icon_url||null),
+    thumbnailUrl:row.thumbnail_url||null,generatedThumbnailUrl:row.generated_thumbnail_url||null,rawUrl:row.raw_url||null};
+}
+async function d1List(env, includeDrafts=false){
+  const q=includeDrafts?"SELECT * FROM posts ORDER BY date DESC, id DESC":"SELECT * FROM posts WHERE published=1 ORDER BY date DESC, id DESC";
+  const r=await env.DB.prepare(q).all(); return (r.results||[]).map(d1Post);
+}
+async function d1Api(request,env,url){
+  if(url.pathname==="/admin/api/github-status"&&request.method==="GET")
+    return json({tokenConfigured:false,authentication:{method:"Cloudflare D1",note:"GitHub token is not used for article publishing."},repository:{status:200,ok:true,fullName:"Cloudflare D1"},contents:{status:200,ok:true,path:"posts table"},rateLimitRemaining:null});
+  if(url.pathname==="/admin/api/migrate-d1"&&request.method==="POST"){
+    const count=await env.DB.prepare("SELECT COUNT(*) AS n FROM posts").first();
+    if(Number(count?.n||0)>0)return json({ok:true,alreadyMigrated:true,count:Number(count.n)});
+    const asset=await env.ASSETS.fetch(new Request(new URL("/posts.json",request.url)));
+    if(!asset.ok)return json({error:"Existing posts.json could not be read for migration."},502);
+    const posts=await asset.json();const statements=[];
+    for(const p of posts){
+      const rawUrl=String(p.rawUrl||("https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+String(p.path||"").split("/").map(encodeURIComponent).join("/")));
+      const response=await fetch(rawUrl);
+      if(!response.ok)throw new Error("Could not import article: "+String(p.title||p.path)+" (HTTP "+response.status+").");
+      const markdown=await response.text();
+      const content=markdown.replace(/^---\s*\r?\n[\s\S]*?\r?\n---\s*\r?\n?/,"").trim();
+      const slug=articleSlug(p.slug||p.title);
+      if(!slug||!content)continue;
+      statements.push(env.DB.prepare("INSERT OR IGNORE INTO posts (title,slug,path,description,content,date,published,official_icon_url,thumbnail_url,generated_thumbnail_url,raw_url) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
+        .bind(String(p.title||slug),slug,String(p.path||("_posts/"+slug+".md")),String(p.description||""),content,String(p.date||new Date().toISOString().slice(0,10)),p.published===false?0:1,p.officialIconUrl||p.iconUrl||null,p.thumbnailUrl||null,p.generatedThumbnailUrl||null,rawUrl));
+    }
+    if(statements.length)await env.DB.batch(statements);
+    const finalCount=await env.DB.prepare("SELECT COUNT(*) AS n FROM posts").first();
+    return json({ok:true,migrated:statements.length,count:Number(finalCount?.n||0)});
+  }
+  if(url.pathname==="/admin/api/posts"&&request.method==="GET")return json({posts:await d1List(env,true)});
+  if(url.pathname==="/admin/api/publish"&&request.method==="POST"){
+    const data=await request.json();const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim();
+    const slug=articleSlug(data.slug||title),appName=String(data.appName||"").trim();
+    if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Add a valid title, slug, description and at least 80 characters of article content."},400);
+    const exists=await env.DB.prepare("SELECT id FROM posts WHERE slug=?").bind(slug).first();if(exists)return json({error:"That URL slug already exists. Choose a unique slug."},409);
+    const date=new Date().toISOString().slice(0,10),path="_posts/"+date+"-"+slug+".md";
+    let icon=String(data.officialIconUrl||"").trim()||null,iconBlob=null,iconMime=null;
+    if(data.uploadedIcon&&typeof data.uploadedIcon==="object"){
+      const allowed={"image/png":1,"image/jpeg":1,"image/webp":1,"image/avif":1};iconMime=String(data.uploadedIcon.mimeType||"").toLowerCase();
+      const encoded=String(data.uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
+      if(!allowed[iconMime]||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Upload a PNG, JPG, WEBP or AVIF logo smaller than 1.5 MB."},400);
+      const binary=atob(encoded);if(binary.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);
+      iconBlob=Uint8Array.from(binary,c=>c.charCodeAt(0));icon=null;
+    }
+    if(icon){try{const u=new URL(icon);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString()}catch(e){return json({error:"Logo URL must be HTTPS."},400)}}
+    const thumb=String(data.thumbnailUrl||"").trim()||null;
+    await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(title,slug,path,description,content,date,1,appName,iconBlob,iconMime,icon,thumb).run();
+    const row=await env.DB.prepare("SELECT * FROM posts WHERE slug=?").bind(slug).first();
+    return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
+  }
+  if(url.pathname==="/admin/api/update"&&request.method==="POST"){
+    const data=await request.json(),path=String(data.path||"");
+    const old=await env.DB.prepare("SELECT * FROM posts WHERE path=?").bind(path).first();if(!old)return json({error:"Article not found."},404);
+    const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim(),slug=articleSlug(data.slug||title);
+    if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Check title, slug, description and article content."},400);
+    const duplicate=await env.DB.prepare("SELECT id FROM posts WHERE slug=? AND id<>?").bind(slug,old.id).first();if(duplicate)return json({error:"That URL slug is already in use."},409);
+    let icon=String(data.officialIconUrl||old.official_icon_url||"").trim()||null,blob=old.icon_blob||null,mime=old.icon_mime||null;
+    if(data.uploadedIcon&&typeof data.uploadedIcon==="object"){
+      mime=String(data.uploadedIcon.mimeType||"").toLowerCase();const encoded=String(data.uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
+      if(!["image/png","image/jpeg","image/webp","image/avif"].includes(mime)||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Invalid logo upload."},400);
+      const binary=atob(encoded);if(binary.length>1572864)return json({error:"App logo must be smaller than 1.5 MB."},400);blob=Uint8Array.from(binary,c=>c.charCodeAt(0));icon=null;
+    }
+    if(icon){try{const u=new URL(icon);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString()}catch(e){return json({error:"Logo URL must be HTTPS."},400)}}
+    await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(title,slug,description,content,String(data.appName||old.app_name||""),blob,mime,icon,String(data.thumbnailUrl||old.thumbnail_url||"")||null,old.id).run();
+    const row=await env.DB.prepare("SELECT * FROM posts WHERE id=?").bind(old.id).first();
+    return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
+  }
+  if(url.pathname==="/admin/api/delete"&&request.method==="POST"){
+    const data=await request.json();const result=await env.DB.prepare("DELETE FROM posts WHERE path=?").bind(String(data.path||"")).run();
+    if(!result.meta?.changes)return json({error:"Article not found."},404);return json({ok:true,deleted:data.path});
+  }
+  if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST"){
+    const rows=await env.DB.prepare("SELECT id,title,app_name FROM posts WHERE official_icon_url IS NULL AND icon_blob IS NULL").all();let found=0;
+    for(const p of rows.results||[]){const icon=await resolveOfficialAppIcon(p.app_name||p.title,env);if(icon){await env.DB.prepare("UPDATE posts SET official_icon_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(icon,p.id).run();found++}}
+    return json({ok:true,generated:found,total:(rows.results||[]).length,remaining:(rows.results||[]).length-found,message:"Official app logo lookup finished. No invented logos were created."});
+  }
+  return json({error:"D1 API endpoint not found."},404);
+}
+
 async function api(request, env) {
   if(request.method==="OPTIONS")return new Response(null,{status:204,headers:{"access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","access-control-max-age":"86400"}});
   if(!request.headers.get("cf-access-jwt-assertion"))return json({error:"Cloudflare Access authentication required."},401);
   const url=new URL(request.url);
+  if(env.DB)return d1Api(request,env,url);
   try {
     if(url.pathname==="/admin/api/github-status"&&request.method==="GET") return json(await githubDiagnostic(env));
     if(url.pathname==="/admin/api/posts"&&request.method==="GET") {
@@ -342,9 +431,29 @@ export default {
      return new Response("Article not found",{status:404});
    }
    if(url.pathname==="/api/article"&&request.method==="GET"){
+     if(env.DB){
+       const path=String(url.searchParams.get("path")||"");
+       if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
+       const row=await env.DB.prepare("SELECT * FROM posts WHERE path=? AND published=1").bind(path).first();
+       if(!row)return json({error:"Article not found."},404);
+       const post=d1Post(row);
+       return json({content:row.content,title:row.title,description:row.description||"",iconUrl:post.iconUrl,officialIconUrl:post.officialIconUrl,thumbnailUrl:post.thumbnailUrl,generatedThumbnailUrl:post.generatedThumbnailUrl,date:row.date||""});
+     }
      const path=String(url.searchParams.get("path")||"");
      if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
      try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||post.officialIconUrl||null,officialIconUrl:post.officialIconUrl||post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
+   }
+
+   if(url.pathname.startsWith("/media/icons/")&&env.DB&&request.method==="GET"){
+     const slug=decodeURIComponent(url.pathname.slice("/media/icons/".length));
+     const row=await env.DB.prepare("SELECT icon_blob,icon_mime FROM posts WHERE slug=?").bind(slug).first();
+     if(!row?.icon_blob)return new Response("Not found",{status:404});
+     return new Response(row.icon_blob,{headers:{"content-type":row.icon_mime||"application/octet-stream","cache-control":"public, max-age=31536000, immutable","x-content-type-options":"nosniff"}});
+   }
+   if(url.pathname==="/sitemap.xml"&&env.DB&&request.method==="GET"){
+     const posts=await d1List(env,false);
+     const urls=[`<url><loc>${SITE}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>`,...posts.map(p=>`<url><loc>${SITE}/articles/${encodeURIComponent(p.slug)}</loc><lastmod>${p.date||new Date().toISOString().slice(0,10)}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`)];
+     return new Response('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join("\n")+'\n</urlset>',{headers:{"content-type":"application/xml; charset=utf-8","cache-control":"public, max-age=300"}});
    }
    if(url.pathname.startsWith("/admin/api/"))return api(request,env);
    if(url.pathname==="/admin"||url.pathname==="/admin/") {
