@@ -53,7 +53,7 @@ execute function public.cms_articles_set_updated_at();
 
 -- Do not grant article access to anonymous visitors.
 alter table public.cms_articles enable row level security;
-revoke all on table public.cms_articles from anon;
+revoke all on table public.cms_articles from anon, public;
 grant select, insert, update, delete on table public.cms_articles to authenticated;
 
 drop policy if exists cms_articles_select_own on public.cms_articles;
