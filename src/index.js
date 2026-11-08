@@ -286,6 +286,10 @@ export default {
      const target=new URL("/admin/index.html",url);
      return env.ASSETS.fetch(new Request(target.toString(),request));
    }
+   if(url.pathname==="/articles"||url.pathname==="/articles/") {
+     const target=new URL("/articles.html",url);
+     return env.ASSETS.fetch(new Request(target.toString(),request));
+   }
    if(url.pathname.startsWith("/articles/")) {
      const requestedSlug=decodeURIComponent(url.pathname.slice("/articles/".length)).replace(/\/$/,"");
      if(!/^[a-z0-9-]{3,90}$/.test(requestedSlug))return new Response("Not found",{status:404});
