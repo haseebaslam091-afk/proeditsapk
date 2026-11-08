@@ -201,6 +201,41 @@ async function githubDiagnostic(env) {
     rateLimitRemaining:repo.rateLimitRemaining||contents.rateLimitRemaining||null};
 }
 
+let d1SchemaReady=false;
+let d1SchemaPromise=null;
+async function ensureD1Schema(env){
+  if(d1SchemaReady)return;
+  if(!d1SchemaPromise)d1SchemaPromise=(async()=>{
+    const exists=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='posts'").first();
+    if(!exists){
+      await env.DB.batch([
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS posts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          slug TEXT NOT NULL UNIQUE,
+          path TEXT NOT NULL UNIQUE,
+          description TEXT NOT NULL DEFAULT '',
+          content TEXT NOT NULL DEFAULT '',
+          date TEXT NOT NULL,
+          published INTEGER NOT NULL DEFAULT 1,
+          app_name TEXT,
+          icon_blob BLOB,
+          icon_mime TEXT,
+          official_icon_url TEXT,
+          thumbnail_url TEXT,
+          generated_thumbnail_url TEXT,
+          raw_url TEXT,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )`),
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, date DESC)"),
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)")
+      ]);
+    }
+    d1SchemaReady=true;
+  })();
+  try{await d1SchemaPromise}catch(e){d1SchemaPromise=null;throw e}
+}
 function d1Post(row){
   const hasIcon=!!(row.has_icon||row.icon_blob);
   return {title:row.title,path:row.path,slug:row.slug,description:row.description||"",date:row.date,
@@ -434,6 +469,7 @@ ${content.replace(/\r/g,"")}
 export default {
  async fetch(request,env) {
    const url=new URL(request.url);
+   if(env.DB){try{await ensureD1Schema(env)}catch(e){return json({error:"Cloudflare D1 schema initialization failed: "+(e.message||"Database unavailable.")},503)}}
    // Permanently redirect legacy query-string article URLs to clean, date-free SEO routes.
    if((url.pathname==="/article"||url.pathname==="/article.html")&&request.method==="GET"){
      const legacyPath=String(url.searchParams.get("path")||"");
