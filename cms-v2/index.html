@@ -11,21 +11,34 @@
 <body><section class="auth-screen" id="loginScreen">
   <div class="auth-card">
     <div class="auth-brand"><div class="logo">P</div><div><strong>ProEditsAPK CMS 2.0</strong><div class="muted" style="font-size:12px">Private admin workspace</div></div></div>
-    <h1>Admin login</h1>
-    <p>Sign in with the admin email and password created in Supabase.</p>
-    <form onsubmit="event.preventDefault();adminLogin()">
-      <div class="field"><label for="loginEmail">Admin email</label><input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></div>
-      <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Your admin password"></div>
-      <button class="btn primary" id="loginButton" type="submit">Sign in securely</button>
-    </form>
-    <button class="btn" type="button" onclick="sendPasswordReset()">Forgot password?</button>
-    <div class="auth-message" id="loginMessage" role="status" aria-live="polite">Authentication setup is required before first use.</div>
-    <div class="auth-note">No public sign-up is provided. Create the one admin account inside Supabase. Login sessions are memory-only and end when this page is refreshed.</div>
+    <div id="loginPanel">
+      <h1>Admin login</h1>
+      <p>Sign in with the admin email and password created in Supabase.</p>
+      <form onsubmit="event.preventDefault();adminLogin()">
+        <div class="field"><label for="loginEmail">Admin email</label><input id="loginEmail" type="email" autocomplete="username" required placeholder="admin@example.com"></div>
+        <div class="field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Your admin password"></div>
+        <button class="btn primary" id="loginButton" type="submit">Sign in securely</button>
+      </form>
+      <button class="btn" type="button" onclick="sendPasswordReset()">Forgot password?</button>
+      <div class="auth-message" id="loginMessage" role="status" aria-live="polite">Authentication setup is required before first use.</div>
+      <div class="auth-note">No public sign-up is provided. Create the one admin account inside Supabase. Login sessions are memory-only and end when this page is refreshed.</div>
+    </div>
+    <div id="passwordRecoveryPanel" hidden>
+      <h1>Set a new password</h1>
+      <p>Your recovery link is verified. Choose a new password for the administrator account.</p>
+      <form onsubmit="event.preventDefault();completePasswordRecovery()">
+        <div class="field"><label for="recoveryPassword">New password</label><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></div>
+        <div class="field"><label for="recoveryPasswordConfirm">Confirm new password</label><input id="recoveryPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Enter it again"></div>
+        <button class="btn primary" id="recoveryButton" type="submit">Save new password</button>
+      </form>
+      <div class="auth-message" id="recoveryMessage" role="status" aria-live="polite"></div>
+      <button class="btn" type="button" onclick="cancelPasswordRecovery()">Cancel and return to login</button>
+    </div>
   </div>
 </section>
-<div class="app" id="appShell" hidden><aside><div class="brand"><div class="logo">P</div><div><strong>ProEditsAPK</strong><small>CMS workspace · 2.0</small></div></div><div class="navlabel">Workspace</div><nav class="nav" id="nav"><button class="active" data-page="dashboard"><span class="ico">▦</span>Dashboard</button><button data-page="articles"><span class="ico">▤</span>Articles</button><button data-page="editor"><span class="ico">✎</span>New article</button><button data-page="seo"><span class="ico">⌕</span>SEO studio</button><button data-page="media"><span class="ico">▧</span>Media library</button><button data-page="tools"><span class="ico">⌘</span>Site tools</button><button data-page="settings"><span class="ico">⚙</span>Settings</button></nav><div class="sidefoot"><b>CMS 2.0 foundation</b><br>Local workspace is active. Server publishing and secure authentication need backend setup.</div></aside>
+<div class="app" id="appShell" hidden><aside><div class="brand"><div class="logo">P</div><div><strong>ProEditsAPK</strong><small>CMS workspace · 2.0</small></div></div><div class="navlabel">Workspace</div><nav class="nav" id="nav"><button class="active" data-page="dashboard"><span class="ico">▦</span>Dashboard</button><button data-page="articles"><span class="ico">▤</span>Articles</button><button data-page="editor"><span class="ico">✎</span>New article</button><button data-page="seo"><span class="ico">⌕</span>SEO studio</button><button data-page="media"><span class="ico">▧</span>Media library</button><button data-page="tools"><span class="ico">⌘</span>Site tools</button><button data-page="settings"><span class="ico">⚙</span>Settings</button></nav><div class="sidefoot"><b>CMS 2.0 foundation</b><br>Supabase Auth is used for sign-in when configured. Drafts remain local until database integration.</div></aside>
 <main class="main"><header class="top"><div><div class="eyebrow">Content operations</div><h1 id="pageTitle">Dashboard overview</h1><div class="muted" id="pageDesc">Your content workspace at a glance.</div></div><div class="topright"><span class="status">● Authenticated workspace</span><span class="userbadge" id="userBadge"></span><button class="btn" onclick="adminLogout()">Log out</button><button class="btn primary" onclick="newArticle()">＋ New article</button></div></header>
-<div class="notice">Security note: this page does not provide secure user authentication or server publishing. Do not add GitHub tokens, passwords, or API secrets here. Those features require a protected backend.</div>
+<div class="notice">Security note: Supabase Auth verifies the admin sign-in, but this static page is not a server-side security boundary. Articles are still local to this browser. Database access and publishing must use server-side authorization and Row Level Security. Never add GitHub tokens or private API secrets here.</div>
 <section class="page active" id="dashboard"><div class="grid stats"><div class="card"><div class="stathead">Total articles <span class="staticon">▤</span></div><div class="statnum" id="statTotal">0</div><div class="statnote">Saved in this browser</div></div><div class="card"><div class="stathead">Drafts <span class="staticon">✎</span></div><div class="statnum" id="statDraft">0</div><div class="statnote">Ready for review</div></div><div class="card"><div class="stathead">Published <span class="staticon">↗</span></div><div class="statnum" id="statPublished">0</div><div class="statnote">Local status only</div></div><div class="card"><div class="stathead">Media records <span class="staticon">▧</span></div><div class="statnum" id="statMedia">0</div><div class="statnote">Metadata saved locally</div></div></div><div class="grid cols"><div class="card"><div class="sectionhead"><div><h2>Recent articles</h2><p>Your latest saved content</p></div><button class="btn" onclick="go('articles')">View all</button></div><div id="recentList" class="activity"><div class="empty">No articles yet. Create your first draft.</div></div></div><div class="card"><div class="sectionhead"><div><h2>Quick actions</h2><p>Common publishing tasks</p></div></div><div class="grid"><button class="btn" onclick="newArticle()">＋ Write an article</button><button class="btn" onclick="go('seo')">⌕ Run an SEO check</button><button class="btn" onclick="go('media')">▧ Add media metadata</button><button class="btn" onclick="go('tools')">⌘ Generate sitemap / robots</button></div><div style="margin-top:22px"><div class="sectionhead"><h2>Workspace readiness</h2><span class="pill">Phase 1</span></div><div class="progress"><span style="width:28%"></span></div><p class="hint">Editor and local drafts are available. Database, authentication, GitHub publishing, AI and analytics integrations are backend milestones.</p></div></div></div></section>
 <section class="page" id="articles"><div class="card"><div class="sectionhead"><div><h2>Content library</h2><p>Manage drafts saved in this browser.</p></div><input id="articleSearch" placeholder="Search articles…" style="max-width:240px" oninput="renderArticles()"></div><div class="tablewrap"><table><thead><tr><th>Title</th><th>Focus keyword</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="articleRows"></tbody></table></div></div></section>
 <section class="page" id="editor"><div class="card"><div class="sectionhead"><div><h2 id="editorHeading">Create article</h2><p>Write and save a local draft. Changes are stored in this browser only.</p></div><span class="pill" id="editorStatus">NEW DRAFT</span></div><input type="hidden" id="articleId"><div class="field"><label for="title">Article title</label><input id="title" maxlength="160" placeholder="Enter a clear, helpful title" oninput="updateSlug()"></div><div class="formgrid"><div class="field"><label for="keyword">Focus keyword</label><input id="keyword" placeholder="e.g. best video editor for Android"></div><div class="field"><label for="slug">URL slug</label><input id="slug" placeholder="article-url-slug"></div></div><div class="field"><label for="description">Meta description</label><textarea id="description" rows="2" maxlength="320" placeholder="Write a useful search snippet (around 150–160 characters)."></textarea><div class="hint"><span id="descCount">0</span>/160 characters suggested</div></div><div class="field"><label>Article content (HTML or plain text)</label><div class="toolbar"><button class="btn" onclick="wrapText('**','**')">Bold</button><button class="btn" onclick="wrapText('<h2>','</h2>')">H2</button><button class="btn" onclick="wrapText('<h3>','</h3>')">H3</button><button class="btn" onclick="wrapText('<ul><li>','</li></ul>')">List</button><button class="btn" onclick="insertLink()">Link</button></div><textarea class="tall" id="content" placeholder="Start writing your article…"></textarea></div><div class="formgrid"><div class="field"><label for="category">Category</label><input id="category" placeholder="Apps, Editing, Tutorials…"></div><div class="field"><label for="tags">Tags (comma separated)</label><input id="tags" placeholder="Android, video editing, apps"></div></div><div class="actions"><button class="btn primary" onclick="saveArticle()">Save draft</button><button class="btn" onclick="previewArticle()">Preview text</button><button class="btn" onclick="clearEditor()">Clear</button><button class="btn danger" id="deleteCurrent" style="display:none" onclick="deleteCurrent()">Delete draft</button></div></div></section>
@@ -38,7 +51,7 @@
 <div class="account-actions"><button class="btn primary" onclick="changeAdminUsername()">Save username</button><button class="btn" onclick="changeAdminEmail()">Update email</button><button class="btn" onclick="changeAdminPassword()">Change password</button></div><div class="hint" id="accountMessage" role="status" aria-live="polite" style="margin-top:12px"></div>
 </div><div class="card"><h2 style="margin-top:0">Workspace settings</h2><p class="muted">Basic preferences for this browser workspace.</p><div class="formgrid"><div class="field"><label>Website name</label><input id="settingName" value="ProEditsAPK"></div><div class="field"><label>Website URL</label><input id="settingUrl" value="https://proeditsapk.com"></div><div class="field"><label>Default author</label><input id="settingAuthor" value="ProEditsAPK Team"></div><div class="field"><label>Default language</label><select id="settingLang"><option value="en">English</option><option value="ur">Urdu</option></select></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Save settings</button><button class="btn danger" onclick="exportBackup()">Export local backup</button><button class="btn" onclick="resetWorkspace()">Clear local workspace</button></div><div class="notice" style="margin-top:18px">Not connected yet: Supabase database, secure authentication, GitHub Actions publishing, Google Search Console, analytics and AI provider. These must be implemented server-side; this file intentionally contains no API keys or access tokens.</div></div></section>
 </main></div><div id="toast" class="toast" hidden></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.102.0"></script>
 <script>
 // Supabase project URL and PUBLISHABLE/anon key are public client settings.
 // Never put a service_role key, GitHub token, or other server secret here.
@@ -55,9 +68,20 @@ function setLoginMessage(message){const el=document.getElementById("loginMessage
 function showLogin(message){
   document.getElementById("appShell").hidden=true;
   document.getElementById("loginScreen").hidden=false;
+  document.getElementById("loginPanel").hidden=false;
+  document.getElementById("passwordRecoveryPanel").hidden=true;
   setLoginMessage(message||"Enter your admin email and password.");
 }
+function showPasswordRecovery(){
+  document.getElementById("appShell").hidden=true;
+  document.getElementById("loginScreen").hidden=false;
+  document.getElementById("loginPanel").hidden=true;
+  document.getElementById("passwordRecoveryPanel").hidden=false;
+  document.getElementById("recoveryMessage").textContent="Recovery verified. Enter and confirm your new password.";
+}
 function showAuthenticatedApp(user){
+  document.getElementById("loginPanel").hidden=false;
+  document.getElementById("passwordRecoveryPanel").hidden=true;
   currentAuthUser=user;
   document.getElementById("loginScreen").hidden=true;
   document.getElementById("appShell").hidden=false;
@@ -76,6 +100,7 @@ async function initAuth(){
     auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:true}
   });
   authClient.auth.onAuthStateChange((event,session)=>{
+    if(event==="PASSWORD_RECOVERY" && session?.user){showPasswordRecovery();return;}
     if(session?.user)showAuthenticatedApp(session.user);
     else if(event==="SIGNED_OUT")showLogin("You have been signed out.");
   });
@@ -102,8 +127,36 @@ async function sendPasswordReset(){
   const email=document.getElementById("loginEmail").value.trim();
   if(!email){setLoginMessage("Enter your admin email first, then tap Forgot password.");return;}
   setLoginMessage("Sending password reset email…");
-  const {error}=await authClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
-  setLoginMessage(error?"Reset request failed: "+error.message:"If this email belongs to an admin account, a password reset link has been sent.");
+  try{
+    const {error}=await authClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    setLoginMessage(error?"Reset request failed: "+error.message:"If this email belongs to an admin account, a password reset link has been sent.");
+  }catch(error){setLoginMessage("Reset request failed: "+(error.message||"Check your connection and try again."));}
+}
+async function completePasswordRecovery(){
+  if(!authClient){document.getElementById("recoveryMessage").textContent="Supabase is not configured.";return;}
+  const password=document.getElementById("recoveryPassword").value;
+  const confirmPassword=document.getElementById("recoveryPasswordConfirm").value;
+  const button=document.getElementById("recoveryButton");
+  if(password.length<8){document.getElementById("recoveryMessage").textContent="Use at least 8 characters.";return;}
+  if(password!==confirmPassword){document.getElementById("recoveryMessage").textContent="The passwords do not match.";return;}
+  button.disabled=true;
+  document.getElementById("recoveryMessage").textContent="Updating password…";
+  try{
+    const {error}=await authClient.auth.updateUser({password});
+    if(error)throw error;
+    document.getElementById("recoveryPassword").value="";
+    document.getElementById("recoveryPasswordConfirm").value="";
+    await authClient.auth.signOut();
+    currentAuthUser=null;
+    showLogin("Password updated. Sign in using your new password.");
+  }catch(error){
+    document.getElementById("recoveryMessage").textContent="Password update failed: "+(error.message||"Please request a new recovery email.");
+  }finally{button.disabled=false;}
+}
+async function cancelPasswordRecovery(){
+  if(authClient)await authClient.auth.signOut();
+  currentAuthUser=null;
+  showLogin("Recovery cancelled. You can sign in or request another reset link.");
 }
 async function adminLogout(){
   if(authClient)await authClient.auth.signOut();
