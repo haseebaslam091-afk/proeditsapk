@@ -17,7 +17,7 @@ The repository is connected to the Cloudflare Worker `proeditsapk`.
 - On the first authenticated Admin Panel load, the Worker imports the four existing published articles and their Markdown content into D1. The migration is idempotent and does not overwrite an already-populated database.
 - The Admin Panel Publish, Edit and Delete actions use D1.
 - The admin API remains protected by Cloudflare Access. Keep the Access application and Allow policy protecting `proeditsapk.com/admin/*`; do not create a public bypass.
-- A GitHub personal access token is not required for article publishing or editing. GitHub remains the source-code repository and Cloudflare's Git integration can continue deploying code.
+- The Worker CMS contains no GitHub token or GitHub API dependency. GitHub remains the source-code repository and Cloudflare's Git integration can continue deploying code. After the D1 migration and all admin tests pass, the unused `GITHUB_TOKEN` secret can be removed from the Worker Production and Preview environments.
 
 ## Test after deployment
 1. Open `https://proeditsapk.com/` and confirm the homepage loads.
