@@ -86,12 +86,54 @@ const $=id=>document.getElementById(id);
 function slugify(s){return s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,90)}
 $('title').addEventListener('input',()=>{if(!$('slug').dataset.edited)$('slug').value=slugify($('title').value)});
 $('slug').addEventListener('input',()=>{$('slug').dataset.edited='1';$('slug').value=slugify($('slug').value)});
-async function call(path,options={}){const endpoint='/admin/api/'+path;let r;try{r=await fetch(endpoint,{...options,credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json',...(options.headers||{})}})}catch(e){throw Error('Network request to '+endpoint+' failed. Check that Cloudflare Access is still signed in, then reload Admin Panel. Browser detail: '+(e&&e.message||'connection unavailable'))}const raw=await r.text();let d={};try{d=raw?JSON.parse(raw):{}}catch(e){throw Error('API returned a non-JSON response (HTTP '+r.status+'). Cloudflare Access may have redirected this request to its login page. Reload Admin Panel and sign in again.')}if(!r.ok)throw Error(d.error||('API request failed (HTTP '+r.status+').'));return d}
+async function call(path,options={}){
+ const endpoint='/admin/api/'+path;
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),15000);
+ let response;
+ try{
+  const headers={accept:'application/json',...(options.headers||{})};
+  if(options.body!==undefined&&!headers['content-type']&&!headers['Content-Type'])headers['content-type']='application/json';
+  response=await fetch(endpoint,{...options,headers,credentials:'same-origin',cache:'no-store',signal:controller.signal});
+ }catch(error){
+  if(error&&error.name==='AbortError')throw Error('Request timed out after 15 seconds: '+endpoint);
+  throw Error('Network request failed for '+endpoint+'. Check Cloudflare Access session and connection. '+(error&&error.message||''));
+ }finally{clearTimeout(timeout)}
+ const raw=await response.text();
+ let data;
+ try{data=raw?JSON.parse(raw):{}}catch(error){
+  throw Error('Expected JSON from '+endpoint+' but received HTTP '+response.status+'. The request may have been redirected by Cloudflare Access.');
+ }
+ if(!response.ok)throw Error(data.error||('Request failed: HTTP '+response.status+' '+response.statusText));
+ return data;
+}
 async function readUploadedIcon(){const file=$('officialIconFile').files[0];if(!file)return null;const allowed=['image/png','image/jpeg','image/webp','image/avif'];if(!allowed.includes(file.type))throw Error('Choose a PNG, JPG, WEBP or AVIF logo.');if(file.size>1572864)throw Error('App logo must be smaller than 1.5 MB.');const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Could not read the selected logo.'));reader.readAsDataURL(file)});return {mimeType:file.type,data}} 
 $('officialIconFile').addEventListener('change',()=>{const file=$('officialIconFile').files[0];$('iconPreview').textContent=file?'Selected logo: '+file.name+' ('+(file.size/1024).toFixed(0)+' KB)':''});
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function load(){const box=$('posts');box.innerHTML='<p class="hint">Loading articles…</p>';try{// D1 is already initialized; normal refresh should only read the existing posts.const d=await call('posts');const posts=d.posts;$('totalPosts').textContent=posts.filter(p=>p.published!==false).length;box.innerHTML=posts.map(p=>'<div class="article"><div style="min-width:0"><b>'+escapeHtml(p.title)+'</b><div class="help">'+escapeHtml(p.slug||'')+'</div></div><div class="list-actions"><button class="btn secondary edit-post" data-path="'+escapeHtml(p.path)+'" style="padding:6px 9px">Edit</button><button class="btn secondary delete-post" data-path="'+escapeHtml(p.path)+'" style="padding:6px 9px;color:#ff9baf">Delete</button><a href="/articles/'+encodeURIComponent(p.slug||slugify(p.title))+'" target="_blank" rel="noopener">Open ↗</a></div></div>').join('')||'<p class="hint">No articles yet.</p>';box.querySelectorAll('.edit-post').forEach(b=>b.addEventListener('click',()=>editPost(b.dataset.path)));box.querySelectorAll('.delete-post').forEach(b=>b.addEventListener('click',()=>deletePost(b.dataset.path)))}catch(e){box.textContent=e.message;$('totalPosts').textContent='—'}}
-async function editPost(path){$('status').textContent='Loading article for editing…';try{const d=await call('posts');const post=d.posts.find(p=>p.path===path);if(!post)throw Error('Article not found.');const r=await fetch('/api/article?path='+encodeURIComponent(path));const article=await r.json();if(!r.ok)throw Error(article.error||'Could not load article content.');const body=String(article.content||'').replace(/^---[\s\S]*?---\s*/,'');$('editPath').value=path;$('title').value=post.title||'';$('appName').value=post.appName||'';$('slug').value=post.slug||slugify(post.title||'');$('slug').dataset.edited='1';$('description').value=post.description||'';$('thumbnailUrl').value=post.thumbnailUrl||'';$('officialIconUrl').value=post.officialIconUrl||post.iconUrl||'';$('content').value=body;$('editorHeading').textContent='Edit article';$('publish').textContent='Save changes ↗';$('cancelEdit').hidden=false;$('status').textContent='Editing: '+post.title;document.getElementById('editor').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){$('status').textContent='Could not open editor: '+e.message}}
+async function load(){
+ const box=$('posts');
+ box.setAttribute('aria-busy','true');
+ box.innerHTML='<p class="hint">Loading articles…</p>';
+ try{
+  const data=await call('posts');
+  if(!data||!Array.isArray(data.posts))throw Error('The posts API response did not contain a posts array.');
+  const posts=data.posts;
+  $('totalPosts').textContent=posts.filter(post=>post&&post.published!==false).length;
+  if(!posts.length){box.innerHTML='<p class="hint">No articles are stored in Cloudflare D1 yet.</p>';return}
+  box.innerHTML=posts.map(post=>{
+   const path=String(post.path||'');
+   const slug=String(post.slug||slugify(post.title||''));
+   return '<div class="article"><div style="min-width:0"><b>'+escapeHtml(post.title||'Untitled article')+'</b><div class="help">'+escapeHtml(slug)+'</div></div><div class="list-actions"><button type="button" class="btn secondary edit-post" data-path="'+escapeHtml(path)+'" style="padding:6px 9px">Edit</button><button type="button" class="btn secondary delete-post" data-path="'+escapeHtml(path)+'" style="padding:6px 9px;color:#ff9baf">Delete</button><a href="/articles/'+encodeURIComponent(slug)+'" target="_blank" rel="noopener noreferrer">Open ↗</a></div></div>';
+  }).join('');
+  box.querySelectorAll('.edit-post').forEach(button=>button.addEventListener('click',()=>editPost(button.dataset.path)));
+  box.querySelectorAll('.delete-post').forEach(button=>button.addEventListener('click',()=>deletePost(button.dataset.path)));
+ }catch(error){
+  $('totalPosts').textContent='!';
+  box.innerHTML='<div class="hint" role="alert">Could not load articles: '+escapeHtml(error&&error.message||'Unknown error')+'</div>';
+  $('status').textContent='Article list error: '+(error&&error.message||'Unknown error');
+ }finally{box.setAttribute('aria-busy','false')}
+}
+async function editPost(path){$('status').textContent='Loading article for editing…';try{const d=await call('posts');const post=d.posts.find(p=>p.path===path);if(!post)throw Error('Article not found.');const r=await fetch('/api/article?path='+encodeURIComponent(path),{credentials:'same-origin',cache:'no-store',headers:{accept:'application/json'}});const article=await r.json();if(!r.ok)throw Error(article.error||'Could not load article content.');const body=String(article.content||'').replace(/^---[\s\S]*?---\s*/,'');$('editPath').value=path;$('title').value=post.title||'';$('appName').value=post.appName||'';$('slug').value=post.slug||slugify(post.title||'');$('slug').dataset.edited='1';$('description').value=post.description||'';$('thumbnailUrl').value=post.thumbnailUrl||'';$('officialIconUrl').value=post.officialIconUrl||post.iconUrl||'';$('content').value=body;$('editorHeading').textContent='Edit article';$('publish').textContent='Save changes ↗';$('cancelEdit').hidden=false;$('status').textContent='Editing: '+post.title;document.getElementById('editor').scrollIntoView({behavior:'smooth',block:'start'})}catch(e){$('status').textContent='Could not open editor: '+e.message}}
 async function deletePost(path){const postTitle=Array.from(document.querySelectorAll('.article')).find(x=>x.querySelector('[data-path="'+CSS.escape(path)+'"]'))?.querySelector('b')?.textContent||'this article';if(!confirm('Permanently delete "'+postTitle+'" from Cloudflare D1 and the website?'))return;$('status').textContent='Deleting article from D1…';try{await call('delete',{method:'POST',body:JSON.stringify({path})});$('status').textContent='✓ Article deleted.';await load()}catch(e){$('status').textContent='Delete failed: '+e.message}}
 function cancelEdit(){ $('form').reset();$('editPath').value='';$('slug').dataset.edited='';$('editorHeading').textContent='Create a new article';$('publish').textContent='Publish article ↗';$('cancelEdit').hidden=true;$('iconPreview').textContent=''}
 $('cancelEdit').addEventListener('click',cancelEdit);
@@ -99,5 +141,5 @@ $('form').addEventListener('submit',async e=>{e.preventDefault();$('publish').di
 async function checkGitHub(){const b=$('githubCheck');b.disabled=true;$('status').textContent='Checking the Cloudflare D1 database connection…';try{const d=await call('github-status');$('status').textContent=d.repository?.ok?'✓ Cloudflare D1 connected. '+(d.database?.articleCount??0)+' articles currently stored. GitHub token is not used for publishing.':'D1 connection check failed.';}catch(e){$('status').textContent='D1 check failed: '+e.message}finally{b.disabled=false}}
 $('githubCheck').addEventListener('click',checkGitHub);
 async function refreshIcons(){const buttons=[$('refreshIcons'),$('sideIcons')].filter(Boolean);buttons.forEach(b=>b.disabled=true);$('status').textContent='Checking verified official app logos (up to 10 articles per run)…';try{const d=await call('refresh-icons',{method:'POST',body:'{}'});$('status').textContent='✓ Official logo lookup complete: '+(d.generated||0)+' verified logos found out of '+d.total+' articles. '+(d.message||'')+(Array.isArray(d.missing)&&d.missing.length?' No verified icon for: '+d.missing.join(', '):'');await load()}catch(e){$('status').textContent='Official logo lookup failed: '+e.message}finally{buttons.forEach(b=>b.disabled=false)}}
-$('refreshIcons').addEventListener('click',refreshIcons);$('sideIcons').addEventListener('click',refreshIcons);$('refresh').addEventListener('click',load);$('menu').addEventListener('click',()=>document.body.classList.toggle('menu-open'));document.querySelectorAll('.sidebar a[href^="#"]').forEach(a=>a.addEventListener('click',()=>document.body.classList.remove('menu-open')));load();
+$('refreshIcons').addEventListener('click',refreshIcons);$('sideIcons').addEventListener('click',refreshIcons);$('refresh').addEventListener('click',load);$('menu').addEventListener('click',()=>document.body.classList.toggle('menu-open'));document.querySelectorAll('.sidebar a[href^="#"]').forEach(a=>a.addEventListener('click',()=>document.body.classList.remove('menu-open')));load().catch(error=>{const box=$('posts');if(box)box.textContent='Admin startup failed: '+(error&&error.message||'Unknown error')});
 </script></body></html>
