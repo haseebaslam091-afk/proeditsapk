@@ -19,7 +19,7 @@
 ### Decisions
 - Kept the existing Cloudflare Workers + Static Assets + D1 architecture; no framework migration or new runtime dependencies.
 - Did not add a fake local upload directory: Worker static assets are not a writable persistent filesystem.
-- Did not store arbitrary 5 MB images in D1. D1 is not a suitable media object store and the current deployment has no R2/Cloudflare Images binding. General media uploads are blocked pending a durable object-storage binding.
+- Kept the existing no-cost deployment architecture and added a small-image D1 media library with a strict 1.5 MB limit; larger media remains blocked pending R2/Cloudflare Images.
 - The download-button and rich-media editor controls are not reported as implemented until their end-to-end public rendering and security tests pass.
 
 ### Remaining work
@@ -28,3 +28,12 @@
 - Implement cursor-position image/download blocks, safe public rendering, preview and draft autosave.
 - Add automated tests and run a production browser regression suite for all routes and admin actions.
 - Verify the deployed Worker revision and the Admin Panel in a real authenticated browser session after deployment.
+
+
+## 2026-11-08 — Admin editor and media library
+- Added an authenticated D1 media library for PNG, JPEG, WEBP and AVIF images up to 1.5 MB.
+- Added MIME/signature checks, randomized media IDs, safe response headers, alt text, list/insert/delete controls and cursor-position Markdown image insertion.
+- Added editor shortcuts for headings, bold text, links and download links.
+- Added escaped plain-text content preview and browser-local draft autosave/restore.
+- Added the `/media/library/*` Worker-first route so stored media requests reach the Worker instead of the static asset handler.
+- Existing article records were not modified.
