@@ -11,7 +11,7 @@ ProEditsAPK is a static-first Android apps, video editing and AI tools publishin
 - Existing repository: https://github.com/haseebaslam091-afk/proeditsapk
 - Production site: https://proeditsapk.com
 
-The project intentionally retains its existing Worker/static-assets architecture.
+The project intentionally retains its existing Worker/static-assets architecture. Article media is stored as small image blobs in D1 for this deployment; each library image is limited to 1.5 MB. D1 is not intended to replace object storage for larger media.
 
 ## Local development
 
@@ -59,3 +59,12 @@ The existing Worker configuration declares the D1 database ID and bindings in `w
 - General photo uploads, server-side image resizing/compression, thumbnails, reusable media management and media deletion require a durable object store (recommended: Cloudflare R2) and a configured binding/bucket.
 - Rich article preview, autosave across devices, and fully managed image/download blocks are not yet part of the production CMS.
 - Automated test/build scripts are not currently configured in the repository.
+
+
+## Admin media library
+
+The Admin Panel includes an authenticated media library backed by the existing D1 database. Uploads accept PNG, JPEG, WEBP and AVIF files up to 1.5 MB. The Worker checks the declared MIME type against the file signature, assigns an opaque UUID, and serves stored images from `/media/library/<id>`. Alt text and original filenames are stored with each asset. The editor can insert an image Markdown reference at the current cursor position.
+
+The editor also includes heading/bold/link/download-link insertion helpers, a safe plain-text preview, and browser-local draft autosave/restore. Drafts remain in the current browser and are not synced between devices. A download-link helper inserts a normal Markdown link; the target site template determines whether it is rendered as a download action.
+
+D1-backed media is deliberately limited to small images. For larger files, video, transformations, generated thumbnails, or a large media catalogue, configure Cloudflare R2 (or Cloudflare Images) before expanding upload limits. No paid storage resource is created automatically.
