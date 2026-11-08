@@ -14,7 +14,9 @@
       "/api/*",
       "/articles/*",
       "/article",
-      "/article.html"
+      "/article.html",
+      "/media/icons/*",
+      "/sitemap.xml"
     ]
   },
   "previews": {
