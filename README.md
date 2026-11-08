@@ -55,10 +55,11 @@ The existing Worker configuration declares the D1 database ID and bindings in `w
 
 ## Current limitations
 
-- The repository currently has no R2 or Cloudflare Images binding. The existing D1 logo upload is intentionally small and is not a general-purpose media library.
-- General photo uploads, server-side image resizing/compression, thumbnails, reusable media management and media deletion require a durable object store (recommended: Cloudflare R2) and a configured binding/bucket.
-- Rich article preview, autosave across devices, and fully managed image/download blocks are not yet part of the production CMS.
-- Automated test/build scripts are not currently configured in the repository.
+- The repository currently has no R2 or Cloudflare Images binding. The new D1 media library is limited to small images (1.5 MB each); it is not suitable for video or large image collections.
+- Server-side resizing, generated thumbnails, upload progress, and large-file storage still require Cloudflare R2 or Cloudflare Images.
+- The editor preview is a safe plain-text preview, not a pixel-perfect rendered article preview. Draft autosave is browser-local and does not sync across devices.
+- The download-link shortcut inserts a normal Markdown link. A dedicated download-block renderer and attachment storage are not yet implemented.
+- A GitHub Actions validation workflow now checks Worker/Admin JavaScript syntax, Wrangler configuration, Access protection and media upload guardrails. Full end-to-end Worker integration tests are still a future improvement.
 
 
 ## Admin media library
