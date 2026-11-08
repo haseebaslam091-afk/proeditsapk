@@ -12,6 +12,8 @@ The CMS 2.0 page is designed to use Supabase Auth for:
 - Changing the password after confirming the current password.
 - Logout.
 
+The recovery link now opens an in-page **Set a new password** form and updates the password through Supabase Auth. The Supabase JavaScript client is pinned to v2.102.0 so the current-password check used by the account password-change form is supported.
+
 The page uses a memory-only Supabase session (`persistSession: false`). This avoids writing authentication tokens to localStorage, but it also means a page refresh signs the administrator out.
 
 The username is a display name. Supabase email/password sign-in uses the admin email address.
@@ -34,7 +36,7 @@ Only the public publishable/anon key belongs in this static page. Never paste a 
 ## Important limits — do not skip
 
 - The CMS page currently stores article drafts, media metadata, and workspace preferences in this browser's localStorage. They are not yet in a cloud database and do not sync across devices.
-- Supabase Auth verifies the admin's login for the interface. A static GitHub Pages file is still downloadable, and browser-only checks are not a substitute for server-side authorization. Before connecting database records or publishing, the next milestone must add Row Level Security and server-side authorization to every protected API.
+- Supabase Auth verifies the admin's login for the interface. The static page is not a server-side security boundary; do not expose protected database or publishing operations without server-side authorization and Row Level Security. A static GitHub Pages file is still downloadable, and browser-only checks are not a substitute for server-side authorization. Before connecting database records or publishing, the next milestone must add Row Level Security and server-side authorization to every protected API.
 - GitHub publishing, real media upload, analytics, and AI services are not connected by this foundation.
 - This branch is not production. Do not change the GitHub Pages production source or merge it into `main` until authentication is configured and tested.
 
@@ -47,7 +49,9 @@ After adding the CMS page and configuring Supabase:
 4. Test password change with the current password.
 5. Test email change and confirm the email through the message Supabase sends.
 6. Log out, then refresh the page and confirm the login screen appears again.
-7. Use **Forgot password?** to test the email recovery flow.
+7. Use **Forgot password?** to request a recovery email.
+8. Open the recovery email on the same device/browser. Confirm it returns to `/cms-v2/`, then enter and confirm a new password on the **Set a new password** screen.
+9. Sign in with the new password and confirm the account settings still work.
 
 Official Supabase references:
 - Password sign-in: https://supabase.com/docs/reference/javascript/auth-signinwithpassword
