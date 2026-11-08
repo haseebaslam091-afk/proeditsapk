@@ -2,6 +2,9 @@
 
 ## 2026-11-08 — Production-readiness audit and admin recovery
 
+### Follow-up fix
+- Serve the Admin Panel HTML with `no-store` cache headers so mobile browsers do not keep rendering an older dashboard after a production deployment.
+
 ### Fixed
 - Hardened the Admin Panel API helper to send JSON content type only when a request has a body, set an explicit JSON Accept header, disable caching, and stop waiting indefinitely on requests.
 - Added clearer handling for non-JSON responses, HTTP errors, network failures and timeouts.
