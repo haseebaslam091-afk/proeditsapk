@@ -330,12 +330,21 @@ async function d1Api(request,env,url){
     }else if(iconInput){
       try{const u=new URL(iconInput);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString();removeMedia=true}catch(e){return json({error:"Logo URL must be HTTPS."},400)}
     }
+    let movedMedia=null;
+    if(slug!==old.slug){
+      if(preserveMedia){
+        movedMedia=await env.DB.prepare("SELECT icon_blob,icon_mime FROM post_media WHERE slug=?").bind(old.slug).first();
+        if(!movedMedia&&old.icon_blob)movedMedia={icon_blob:old.icon_blob,icon_mime:old.icon_mime};
+      }
+      // Remove the old foreign-key child row before changing the post slug.
+      await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+    }else if(removeMedia){
+      await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+    }
     await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
       .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||old.thumbnail_url||"")||null,old.id).run();
     if(replaceMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime).run();
-    else if(removeMedia)await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
-    else if(preserveMedia&&slug!==old.slug)await env.DB.prepare("UPDATE post_media SET slug=?,updated_at=CURRENT_TIMESTAMP WHERE slug=?").bind(slug,old.slug).run();
-    if(slug!==old.slug&&replaceMedia){await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run()}
+    else if(movedMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,movedMedia.icon_blob,movedMedia.icon_mime).run();
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE id=?").bind(old.id).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
