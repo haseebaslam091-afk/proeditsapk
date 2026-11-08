@@ -329,6 +329,8 @@ async function d1Api(request,env,url){
       icon=iconInput;removeMedia=true;
     }else if(iconInput){
       try{const u=new URL(iconInput);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString();removeMedia=true}catch(e){return json({error:"Logo URL must be HTTPS."},400)}
+    }else{
+      icon=null;removeMedia=true;
     }
     let movedMedia=null;
     if(slug!==old.slug){
