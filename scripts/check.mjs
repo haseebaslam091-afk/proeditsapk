@@ -52,6 +52,18 @@ assert.ok(article.includes("renderDownloadModal") && article.includes("Download 
 const d1MediaPath="\\/media\\/library\\/";
 assert.ok(home.includes(d1MediaPath) && article.includes(d1MediaPath) && (await readFile("articles.html", "utf8")).includes(d1MediaPath), "Uploaded D1 thumbnails must render across the site");
 
+const articles = await readFile("articles.html", "utf8");
+assert.ok(worker.includes('ALTER TABLE posts ADD COLUMN seo_title TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN focus_keyword TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN category TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN tags TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN excerpt TEXT'), "SEO and article taxonomy columns must migrate safely");
+assert.ok(worker.includes('published=data.published===false?0:1'), "Admin must be able to save unpublished drafts");
+assert.ok(worker.includes('url.pathname==="/admin/api/article"') && admin.includes("call('article?path='"), "Admin must load drafts as well as published article content");
+assert.ok(admin.includes('id="richEditor"') && admin.includes('contenteditable="true"'), "Admin must provide a rich text editor");
+assert.ok(admin.includes('data-command="bold"') && admin.includes('insertUnorderedList') && admin.includes('insertOrderedList') && admin.includes('id="insertTable"'), "Rich editor must provide formatting, lists and tables");
+assert.ok(admin.includes('id="togglePreview"') && admin.includes('id="editorPreview"') && admin.includes('id="wordCount"'), "Rich editor must provide preview and word count");
+assert.ok(admin.includes('id="saveDraft"') && admin.includes("published:!saveButton"), "Admin must save drafts separately from publishing");
+assert.ok(admin.includes('id="seoTitle"') && admin.includes('id="focusKeyword"') && admin.includes('id="category"') && admin.includes('id="tags"') && admin.includes('id="excerpt"'), "Admin must provide SEO and article taxonomy fields");
+assert.ok(article.includes("payload.seoTitle") && article.includes('meta[property="og:title"]') && article.includes("payload.tags"), "Public article pages must use SEO and tag metadata");
+assert.ok(home.includes("p.excerpt||p.description") && articles.includes("p.excerpt||p.description"), "Homepage and archive must use article excerpts");
+
 console.log("PASS: Worker and Admin JavaScript syntax");
 console.log("PASS: Wrangler JSON configuration and free-plan bindings");
 console.log("PASS: D1, Cloudflare Access, media upload safety and no-cache checks");

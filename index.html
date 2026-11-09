@@ -292,20 +292,20 @@ document.getElementById('year').textContent=new Date().getFullYear();
 const menu=document.getElementById('menu'),nav=document.getElementById('navlinks');menu.addEventListener('click',()=>{const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open));menu.textContent=open?'×':'☰'});
 let allPosts=[];
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function articleCategory(p){const s=(String(p.title||'')+' '+String(p.category||'')).toLowerCase();if(/capcut|vivacut|video|editor|popmaker/.test(s))return 'Video Editing';if(/ai|artificial|generator/.test(s))return 'AI Tools';return 'Android Apps'}
+function articleCategory(p){const custom=String(p.category||'').trim();if(custom)return custom;const s=String(p.title||'').toLowerCase();if(/capcut|vivacut|video|editor|popmaker/.test(s))return 'Video Editing';if(/ai|artificial|generator/.test(s))return 'AI Tools';return 'Android Apps'}
 function effectFor(title){const s=String(title||'').toLowerCase();if(/ice|snow|frost|winter/.test(s))return 'ice';if(/fire|flame|burn|heat/.test(s))return 'fire';if(/music|audio|sound|beat/.test(s))return 'neon';return 'neon'}
 function appMark(p){const u=String(p.officialIconUrl||p.iconUrl||''),mark=esc(String(p.title||'APP').replace(/[^a-z0-9]/gi,'').slice(0,4).toUpperCase()||'APP');if(/^https:\/\//.test(u)||/^\/media\/icons\/[a-z0-9-]+(?:\?v=[a-zA-Z0-9%._-]+)?$/.test(u)||/^\/assets\/app-icons\/[a-zA-Z0-9._-]+$/.test(u))return '<span class="app-icon-wrap"><img src="'+esc(u)+'" alt="'+esc(p.title||'App')+' official app icon" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="post-icon-fallback" hidden>'+mark+'</span></span>';return '<span class="post-icon-fallback">'+mark+'</span>'}
 function watchCards(){const cards=document.querySelectorAll('.post-card');if(!('IntersectionObserver' in window)){cards.forEach(x=>x.classList.add('visible'));return}const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.08});cards.forEach(x=>{x.classList.add('reveal');io.observe(x)})}
 function cleanArticleSlug(s){return String(s||'').toLowerCase().replace(/^\d{4}-\d{2}-\d{2}-/,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,90)}
 function paint(q=''){
  const target=document.getElementById('posts'),term=q.trim().toLowerCase();
- const list=allPosts.filter(p=>(String(p.title||'')+' '+articleCategory(p)).toLowerCase().includes(term));
+ const list=allPosts.filter(p=>(String(p.title||'')+' '+String(p.excerpt||'')+' '+String(p.description||'')+' '+String(p.tags||'')+' '+articleCategory(p)).toLowerCase().includes(term));
  if(!list.length){target.innerHTML='<div class="empty">No matching guides found. Try another search.</div>';return}
  target.innerHTML=list.map(p=>{
   const t=String(p.title||'Untitled'),slug=cleanArticleSlug(p.slug||t),path=String(p.path||'');
   if(!(path.startsWith('_posts/')&&path.endsWith('.md')&&!path.includes('..'))||!/^[a-z0-9-]+$/.test(slug))return '';
   const href='/articles/'+encodeURIComponent(slug),cat=articleCategory(p),cls=cat==='Video Editing'?'':cat==='AI Tools'?'violet':'green';
-  const thumb=String(p.thumbnailUrl||p.generatedThumbnailUrl||''),desc=String(p.description||'Explore app features, useful details and practical tips in this guide.');
+  const thumb=String(p.thumbnailUrl||p.generatedThumbnailUrl||''),desc=String(p.excerpt||p.description||'Explore app features, useful details and practical tips in this guide.');
   const art=t.replace(/[^a-z0-9]/gi,'').slice(0,3).toUpperCase()||'APP',icon=appMark(p);
   const imageSrc=/^https:\/\//.test(thumb)||/^\/assets\/generated-thumbnails\/[a-z0-9-]+\.png$/.test(thumb)||/^\/media\/library\/[0-9a-f-]{36}$/i.test(thumb)?esc(thumb):'';
   return '<article class="post-card"><div class="post-thumb effect-'+effectFor(t)+'"><span class="post-thumb-fallback" aria-hidden="true">'+esc(art)+'</span><img class="post-thumb-img" src="'+imageSrc+'" alt="'+esc(t)+' AI artwork" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add(\'loaded\')" onerror="this.removeAttribute(\'src\')"><span class="post-thumb-shade"></span><span class="post-icon-badge">'+icon+'</span></div><div class="post-copy"><span class="tag '+cls+'">'+esc(cat)+'</span><h3><a href="'+href+'">'+esc(t)+'</a></h3><p>'+esc(desc.slice(0,145))+'</p><div class="post-actions"><a class="post-action single-cta" href="'+href+'">READ GUIDE &amp; DOWNLOAD <span aria-hidden="true">✦</span></a></div></div></article>';
