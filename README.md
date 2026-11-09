@@ -47,25 +47,26 @@ The existing Worker configuration declares the D1 database ID and bindings in `w
 
 ## Admin access and content
 
-- Open `/admin/` directly while temporary public mode is enabled. All Admin API write/delete routes are also public; restore Cloudflare Access before production use.
-- Articles are stored in D1 and exposed through same-origin Worker API routes.
-- The existing CMS supports article create, edit, delete, official-logo lookup and D1 status checks.
-- Deleting an article is permanent; use the admin confirmation dialog carefully.
-- Keep a separate backup/export of important content before schema or storage changes.
+- Open `/admin/` while temporary public mode is enabled. **Admin and write APIs are currently public at the owner's request. Restore Cloudflare Access before production use.**
+- Articles are stored in Cloudflare D1. Admin supports create, edit, save draft, publish, update, and delete.
+- The rich text editor supports headings, bold, italic, underline, strikethrough, lists, blockquotes, links, code blocks, tables, alignment, dividers, undo/redo, image insertion, preview, HTML source view, and word counts.
+- Article metadata includes SEO title, meta description, focus keyword, category, tags, and excerpt. Custom categories are reflected in homepage and archive filters.
+- App logos and animated GIF/image thumbnails are uploaded manually. The media library stores small images in D1, with a 1.5 MB per-file limit.
+- Each article can have its own HTTPS download URL. The public article page displays a Download button and a confirmation modal with a Download Now link.
+- Browser-local autosave helps recover an unfinished new article; the explicit Save draft action stores drafts in D1 so they can be reopened from another device.
+- Deleting an article is permanent; use the admin confirmation dialog carefully and keep backups of important content.
 
 ## Current limitations
 
-- The repository currently has no R2 or Cloudflare Images binding. The new D1 media library is limited to small images (1.5 MB each); it is not suitable for video or large image collections.
-- Server-side resizing, generated thumbnails, upload progress, and large-file storage still require Cloudflare R2 or Cloudflare Images.
-- The editor preview is a safe plain-text preview, not a pixel-perfect rendered article preview. Draft autosave is browser-local and does not sync across devices.
-- The download-link shortcut inserts a normal Markdown link. A dedicated download-block renderer and attachment storage are not yet implemented.
-- A GitHub Actions validation workflow now checks Worker/Admin JavaScript syntax, Wrangler configuration, Access protection and media upload guardrails. Full end-to-end Worker integration tests are still a future improvement.
-
+- The repository currently has no R2 or Cloudflare Images binding. The D1 media library is limited to small images (1.5 MB each); it is not suitable for video or large image collections.
+- Server-side resizing, generated thumbnails, large-file storage, and upload progress require Cloudflare R2 or Cloudflare Images.
+- The editor uses browser rich-text commands and renders a safe preview; always review the public article after publishing, especially complex pasted layouts.
+- There is no scheduled publishing or multi-user role/approval workflow.
+- GitHub Actions validates Worker/Admin JavaScript syntax, Wrangler configuration, media guardrails, and the editor/draft/SEO workflows. Full end-to-end Worker integration tests are still a future improvement.
 
 ## Admin media library
 
-The Admin Panel includes an authenticated media library backed by the existing D1 database. Uploads accept PNG, JPEG, WEBP and AVIF files up to 1.5 MB. The Worker checks the declared MIME type against the file signature, assigns an opaque UUID, and serves stored images from `/media/library/<id>`. Alt text and original filenames are stored with each asset. The editor can insert an image Markdown reference at the current cursor position.
+The Admin Panel includes a D1-backed media library. Uploads accept PNG, JPEG, WEBP, AVIF, and GIF files up to 1.5 MB. The Worker checks the declared MIME type against the file signature, assigns an opaque UUID, and serves stored images from `/media/library/<id>`. Alt text and original filenames are stored with each asset. The rich editor inserts uploaded media as HTML image elements at the saved cursor position.
 
-The editor also includes heading/bold/link/download-link insertion helpers, a safe plain-text preview, and browser-local draft autosave/restore. Drafts remain in the current browser and are not synced between devices. A download-link helper inserts a normal Markdown link; the target site template determines whether it is rendered as a download action.
+App logos are uploaded separately and remain distinct from article thumbnails. Thumbnail uploads accept animated GIFs; each article can use its own uploaded thumbnail. The public homepage, article archive, and article page render the saved thumbnail.
 
-D1-backed media is deliberately limited to small images. For larger files, video, transformations, generated thumbnails, or a large media catalogue, configure Cloudflare R2 (or Cloudflare Images) before expanding upload limits. No paid storage resource is created automatically.
