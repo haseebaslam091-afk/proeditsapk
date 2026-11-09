@@ -37,7 +37,7 @@
   </div>
 </section>
 <div class="app" id="appShell" hidden><aside><div class="brand"><div class="logo">P</div><div><strong>ProEditsAPK</strong><small>CMS workspace · 2.0</small></div></div><div class="navlabel">Workspace</div><nav class="nav" id="nav"><button class="active" data-page="dashboard"><span class="ico">▦</span>Dashboard</button><button data-page="articles"><span class="ico">▤</span>Articles</button><button data-page="editor"><span class="ico">✎</span>New article</button><button data-page="seo"><span class="ico">⌕</span>SEO studio</button><button data-page="media"><span class="ico">▧</span>Media library</button><button data-page="tools"><span class="ico">⌘</span>Site tools</button><button data-page="settings"><span class="ico">⚙</span>Settings</button></nav><div class="sidefoot"><b>CMS 2.0 foundation</b><br>Supabase Auth is used for sign-in when configured. Drafts remain local until database integration.</div></aside>
-<main class="main"><header class="top"><div><div class="eyebrow">Content operations</div><h1 id="pageTitle">Dashboard overview</h1><div class="muted" id="pageDesc">Your content workspace at a glance.</div></div><div class="topright"><span class="status">● Authenticated workspace</span><span class="userbadge" id="userBadge"></span><button class="btn" onclick="adminLogout()">Log out</button><button class="btn primary" onclick="newArticle()">＋ New article</button></div></header>
+<main class="main"><header class="top"><div><div class="eyebrow">Content operations</div><h1 id="pageTitle">Dashboard overview</h1><div class="muted" id="pageDesc">Your content workspace at a glance.</div></div><div class="topright"><span class="status" id="workspaceStatus">● Supabase database</span><span class="userbadge" id="userBadge"></span><button class="btn" onclick="adminLogout()">Log out</button><button class="btn primary" onclick="newArticle()">＋ New article</button></div></header>
 <div class="notice">Security note: Supabase Auth verifies the admin sign-in, but this static page is not a server-side security boundary. Articles are still local to this browser. Database access and publishing must use server-side authorization and Row Level Security. Never add GitHub tokens or private API secrets here.</div>
 <section class="page active" id="dashboard"><div class="grid stats"><div class="card"><div class="stathead">Total articles <span class="staticon">▤</span></div><div class="statnum" id="statTotal">0</div><div class="statnote">Saved in this browser</div></div><div class="card"><div class="stathead">Drafts <span class="staticon">✎</span></div><div class="statnum" id="statDraft">0</div><div class="statnote">Ready for review</div></div><div class="card"><div class="stathead">Published <span class="staticon">↗</span></div><div class="statnum" id="statPublished">0</div><div class="statnote">Local status only</div></div><div class="card"><div class="stathead">Media records <span class="staticon">▧</span></div><div class="statnum" id="statMedia">0</div><div class="statnote">Metadata saved locally</div></div></div><div class="grid cols"><div class="card"><div class="sectionhead"><div><h2>Recent articles</h2><p>Your latest saved content</p></div><button class="btn" onclick="go('articles')">View all</button></div><div id="recentList" class="activity"><div class="empty">No articles yet. Create your first draft.</div></div></div><div class="card"><div class="sectionhead"><div><h2>Quick actions</h2><p>Common publishing tasks</p></div></div><div class="grid"><button class="btn" onclick="newArticle()">＋ Write an article</button><button class="btn" onclick="go('seo')">⌕ Run an SEO check</button><button class="btn" onclick="go('media')">▧ Add media metadata</button><button class="btn" onclick="go('tools')">⌘ Generate sitemap / robots</button></div><div style="margin-top:22px"><div class="sectionhead"><h2>Workspace readiness</h2><span class="pill">Phase 1</span></div><div class="progress"><span style="width:28%"></span></div><p class="hint">Editor and local drafts are available. Database, authentication, GitHub publishing, AI and analytics integrations are backend milestones.</p></div></div></div></section>
 <section class="page" id="articles"><div class="card"><div class="sectionhead"><div><h2>Content library</h2><p>Manage drafts saved in this browser.</p></div><input id="articleSearch" placeholder="Search articles…" style="max-width:240px" oninput="renderArticles()"></div><div class="tablewrap"><table><thead><tr><th>Title</th><th>Focus keyword</th><th>Status</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="articleRows"></tbody></table></div></div></section>
@@ -49,7 +49,7 @@
 <p class="hint">Signed in as: <b id="accountCurrentEmail">—</b></p>
 <div class="formgrid"><div class="field"><label for="accountUsername">Display username</label><input id="accountUsername" maxlength="40" placeholder="Your admin name"><div class="hint">This is a display name, not the login credential.</div></div><div class="field"><label for="accountNewEmail">Change login email</label><input id="accountNewEmail" type="email" placeholder="new-email@example.com"><div class="hint">Supabase may send a confirmation link to verify the new email.</div></div><div class="field"><label for="accountCurrentPassword">Current password</label><input id="accountCurrentPassword" type="password" autocomplete="current-password" placeholder="Confirm your current password"></div><div class="field"><label for="accountNewPassword">New password</label><input id="accountNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters"></div></div>
 <div class="account-actions"><button class="btn primary" onclick="changeAdminUsername()">Save username</button><button class="btn" onclick="changeAdminEmail()">Update email</button><button class="btn" onclick="changeAdminPassword()">Change password</button></div><div class="hint" id="accountMessage" role="status" aria-live="polite" style="margin-top:12px"></div>
-</div><div class="card"><h2 style="margin-top:0">Workspace settings</h2><p class="muted">Basic preferences for this browser workspace.</p><div class="formgrid"><div class="field"><label>Website name</label><input id="settingName" value="ProEditsAPK"></div><div class="field"><label>Website URL</label><input id="settingUrl" value="https://proeditsapk.com"></div><div class="field"><label>Default author</label><input id="settingAuthor" value="ProEditsAPK Team"></div><div class="field"><label>Default language</label><select id="settingLang"><option value="en">English</option><option value="ur">Urdu</option></select></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Save settings</button><button class="btn danger" onclick="exportBackup()">Export local backup</button><button class="btn" onclick="resetWorkspace()">Clear local workspace</button></div><div class="notice" style="margin-top:18px">Not connected yet: Supabase database, secure authentication, GitHub Actions publishing, Google Search Console, analytics and AI provider. These must be implemented server-side; this file intentionally contains no API keys or access tokens.</div></div></section>
+</div><div class="card"><h2 style="margin-top:0">Workspace settings</h2><p class="muted">Basic preferences for this browser workspace.</p><div class="formgrid"><div class="field"><label>Website name</label><input id="settingName" value="ProEditsAPK"></div><div class="field"><label>Website URL</label><input id="settingUrl" value="https://proeditsapk.com"></div><div class="field"><label>Default author</label><input id="settingAuthor" value="ProEditsAPK Team"></div><div class="field"><label>Default language</label><select id="settingLang"><option value="en">English</option><option value="ur">Urdu</option></select></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Save settings</button><button class="btn danger" onclick="exportBackup()">Export local backup</button><button class="btn" onclick="resetWorkspace()">Clear local workspace</button></div><div class="notice" style="margin-top:18px">Articles are stored in Supabase with Row Level Security. Media file uploads, GitHub publishing, Google Search Console, analytics and AI provider are not connected yet. This file contains only the public Supabase publishable key; never add private secrets or GitHub tokens here.</div></div></section>
 </main></div><div id="toast" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.102.0"></script>
 <script>
@@ -79,15 +79,16 @@ function showPasswordRecovery(){
   document.getElementById("passwordRecoveryPanel").hidden=false;
   document.getElementById("recoveryMessage").textContent="Recovery verified. Enter and confirm your new password.";
 }
-function showAuthenticatedApp(user){
+async function showAuthenticatedApp(user){
+  currentAuthUser=user;
   document.getElementById("loginPanel").hidden=false;
   document.getElementById("passwordRecoveryPanel").hidden=true;
-  currentAuthUser=user;
   document.getElementById("loginScreen").hidden=true;
   document.getElementById("appShell").hidden=false;
   document.getElementById("userBadge").textContent=user.email||"Admin";
   document.getElementById("accountCurrentEmail").textContent=user.email||"—";
   document.getElementById("accountUsername").value=user.user_metadata?.username||"";
+  await loadArticlesFromDatabase();
   renderAll();
 }
 async function initAuth(){
@@ -101,12 +102,16 @@ async function initAuth(){
   });
   authClient.auth.onAuthStateChange((event,session)=>{
     if(event==="PASSWORD_RECOVERY" && session?.user){showPasswordRecovery();return;}
-    if(session?.user)showAuthenticatedApp(session.user);
-    else if(event==="SIGNED_OUT")showLogin("You have been signed out.");
+    if(event==="SIGNED_OUT"){
+      currentAuthUser=null;
+      articles=[];
+      renderAll();
+      showLogin("You have been signed out.");
+    }
   });
   const {data,error}=await authClient.auth.getUser();
   if(error&&error.name!=="AuthSessionMissingError")console.warn("Auth check:",error.message);
-  if(data?.user)showAuthenticatedApp(data.user);else showLogin("Please sign in to open the CMS.");
+  if(data?.user)await showAuthenticatedApp(data.user);else showLogin("Please sign in to open the CMS.");
 }
 async function adminLogin(){
   if(!authClient){setLoginMessage("Supabase is not configured yet. Follow cms-v2/README.md.");return;}
@@ -117,7 +122,7 @@ async function adminLogin(){
     const {data,error}=await authClient.auth.signInWithPassword({email,password});
     if(error)throw error;
     if(!data.user)throw new Error("No authenticated user was returned.");
-    showAuthenticatedApp(data.user);toast("Admin login successful.");
+    await showAuthenticatedApp(data.user);toast("Admin login successful.");
     document.getElementById("loginPassword").value="";
   }catch(error){setLoginMessage("Login failed: "+(error.message||"Check your email and password."));}
   finally{button.disabled=false;}
@@ -188,16 +193,100 @@ async function changeAdminPassword(){
 }
 </script>
 <script>
-const STORE='proedits_cms20_articles', MEDIA='proedits_cms20_media', SETTINGS='proedits_cms20_settings';let articles=load(STORE,[]),media=load(MEDIA,[]),editingId=null;
-function load(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch{return d}}function persist(){localStorage.setItem(STORE,JSON.stringify(articles));localStorage.setItem(MEDIA,JSON.stringify(media));renderAll()}function toast(s){const t=document.getElementById('toast');t.textContent=s;t.hidden=false;setTimeout(()=>t.hidden=true,2600)}
-const titles={dashboard:['Dashboard overview','Your content workspace at a glance.'],articles:['Content library','Manage your saved drafts and articles.'],editor:['Article editor','Create and edit helpful content.'],seo:['SEO studio','Review on-page content and structured data.'],media:['Media library','Keep track of image assets and alt text.'],tools:['Site tools','Generate useful technical SEO files and tags.'],settings:['Workspace settings','Configure local workspace preferences.']};
+const MEDIA='proedits_cms20_media', SETTINGS='proedits_cms20_settings';let articles=[],media=load(MEDIA,[]),editingId=null;
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch{return d}}function persist(){localStorage.setItem(MEDIA,JSON.stringify(media));renderAll()}function toast(s){const t=document.getElementById('toast');t.textContent=s;t.hidden=false;setTimeout(()=>t.hidden=true,2600)}
+async function loadArticlesFromDatabase(){
+  const badge=document.getElementById('workspaceStatus');
+  if(!authClient||!currentAuthUser){
+    articles=[];
+    if(badge)badge.textContent='● Not connected';
+    return false;
+  }
+  if(badge)badge.textContent='● Connecting to database…';
+  const {data,error}=await authClient
+    .from('cms_articles')
+    .select('id,title,slug,keyword,description,content,category,tags,status,updated_at,created_at,published_at')
+    .order('updated_at',{ascending:false});
+  if(error){
+    articles=[];
+    if(badge)badge.textContent='● Database setup needed';
+    toast('Could not load articles: '+error.message);
+    return false;
+  }
+  articles=(data||[]).map(row=>({
+    id:row.id,title:row.title,slug:row.slug,keyword:row.keyword||'',
+    description:row.description||'',content:row.content||'',category:row.category||'',
+    tags:row.tags||[],status:row.status==='published'?'Published':'Draft',
+    updated:row.updated_at||row.created_at
+  }));
+  if(badge)badge.textContent='● Database connected';
+  return true;
+}
+const titles={dashboard:['Dashboard overview','Your content workspace at a glance.'],articles:['Content library','Manage your Supabase articles.'],editor:['Article editor','Create and edit articles stored in Supabase.'],seo:['SEO studio','Review on-page content and structured data.'],media:['Media library','Keep track of image assets and alt text.'],tools:['Site tools','Generate useful technical SEO files and tags.'],settings:['Workspace settings','Configure local workspace preferences.']};
 function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));document.getElementById('pageTitle').textContent=titles[p][0];document.getElementById('pageDesc').textContent=titles[p][1];if(p==='articles')renderArticles();if(p==='media')renderMedia();window.scrollTo({top:0,behavior:'smooth'})}document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-page]');if(b)go(b.dataset.page)});
 function newArticle(){clearEditor();go('editor')}function updateSlug(){if(!document.getElementById('articleId').value)document.getElementById('slug').value=slugify(document.getElementById('title').value)}function slugify(s){return s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 document.getElementById('description').addEventListener('input',e=>document.getElementById('descCount').textContent=e.target.value.length);
 function clearEditor(){['articleId','title','keyword','slug','description','content','category','tags'].forEach(id=>document.getElementById(id).value='');document.getElementById('descCount').textContent='0';document.getElementById('editorHeading').textContent='Create article';document.getElementById('editorStatus').textContent='NEW DRAFT';document.getElementById('deleteCurrent').style.display='none'}
-function saveArticle(){const title=document.getElementById('title').value.trim(),content=document.getElementById('content').value.trim();if(!title||!content){toast('Please add an article title and content.');return}const id=document.getElementById('articleId').value||crypto.randomUUID();const old=articles.find(a=>a.id===id);const item={id,title,keyword:document.getElementById('keyword').value.trim(),slug:document.getElementById('slug').value.trim()||slugify(title),description:document.getElementById('description').value.trim(),content,category:document.getElementById('category').value.trim(),tags:document.getElementById('tags').value.split(',').map(x=>x.trim()).filter(Boolean),status:old?.status||'Draft',updated:new Date().toISOString()};articles=articles.filter(a=>a.id!==id);articles.unshift(item);persist();document.getElementById('articleId').value=id;document.getElementById('editorHeading').textContent='Edit article';document.getElementById('editorStatus').textContent=item.status.toUpperCase();document.getElementById('deleteCurrent').style.display='inline-block';toast('Draft saved in this browser.');}
+async function saveArticle(){
+  if(!authClient||!currentAuthUser){toast('Please sign in before saving.');return;}
+  const title=document.getElementById('title').value.trim();
+  const content=document.getElementById('content').value.trim();
+  const slug=document.getElementById('slug').value.trim()||slugify(title);
+  if(!title||!content){toast('Please add an article title and content.');return;}
+  if(!slug){toast('Please enter a valid URL slug.');return;}
+  const id=document.getElementById('articleId').value;
+  const old=articles.find(a=>a.id===id);
+  const payload={
+    title,slug,keyword:document.getElementById('keyword').value.trim(),
+    description:document.getElementById('description').value.trim(),content,
+    category:document.getElementById('category').value.trim(),
+    tags:document.getElementById('tags').value.split(',').map(x=>x.trim()).filter(Boolean),
+    status:old?.status?.toLowerCase()||'draft'
+  };
+  const button=document.querySelector('#editor .actions .primary');
+  if(button)button.disabled=true;
+  try{
+    let result;
+    if(id){
+      result=await authClient.from('cms_articles').update(payload).eq('id',id)
+        .select('id,title,slug,keyword,description,content,category,tags,status,updated_at,created_at').single();
+    }else{
+      result=await authClient.from('cms_articles').insert(payload)
+        .select('id,title,slug,keyword,description,content,category,tags,status,updated_at,created_at').single();
+    }
+    if(result.error)throw result.error;
+    const row=result.data;
+    const item={id:row.id,title:row.title,slug:row.slug,keyword:row.keyword||'',
+      description:row.description||'',content:row.content||'',category:row.category||'',
+      tags:row.tags||[],status:row.status==='published'?'Published':'Draft',
+      updated:row.updated_at||row.created_at};
+    articles=articles.filter(a=>a.id!==item.id);
+    articles.unshift(item);
+    document.getElementById('articleId').value=item.id;
+    document.getElementById('editorHeading').textContent='Edit article';
+    document.getElementById('editorStatus').textContent=item.status.toUpperCase();
+    document.getElementById('deleteCurrent').style.display='inline-block';
+    renderAll();
+    toast('Article saved to Supabase database.');
+  }catch(error){
+    toast('Save failed: '+(error.message||'Check the database setup and slug.'));
+  }finally{if(button)button.disabled=false;}
+}
 function editArticle(id){const a=articles.find(x=>x.id===id);if(!a)return;go('editor');document.getElementById('articleId').value=a.id;for(const [k,id2] of Object.entries({title:'title',keyword:'keyword',slug:'slug',description:'description',content:'content',category:'category'}))document.getElementById(id2).value=a[k]||'';document.getElementById('tags').value=(a.tags||[]).join(', ');document.getElementById('descCount').textContent=(a.description||'').length;document.getElementById('editorHeading').textContent='Edit article';document.getElementById('editorStatus').textContent=a.status.toUpperCase();document.getElementById('deleteCurrent').style.display='inline-block'}
-function deleteArticle(id){if(!confirm('Delete this locally saved article?'))return;articles=articles.filter(a=>a.id!==id);persist();toast('Article deleted.')}function deleteCurrent(){const id=document.getElementById('articleId').value;if(id)deleteArticle(id);clearEditor();go('articles')}
+async function deleteArticle(id){
+  if(!confirm('Permanently delete this article from the Supabase database?'))return;
+  if(!authClient||!currentAuthUser){toast('Please sign in before deleting.');return;}
+  const {error}=await authClient.from('cms_articles').delete().eq('id',id);
+  if(error){toast('Delete failed: '+error.message);return;}
+  articles=articles.filter(a=>a.id!==id);
+  renderAll();
+  toast('Article deleted from Supabase.');
+}
+async function deleteCurrent(){
+  const id=document.getElementById('articleId').value;
+  if(id)await deleteArticle(id);
+  clearEditor();go('articles');
+}
 function renderArticles(){const q=(document.getElementById('articleSearch')?.value||'').toLowerCase(),rows=articles.filter(a=>(a.title+' '+a.keyword).toLowerCase().includes(q));document.getElementById('articleRows').innerHTML=rows.length?rows.map(a=>`<tr><td><b>${esc(a.title)}</b><div class="hint">/${esc(a.slug||'')}</div></td><td>${esc(a.keyword||'—')}</td><td><span class="pill">${esc(a.status)}</span></td><td>${new Date(a.updated).toLocaleDateString()}</td><td><button class="btn" onclick="editArticle('${a.id}')">Edit</button> <button class="btn danger" onclick="deleteArticle('${a.id}')">Delete</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No matching articles.</td></tr>'}
 function renderAll(){document.getElementById('statTotal').textContent=articles.length;document.getElementById('statDraft').textContent=articles.filter(a=>a.status==='Draft').length;document.getElementById('statPublished').textContent=articles.filter(a=>a.status==='Published').length;document.getElementById('statMedia').textContent=media.length;const recent=articles.slice(0,5);document.getElementById('recentList').innerHTML=recent.length?recent.map(a=>`<div class="activityrow"><span class="dot"></span><div style="flex:1"><b>${esc(a.title)}</b><small>${esc(a.status)} · ${new Date(a.updated).toLocaleDateString()}</small></div><button class="btn" onclick="editArticle('${a.id}')">Open</button></div>`).join(''):'<div class="empty">No articles yet. Create your first draft.</div>';renderArticles()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function wrapText(a,b){const t=document.getElementById('content'),s=t.selectionStart,e=t.selectionEnd,v=t.value;t.value=v.slice(0,s)+a+v.slice(s,e)+b+v.slice(e);t.focus()}function insertLink(){const u=prompt('Enter the full https:// link');if(u&&/^https:\/\//i.test(u))wrapText('<a href="'+u+'">','</a>');else if(u)toast('Please use a full HTTPS URL.')}function previewArticle(){const v=document.getElementById('content').value;const w=window.open('','_blank');if(w){w.document.write('<meta charset="utf-8"><title>Article preview</title><body style="font:16px/1.7 system-ui;max-width:850px;margin:40px auto;padding:0 18px">'+v+'</body>');w.document.close()}}
@@ -206,6 +295,6 @@ function makeSchema(){const a={headline:document.getElementById('title').value||
 function addMedia(files){[...files].forEach(f=>{if(!f.type.startsWith('image/'))return;media.unshift({id:crypto.randomUUID(),name:f.name,type:f.type,size:f.size,alt:'',added:new Date().toISOString()})});localStorage.setItem(MEDIA,JSON.stringify(media));renderMedia();renderAll();toast('Image metadata added. Uploading the actual file requires server storage.')}function renderMedia(){const el=document.getElementById('mediaGrid');el.innerHTML=media.length?media.map(m=>`<div class="mediaitem"><div style="height:70px;display:grid;place-items:center;font-size:28px">▧</div><b style="display:block;overflow-wrap:anywhere">${esc(m.name)}</b><div class="hint">${Math.round(m.size/1024)} KB</div><div class="field" style="margin:8px 0"><label>Alt text</label><input value="${esc(m.alt)}" onchange="setAlt('${m.id}',this.value)" placeholder="Describe the image"></div><button class="btn danger" onclick="removeMedia('${m.id}')">Remove record</button></div>`).join(''):'<div class="empty">No media records yet.</div>'}function setAlt(id,v){const m=media.find(x=>x.id===id);if(m){m.alt=v;localStorage.setItem(MEDIA,JSON.stringify(media))}}function removeMedia(id){media=media.filter(m=>m.id!==id);localStorage.setItem(MEDIA,JSON.stringify(media));renderMedia();renderAll()}
 function makeSitemap(){const base=(document.getElementById('siteUrl').value||'https://proeditsapk.com').replace(/\/$/,'');const urls=articles.filter(a=>a.status==='Published').map(a=>`${base}/${a.slug}/`);const xml='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.map(u=>`  <url><loc>${esc(u)}</loc></url>`).join('\n')+'\n</urlset>';document.getElementById('sitemapResult').textContent=xml||'No published articles in local data. Add verified live URLs before deploying.'}function makeRobots(){const base=(document.getElementById('siteUrl').value||'https://proeditsapk.com').replace(/\/$/,'');document.getElementById('robotsResult').textContent=`User-agent: *\nAllow: /\nDisallow: /admin/\nSitemap: ${base}/sitemap.xml`}
 function canonical(){const u=document.getElementById('canonicalInput').value.trim();if(!/^https:\/\//i.test(u)){toast('Enter a full HTTPS URL.');return}document.getElementById('canonicalResult').textContent=`<link rel="canonical" href="${u.replace(/"/g,'&quot;')}">`}function slugHelper(){document.getElementById('slugResult').textContent=slugify(document.getElementById('slugInput').value)}function copyText(id){const s=document.getElementById(id).textContent;navigator.clipboard?.writeText(s).then(()=>toast('Copied.')).catch(()=>toast('Copy not available; select the text manually.'))}function downloadText(id,name){const s=document.getElementById(id).textContent;if(!s||s.includes('appears here'))return toast('Generate the content first.');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/plain'}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
-function saveSettings(){const s={name:document.getElementById('settingName').value,url:document.getElementById('settingUrl').value,author:document.getElementById('settingAuthor').value,lang:document.getElementById('settingLang').value};localStorage.setItem(SETTINGS,JSON.stringify(s));toast('Settings saved in this browser.')}function exportBackup(){const data={articles,media,settings:load(SETTINGS,{})};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='proeditsapk-cms-backup.json';a.click();URL.revokeObjectURL(a.href)}function resetWorkspace(){if(!confirm('This clears locally saved articles, media records and settings from this browser. Continue?'))return;localStorage.removeItem(STORE);localStorage.removeItem(MEDIA);localStorage.removeItem(SETTINGS);articles=[];media=[];clearEditor();renderAll();renderMedia();toast('Local workspace cleared.')}
+function saveSettings(){const s={name:document.getElementById('settingName').value,url:document.getElementById('settingUrl').value,author:document.getElementById('settingAuthor').value,lang:document.getElementById('settingLang').value};localStorage.setItem(SETTINGS,JSON.stringify(s));toast('Settings saved in this browser.')}function exportBackup(){const data={articles,media,settings:load(SETTINGS,{})};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='proeditsapk-cms-backup.json';a.click();URL.revokeObjectURL(a.href)}function resetWorkspace(){if(!confirm('This clears local media metadata and workspace preferences from this browser. Cloud articles will NOT be deleted. Continue?'))return;localStorage.removeItem(MEDIA);localStorage.removeItem(SETTINGS);media=[];clearEditor();renderAll();renderMedia();toast('Local media metadata and preferences cleared. Cloud articles were kept.')}
 initAuth();
 </script></body></html>
