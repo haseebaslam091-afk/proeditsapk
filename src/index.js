@@ -123,13 +123,15 @@ async function ensureD1Schema(env){
 }
 function d1Post(row){
   const hasIcon=!!(row.has_icon||row.icon_blob);
+  // Version D1-hosted icon URLs so replacing a logo cannot be hidden by Safari/CDN immutable caching.
+  const iconVersion=row.updated_at?"?v="+encodeURIComponent(String(row.updated_at)):"";
   return {title:row.title,path:row.path,slug:row.slug,description:row.description||"",date:row.date,
-    published:row.published!==0,appName:row.app_name||"",iconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug):(row.official_icon_url||null),
-    officialIconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug):(row.official_icon_url||null),
+    published:row.published!==0,appName:row.app_name||"",iconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug)+iconVersion:(row.official_icon_url||null),
+    officialIconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug)+iconVersion:(row.official_icon_url||null),
     thumbnailUrl:row.thumbnail_url||null,generatedThumbnailUrl:row.generated_thumbnail_url||null,rawUrl:row.raw_url||null};
 }
 async function d1List(env, includeDrafts=false){
-  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,raw_url";
+  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,raw_url,updated_at";
   const q=includeDrafts?"SELECT "+columns+" FROM posts ORDER BY date DESC, id DESC":"SELECT "+columns+" FROM posts WHERE published=1 ORDER BY date DESC, id DESC";
   const r=await env.DB.prepare(q).all(); return (r.results||[]).map(d1Post);
 }
