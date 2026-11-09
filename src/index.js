@@ -157,6 +157,14 @@ async function d1Api(request,env,url){
     if(!result.meta?.changes)return json({error:"Media item not found."},404);
     return json({ok:true,deleted:id});
   }
+  if(url.pathname==="/admin/api/article"&&request.method==="GET"){
+    const path=String(url.searchParams.get("path")||"");
+    if(!/^_posts\\/[a-zA-Z0-9._-]+\\.md$/.test(path))return json({error:"Invalid article path."},400);
+    const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE path=?").bind(path).first();
+    if(!row)return json({error:"Article not found."},404);
+    const post=d1Post(row);
+    return json({...post,content:row.content,date:row.date||""});
+  }
   if(url.pathname==="/admin/api/posts"&&request.method==="GET")return json({posts:await d1List(env,true)});
   if(url.pathname==="/admin/api/publish"&&request.method==="POST"){
     const data=await request.json();const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim();
