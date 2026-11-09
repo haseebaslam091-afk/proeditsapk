@@ -305,7 +305,7 @@ function paint(q=''){
   const t=String(p.title||'Untitled'),slug=cleanArticleSlug(p.slug||t),path=String(p.path||'');
   if(!(path.startsWith('_posts/')&&path.endsWith('.md')&&!path.includes('..'))||!/^[a-z0-9-]+$/.test(slug))return '';
   const href='/articles/'+encodeURIComponent(slug),cat=articleCategory(p),cls=cat==='Video Editing'?'':cat==='AI Tools'?'violet':'green';
-  const thumb=String(p.thumbnailUrl||p.generatedThumbnailUrl||''),desc=String(p.description||'Explore app features, useful details and practical tips in this guide.');
+  const thumb=String(p.thumbnailUrl||p.generatedThumbnailUrl||''),desc=String(p.excerpt||p.description||'Explore app features, useful details and practical tips in this guide.');
   const art=t.replace(/[^a-z0-9]/gi,'').slice(0,3).toUpperCase()||'APP',icon=appMark(p);
   const imageSrc=/^https:\/\//.test(thumb)||/^\/assets\/generated-thumbnails\/[a-z0-9-]+\.png$/.test(thumb)||/^\/media\/library\/[0-9a-f-]{36}$/i.test(thumb)?esc(thumb):'';
   return '<article class="post-card"><div class="post-thumb effect-'+effectFor(t)+'"><span class="post-thumb-fallback" aria-hidden="true">'+esc(art)+'</span><img class="post-thumb-img" src="'+imageSrc+'" alt="'+esc(t)+' AI artwork" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="this.classList.add(\'loaded\')" onerror="this.removeAttribute(\'src\')"><span class="post-thumb-shade"></span><span class="post-icon-badge">'+icon+'</span></div><div class="post-copy"><span class="tag '+cls+'">'+esc(cat)+'</span><h3><a href="'+href+'">'+esc(t)+'</a></h3><p>'+esc(desc.slice(0,145))+'</p><div class="post-actions"><a class="post-action single-cta" href="'+href+'">READ GUIDE &amp; DOWNLOAD <span aria-hidden="true">✦</span></a></div></div></article>';
