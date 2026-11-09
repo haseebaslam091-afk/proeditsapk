@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-09 — Temporary Admin access state made explicit
+- Updated Admin UI warning and deployment documentation to state that Admin APIs are publicly writable while Cloudflare Access is disabled.
+- Updated static validation to check the explicitly requested temporary bypass rather than incorrectly requiring the removed JWT guard.
+- This is a temporary owner-requested state, not a production security recommendation.
+
+
 ## 2026-11-08 — Production-readiness audit and admin recovery
 
 ### Follow-up fix

@@ -7,7 +7,7 @@
 - Static assets: Cloudflare Workers Static Assets
 - Database: Cloudflare D1 `proeditsapk-db`, binding `DB`
 - AI binding: `AI` (existing Worker functionality)
-- Admin protection: Cloudflare Access
+- Admin protection: temporarily disabled at the owner's request; Admin APIs are public until Access is restored
 - Production branch: `main`
 
 The Worker is deployed from this repository using Cloudflare's Git integration. The Wrangler deploy command is `npx wrangler deploy`; there is no separate build step.
@@ -35,7 +35,7 @@ The Admin Panel supports:
 - Browser-local draft autosave and restore.
 - D1 connection and article-count checks.
 
-The Admin API checks for the Cloudflare Access JWT header. Keep the Cloudflare Access application and Allow policy protecting `proeditsapk.com/admin/*`; never add a public bypass.
+TEMPORARY OWNER-REQUESTED STATE: Cloudflare Access and the Worker JWT check are currently disabled. This makes every Admin API route, including publish, update, delete and media upload/delete, publicly reachable. Restore a Cloudflare Access application and Allow policy for `proeditsapk.com/admin/*` and reinstate Worker JWT validation before production use. Never leave this temporary bypass enabled on a public production site.
 
 The CMS does not use GitHub for publishing and does not need a GitHub personal access token. Do not recreate a `GITHUB_TOKEN` Worker secret. GitHub is used for source control and the connected deployment pipeline only.
 
@@ -48,6 +48,8 @@ The original Markdown files in `_posts/` remain in GitHub as a source backup. Th
 ## Verification checklist
 
 After a deployment, verify:
+
+0. Confirm whether temporary public Admin mode is still explicitly intended. If not, restore Cloudflare Access and Worker JWT validation before any other Admin use.
 
 1. `/` loads and displays the homepage.
 2. `/articles/` lists published articles.
