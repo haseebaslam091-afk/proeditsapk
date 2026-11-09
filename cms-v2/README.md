@@ -1,4 +1,4 @@
-# ProEditsAPK CMS 2.0 — isolated authentication foundation
+# ProEditsAPK CMS 2.0 — isolated authentication + article database foundation
 
 This folder is deliberately separate from the production website. The root `index.html` and existing `admin/index.html` are not changed by this CMS 2.0 work.
 
@@ -17,6 +17,8 @@ The recovery link now opens an in-page **Set a new password** form and updates t
 The page uses a memory-only Supabase session (`persistSession: false`). This avoids writing authentication tokens to localStorage, but it also means a page refresh signs the administrator out.
 
 The username is a display name. Supabase email/password sign-in uses the admin email address.
+
+The article list and editor now use the `cms_articles` Supabase table for reading, creating, updating, and deleting articles. Article content is no longer saved to browser localStorage. The table's RLS policies enforce ownership in the database.
 
 ## One-time Supabase setup
 
@@ -45,13 +47,13 @@ A first database migration is included at `cms-v2/database/001_cms_articles.sql`
 
 The table stores article fields and applies Row Level Security (RLS) to all four operations. A signed-in user can select, add, edit, and delete only rows whose `owner_id` equals their Supabase Auth user ID. Anonymous access is not granted. The table defaults `owner_id` to the signed-in user.
 
-This prepares the database only; the current article editor still uses this browser's local storage. The next code milestone is to connect the editor to this table and verify create/edit/delete under the authenticated account. Do not merge or deploy the CMS until that integration and the live Auth tests pass.
+The CMS article editor is now connected to this table. After the SQL migration has run and the Supabase URL/public key have been configured in `cms-v2/index.html`, sign in and use **New article → Save draft**. The CMS loads articles from Supabase and supports create, edit, and delete. The database—not browser localStorage—enforces ownership through RLS. If the migration has not been run, the dashboard will show a database setup error and article saving will not work.
 
 ## Important limits — do not skip
 
-- The CMS page currently stores article drafts, media metadata, and workspace preferences in this browser's localStorage. They are not yet in a cloud database and do not sync across devices.
-- Supabase Auth verifies the admin's login for the interface. The static page is not a server-side security boundary; do not expose protected database or publishing operations without server-side authorization and Row Level Security. A static GitHub Pages file is still downloadable, and browser-only checks are not a substitute for server-side authorization. Before connecting database records or publishing, the next milestone must add Row Level Security and server-side authorization to every protected API.
-- GitHub publishing, real media upload, analytics, and AI services are not connected by this foundation.
+- Article records are stored in Supabase. Media metadata and workspace preferences still use this browser's localStorage; actual image files are not uploaded. Old prototype drafts previously saved under the `proedits_cms20_articles` localStorage key are not automatically imported.
+- The static page is downloadable, so its interface is not a security boundary. Direct article database requests use only the public Supabase publishable/anon key, and the database RLS policies enforce ownership on every read/write. Never add a service-role key or other private secret to the page. Privileged GitHub publishing must use a Supabase Edge Function or another server-side service that verifies the signed-in admin before using a server-side GitHub secret.
+- GitHub publishing, real media upload, analytics, and AI services are not connected yet.
 - This branch is not production. Do not change the GitHub Pages production source or merge it into `main` until authentication is configured and tested.
 
 ## Mobile smoke test
@@ -66,6 +68,10 @@ After adding the CMS page and configuring Supabase:
 7. Use **Forgot password?** to request a recovery email.
 8. Open the recovery email on the same device/browser. Confirm it returns to `/cms-v2/`, then enter and confirm a new password on the **Set a new password** screen.
 9. Sign in with the new password and confirm the account settings still work.
+10. Open **New article**, enter a title, slug, and content, then tap **Save draft**. Confirm the article appears in **Articles**.
+11. Sign out and sign in again. Confirm the same article loads from the database.
+12. Edit the article and save again. Confirm the change remains after signing out and back in.
+13. Delete the test article and confirm it disappears from the list.
 
 Official Supabase references:
 - Password sign-in: https://supabase.com/docs/reference/javascript/auth-signinwithpassword
