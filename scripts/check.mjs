@@ -53,6 +53,7 @@ const d1MediaPath="\\/media\\/library\\/";
 assert.ok(home.includes(d1MediaPath) && article.includes(d1MediaPath) && (await readFile("articles.html", "utf8")).includes(d1MediaPath), "Uploaded D1 thumbnails must render across the site");
 
 const articles = await readFile("articles.html", "utf8");
+assert.ok(worker.includes("const refreshed=await env.DB.prepare(\"PRAGMA table_info(posts)\").all()") && worker.includes("if(!(refreshed.results||[]).some(column=>column.name===name))throw error"), "D1 schema migrations must tolerate concurrent duplicate-column races");
 assert.ok(worker.includes('ALTER TABLE posts ADD COLUMN seo_title TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN focus_keyword TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN category TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN tags TEXT') && worker.includes('ALTER TABLE posts ADD COLUMN excerpt TEXT'), "SEO and article taxonomy columns must migrate safely");
 assert.ok(worker.includes('published=data.published===false?0:1'), "Admin must be able to save unpublished drafts");
 assert.ok(worker.includes('url.pathname==="/admin/api/article"') && admin.includes("call('article?path='"), "Admin must load drafts as well as published article content");
