@@ -55,7 +55,6 @@ async function ensureD1Schema(env){
         env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)")
       ]);
     }
-    const postColumns=await env.DB.prepare("PRAGMA table_info(posts)").all();
     const migrations=[
       ["download_url","ALTER TABLE posts ADD COLUMN download_url TEXT"],
       ["seo_title","ALTER TABLE posts ADD COLUMN seo_title TEXT"],
@@ -64,7 +63,17 @@ async function ensureD1Schema(env){
       ["tags","ALTER TABLE posts ADD COLUMN tags TEXT"],
       ["excerpt","ALTER TABLE posts ADD COLUMN excerpt TEXT"]
     ];
-    for(const [name,sql] of migrations)if(!(postColumns.results||[]).some(column=>column.name===name))await env.DB.prepare(sql).run();
+    for(const [name,sql] of migrations){
+      const columns=await env.DB.prepare("PRAGMA table_info(posts)").all();
+      if((columns.results||[]).some(column=>column.name===name))continue;
+      try{await env.DB.prepare(sql).run()}
+      catch(error){
+        // Multiple Worker isolates can initialize D1 simultaneously. Treat a concurrent
+        // duplicate-column ALTER as success only after confirming that column now exists.
+        const refreshed=await env.DB.prepare("PRAGMA table_info(posts)").all();
+        if(!(refreshed.results||[]).some(column=>column.name===name))throw error;
+      }
+    }
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
       id TEXT PRIMARY KEY,
       filename TEXT NOT NULL,
