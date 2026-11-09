@@ -15,52 +15,6 @@ function safeSlug(s) {
     .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,90);
 }
 function articleSlug(s) { return safeSlug(s).replace(/^\d{4}-\d{2}-\d{2}-/,"").slice(0,90); }
-async function resolveOfficialAppIcon(title,env){
- const raw=String(title||"").trim();
- // Exact, verified Android package IDs prevent a similarly named app's logo being used.
- const known=[
-  [/\bcapcut\b/i,{name:"CapCut",packageId:"com.lemon.lvoverseas",iosBundleId:"com.lemon.lvoverseas"}],
-  [/\bvivacut\b/i,{name:"VivaCut",packageId:"com.videoeditorpro.android"}],
-  [/\bpop\s*maker\b|\bpopmaker\b/i,{name:"PopMaker",packageId:"com.cuyikeji.popmaker"}]
- ];
- const matched=known.find(([pattern])=>pattern.test(raw));
- // "App Locker" is intentionally not guessed: many unrelated apps use that name.
- if(/\bapp\s*locker\b|\bapplock\b/i.test(raw)&&!matched)return null;
- const query=matched?matched[1].name:raw.split(/[:|–—-]/)[0].replace(/\b(latest version|download|free for android|apk|android|ios|pro|app|202[4-9]|guide|review|features|private|vault|cloner|photo|hider|video|generator|effects|templates)\b/gi," ").replace(/\s+/g," ").trim().split(/\s+/).slice(0,3).join(" ").slice(0,100);
- if(!query||query.split(/\s+/).length>4)return null;
- if(matched){
-  try{
-   const url="https://play.google.com/store/apps/details?id="+encodeURIComponent(matched[1].packageId)+"&hl=en&gl=US";
-   const r=await fetch(url,{headers:{"accept":"text/html","user-agent":"Mozilla/5.0"}});
-   if(r.ok){
-    const html=await r.text();
-    const titleMatch=html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)||html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
-    const iconMatch=html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https:\/\/[^"']+)["']/i)||html.match(/<meta[^>]+content=["'](https:\/\/[^"']+)["'][^>]+property=["']og:image["']/i);
-    if(iconMatch&&iconMatch[1]&&(!titleMatch||titleMatch[1].toLowerCase().includes(matched[1].name.toLowerCase()))){
-     const icon=iconMatch[1].replace(/&amp;/g,"&");
-     if(icon.startsWith("https://"))return icon;
-    }
-   }
-  }catch(e){}
- }
- // Search using the app's clean name, never the full SEO article title.
- // Prefer a known bundle identifier where available; otherwise require an exact
- // normalized app-name match so a similarly named app cannot supply the wrong logo.
- try{
-  const r=await fetch("https://itunes.apple.com/search?term="+encodeURIComponent(query)+"&entity=software&limit=25",{headers:{"accept":"application/json"}});
-  if(r.ok){
-   const data=await r.json();
-   const wanted=query.toLowerCase().replace(/[^a-z0-9]+/g,"");
-   const results=Array.isArray(data.results)?data.results:[];
-   const match=(matched&&matched[1].iosBundleId
-    ?results.find(x=>String(x.bundleId||"").toLowerCase()===matched[1].iosBundleId.toLowerCase())
-    :null)||results.find(x=>String(x.trackName||"").toLowerCase().replace(/[^a-z0-9]+/g,"")===wanted);
-   const url=String(match?.artworkUrl512||match?.artworkUrl100||"");
-   if(url.startsWith("https://"))return url;
-  }
- }catch(e){}
- return null;
-}
 async function getPublicPosts(env, request) {
   if(env.DB)return d1List(env,false);
   const u=new URL("/posts.json",request.url);
@@ -101,6 +55,8 @@ async function ensureD1Schema(env){
         env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)")
       ]);
     }
+    const postColumns=await env.DB.prepare("PRAGMA table_info(posts)").all();
+    if(!(postColumns.results||[]).some(column=>column.name==="download_url"))await env.DB.prepare("ALTER TABLE posts ADD COLUMN download_url TEXT").run();
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
       id TEXT PRIMARY KEY,
       filename TEXT NOT NULL,
@@ -128,10 +84,10 @@ function d1Post(row){
   return {title:row.title,path:row.path,slug:row.slug,description:row.description||"",date:row.date,
     published:row.published!==0,appName:row.app_name||"",iconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug)+iconVersion:(row.official_icon_url||null),
     officialIconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug)+iconVersion:(row.official_icon_url||null),
-    thumbnailUrl:row.thumbnail_url||null,generatedThumbnailUrl:row.generated_thumbnail_url||null,rawUrl:row.raw_url||null};
+    thumbnailUrl:row.thumbnail_url||null,generatedThumbnailUrl:row.generated_thumbnail_url||null,downloadUrl:row.download_url||null,rawUrl:row.raw_url||null};
 }
 async function d1List(env, includeDrafts=false){
-  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,raw_url,updated_at";
+  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,download_url,raw_url,updated_at";
   const q=includeDrafts?"SELECT "+columns+" FROM posts ORDER BY date DESC, id DESC":"SELECT "+columns+" FROM posts WHERE published=1 ORDER BY date DESC, id DESC";
   const r=await env.DB.prepare(q).all(); return (r.results||[]).map(d1Post);
 }
@@ -173,14 +129,14 @@ async function d1Api(request,env,url){
   if(url.pathname==="/admin/api/media-upload"&&request.method==="POST"){
     const data=await request.json(),mime=String(data.mimeType||"").toLowerCase(),filename=String(data.filename||"image").replace(/[^a-zA-Z0-9._-]+/g,"-").slice(0,120)||"image",alt=String(data.alt||"").trim().slice(0,250);
     const encoded=String(data.data||"").replace(/^data:[^,]*;base64,/i,"");
-    const allowed=["image/png","image/jpeg","image/webp","image/avif"];
+    const allowed=["image/png","image/jpeg","image/webp","image/avif","image/gif"];
     if(!allowed.includes(mime)||!encoded||encoded.length>2100000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Upload a PNG, JPG, WEBP or AVIF image smaller than 1.5 MB."},400);
     const binary=atob(encoded),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
     if(bytes.length>1572864)return json({error:"Image must be smaller than 1.5 MB."},400);
     const signatureOk=mime==="image/png"?bytes.length>8&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)
       :mime==="image/jpeg"?bytes.length>3&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255
       :mime==="image/webp"?bytes.length>12&&String.fromCharCode(...bytes.slice(0,4))==="RIFF"&&String.fromCharCode(...bytes.slice(8,12))==="WEBP"
-      :bytes.length>12&&String.fromCharCode(...bytes.slice(4,8))==="ftyp"&&/^(avif|avis)$/.test(String.fromCharCode(...bytes.slice(8,12)));
+      :mime==="image/avif"?bytes.length>12&&String.fromCharCode(...bytes.slice(4,8))==="ftyp"&&/^(avif|avis)$/.test(String.fromCharCode(...bytes.slice(8,12))):mime==="image/gif"?bytes.length>10&&/^GIF8[79]a$/.test(String.fromCharCode(...bytes.slice(0,6))):false;
     if(!signatureOk)return json({error:"The uploaded file does not match its declared image type."},400);
     const id=crypto.randomUUID();
     await env.DB.prepare("INSERT INTO media_assets (id,filename,mime_type,alt_text,data,size) VALUES (?,?,?,?,?,?)").bind(id,filename,mime,alt,bytes,bytes.length).run();
@@ -209,9 +165,10 @@ async function d1Api(request,env,url){
       iconBlob=Uint8Array.from(binary,c=>c.charCodeAt(0));icon=null;
     }
     if(icon){try{const u=new URL(icon);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString()}catch(e){return json({error:"Logo URL must be HTTPS."},400)}}
-    const thumb=String(data.thumbnailUrl||"").trim()||null;
-    await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(title,slug,path,description,content,date,1,appName,null,null,icon,thumb).run();
+    const thumb=String(data.thumbnailUrl||"").trim()||null,downloadUrl=String(data.downloadUrl||"").trim()||null;
+    if(downloadUrl){try{const u=new URL(downloadUrl);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Download link must be a valid HTTPS URL."},400)}catch(e){return json({error:"Download link must be a valid HTTPS URL."},400)}}
+    await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url,download_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(title,slug,path,description,content,date,1,appName,null,null,icon,thumb,downloadUrl).run();
     if(iconBlob)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP")
       .bind(slug,iconBlob,iconMime).run();
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE slug=?").bind(slug).first();
@@ -224,6 +181,8 @@ async function d1Api(request,env,url){
     if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Check title, slug, description and article content."},400);
     const duplicate=await env.DB.prepare("SELECT id FROM posts WHERE slug=? AND id<>?").bind(slug,old.id).first();if(duplicate)return json({error:"That URL slug is already in use."},409);
     let icon=old.official_icon_url||null,blob=null,mime=null,replaceMedia=false,removeMedia=false,preserveMedia=false;
+    const downloadUrl=String(data.downloadUrl||"").trim()||null;
+    if(downloadUrl){try{const u=new URL(downloadUrl);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Download link must be a valid HTTPS URL."},400)}catch(e){return json({error:"Download link must be a valid HTTPS URL."},400)}}
     const iconInput=String(data.officialIconUrl||"").trim();
     if(data.uploadedIcon&&typeof data.uploadedIcon==="object"){
       mime=String(data.uploadedIcon.mimeType||"").toLowerCase();const encoded=String(data.uploadedIcon.data||"").replace(/^data:[^,]*;base64,/i,"");
@@ -250,8 +209,8 @@ async function d1Api(request,env,url){
     }else if(removeMedia){
       await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
     }
-    await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
-      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||old.thumbnail_url||"")||null,old.id).run();
+    await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,download_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||"").trim()||null,downloadUrl,old.id).run();
     if(replaceMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime).run();
     else if(movedMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,movedMedia.icon_blob,movedMedia.icon_mime).run();
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE id=?").bind(old.id).first();
@@ -261,11 +220,6 @@ async function d1Api(request,env,url){
     const data=await request.json();const target=await env.DB.prepare("SELECT slug FROM posts WHERE path=?").bind(String(data.path||"")).first();if(!target)return json({error:"Article not found."},404);
     await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(target.slug).run();
     await env.DB.prepare("DELETE FROM posts WHERE path=?").bind(String(data.path||"")).run();return json({ok:true,deleted:data.path});
-  }
-  if(url.pathname==="/admin/api/refresh-icons"&&request.method==="POST"){
-    const rows=await env.DB.prepare("SELECT id,title,app_name FROM posts p WHERE official_icon_url IS NULL AND icon_blob IS NULL AND NOT EXISTS (SELECT 1 FROM post_media m WHERE m.slug=p.slug)").all();let found=0;const missing=[];
-    for(const p of rows.results||[]){const icon=await resolveOfficialAppIcon(p.app_name||p.title,env);if(icon){await env.DB.prepare("UPDATE posts SET official_icon_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(icon,p.id).run();found++}else missing.push(p.app_name||p.title)}
-    return json({ok:true,generated:found,total:(rows.results||[]).length,remaining:missing.length,missing,message:"Official app logo lookup finished. No invented logos were created."});
   }
   return json({error:"D1 API endpoint not found."},404);
 }
@@ -301,11 +255,11 @@ export default {
        const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE path=? AND published=1").bind(path).first();
        if(!row)return json({error:"Article not found."},404);
        const post=d1Post(row);
-       return json({content:row.content,title:row.title,description:row.description||"",iconUrl:post.iconUrl,officialIconUrl:post.officialIconUrl,thumbnailUrl:post.thumbnailUrl,generatedThumbnailUrl:post.generatedThumbnailUrl,date:row.date||""});
+       return json({content:row.content,title:row.title,description:row.description||"",iconUrl:post.iconUrl,officialIconUrl:post.officialIconUrl,thumbnailUrl:post.thumbnailUrl,generatedThumbnailUrl:post.generatedThumbnailUrl,downloadUrl:post.downloadUrl,date:row.date||""});
      }
      const path=String(url.searchParams.get("path")||"");
      if(!/^_posts\/[a-zA-Z0-9._-]+\.md$/.test(path))return json({error:"Invalid article path."},400);
-     try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||post.officialIconUrl||null,officialIconUrl:post.officialIconUrl||post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
+     try{const list=await getPublicPosts(env,request);const post=list.find(p=>p.path===path);if(!post||post.published===false)return json({error:"Article not found."},404);const raw="https://raw.githubusercontent.com/"+OWNER+"/"+REPO+"/"+BRANCH+"/"+path.split("/").map(encodeURIComponent).join("/");const res=await fetch(raw,{headers:{"accept":"text/plain"}});if(!res.ok)return json({error:"Article content is temporarily unavailable."},502);return json({content:await res.text(),title:post.title,description:post.description||"",iconUrl:post.iconUrl||post.officialIconUrl||null,officialIconUrl:post.officialIconUrl||post.iconUrl||null,thumbnailUrl:post.thumbnailUrl||null,generatedThumbnailUrl:post.generatedThumbnailUrl||null,downloadUrl:post.downloadUrl||null,date:post.date||""})}catch(e){return json({error:e.message||"Article lookup failed."},503)}
    }
 
    if(url.pathname==="/posts.json"&&env.DB&&request.method==="GET")return json(await d1List(env,false));
