@@ -7,7 +7,7 @@ ProEditsAPK is a static-first Android apps, video editing and AI tools publishin
 - Cloudflare Workers + Workers Static Assets
 - Cloudflare D1 database (`proeditsapk-db`, binding `DB`)
 - Cloudflare Workers AI binding (`AI`)
-- Admin access is protected by Cloudflare Access
+- Admin access is temporarily public at the owner's request; restore Cloudflare Access before production use
 - Existing repository: https://github.com/haseebaslam091-afk/proeditsapk
 - Production site: https://proeditsapk.com
 
@@ -47,7 +47,7 @@ The existing Worker configuration declares the D1 database ID and bindings in `w
 
 ## Admin access and content
 
-- Open `/admin/` after authenticating through the configured Cloudflare Access policy.
+- Open `/admin/` directly while temporary public mode is enabled. All Admin API write/delete routes are also public; restore Cloudflare Access before production use.
 - Articles are stored in D1 and exposed through same-origin Worker API routes.
 - The existing CMS supports article create, edit, delete, official-logo lookup and D1 status checks.
 - Deleting an article is permanent; use the admin confirmation dialog carefully.
