@@ -43,6 +43,14 @@ assert.ok(worker.includes("const iconVersion=row.updated_at?\"?v=\"+encodeURICom
 assert.ok(home.includes("?v=[a-zA-Z0-9%._-]+"), "Homepage must accept versioned D1 app icon URLs");
 assert.ok(article.includes("?v=[a-zA-Z0-9%._-]+"), "Article pages must accept versioned D1 app icon URLs");
 
+assert.ok(worker.includes("image/gif"), "Animated GIF thumbnails must be supported");
+assert.ok(worker.includes("ALTER TABLE posts ADD COLUMN download_url TEXT") && worker.includes("download_url=?"), "Article download links must be persisted in D1");
+assert.ok(!worker.includes("resolveOfficialAppIcon") && !worker.includes("refresh-icons"), "Automatic app-logo lookup must be removed");
+assert.ok(!admin.includes("refresh-icons") && !admin.includes("refreshIcons"), "Admin must use manual logo uploads only");
+assert.ok(admin.includes('id="downloadUrl"') && admin.includes('id="thumbnailFile"'), "Admin must expose manual download and thumbnail fields");
+assert.ok(article.includes("renderDownloadModal") && article.includes("Download Now"), "Article pages must show the download modal and CTA");
+assert.ok(home.includes("/media/library/") && article.includes("/media/library/") && (await readFile("articles.html", "utf8")).includes("/media/library/"), "Uploaded D1 thumbnails must render across the site");
+
 console.log("PASS: Worker and Admin JavaScript syntax");
 console.log("PASS: Wrangler JSON configuration and free-plan bindings");
 console.log("PASS: D1, Cloudflare Access, media upload safety and no-cache checks");
