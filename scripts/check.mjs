@@ -49,7 +49,8 @@ assert.ok(!worker.includes("resolveOfficialAppIcon") && !worker.includes("refres
 assert.ok(!admin.includes("refresh-icons") && !admin.includes("refreshIcons"), "Admin must use manual logo uploads only");
 assert.ok(admin.includes('id="downloadUrl"') && admin.includes('id="thumbnailFile"'), "Admin must expose manual download and thumbnail fields");
 assert.ok(article.includes("renderDownloadModal") && article.includes("Download Now"), "Article pages must show the download modal and CTA");
-assert.ok(home.includes("/media/library/") && article.includes("/media/library/") && (await readFile("articles.html", "utf8")).includes("/media/library/"), "Uploaded D1 thumbnails must render across the site");
+const d1MediaPath="\\/media\\/library\\/";
+assert.ok(home.includes(d1MediaPath) && article.includes(d1MediaPath) && (await readFile("articles.html", "utf8")).includes(d1MediaPath), "Uploaded D1 thumbnails must render across the site");
 
 console.log("PASS: Worker and Admin JavaScript syntax");
 console.log("PASS: Wrangler JSON configuration and free-plan bindings");
