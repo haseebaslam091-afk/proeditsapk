@@ -38,6 +38,11 @@ assert.ok(robots.includes("Sitemap: https://proeditsapk.com/sitemap.xml"), "Robo
 assert.ok(sitemap.includes("/articles/"), "Static sitemap must include article URLs");
 assert.ok(!worker.includes("GITHUB_TOKEN") && !admin.includes("GITHUB_TOKEN"), "CMS must not depend on a GitHub token");
 
+
+assert.ok(worker.includes("const iconVersion=row.updated_at?\"?v=\"+encodeURIComponent(String(row.updated_at)):\"\";"), "D1 icon URLs must be versioned to prevent stale cached uploads");
+assert.ok(home.includes("?v=[a-zA-Z0-9%._-]+"), "Homepage must accept versioned D1 app icon URLs");
+assert.ok(article.includes("?v=[a-zA-Z0-9%._-]+"), "Article pages must accept versioned D1 app icon URLs");
+
 console.log("PASS: Worker and Admin JavaScript syntax");
 console.log("PASS: Wrangler JSON configuration and free-plan bindings");
 console.log("PASS: D1, Cloudflare Access, media upload safety and no-cache checks");
