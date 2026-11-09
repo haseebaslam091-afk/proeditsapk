@@ -299,7 +299,7 @@ function watchCards(){const cards=document.querySelectorAll('.post-card');if(!('
 function cleanArticleSlug(s){return String(s||'').toLowerCase().replace(/^\d{4}-\d{2}-\d{2}-/,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,90)}
 function paint(q=''){
  const target=document.getElementById('posts'),term=q.trim().toLowerCase();
- const list=allPosts.filter(p=>(String(p.title||'')+' '+articleCategory(p)).toLowerCase().includes(term));
+ const list=allPosts.filter(p=>(String(p.title||'')+' '+String(p.excerpt||'')+' '+String(p.description||'')+' '+String(p.tags||'')+' '+articleCategory(p)).toLowerCase().includes(term));
  if(!list.length){target.innerHTML='<div class="empty">No matching guides found. Try another search.</div>';return}
  target.innerHTML=list.map(p=>{
   const t=String(p.title||'Untitled'),slug=cleanArticleSlug(p.slug||t),path=String(p.path||'');
