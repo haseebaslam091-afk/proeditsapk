@@ -56,7 +56,15 @@ async function ensureD1Schema(env){
       ]);
     }
     const postColumns=await env.DB.prepare("PRAGMA table_info(posts)").all();
-    if(!(postColumns.results||[]).some(column=>column.name==="download_url"))await env.DB.prepare("ALTER TABLE posts ADD COLUMN download_url TEXT").run();
+    const migrations=[
+      ["download_url","ALTER TABLE posts ADD COLUMN download_url TEXT"],
+      ["seo_title","ALTER TABLE posts ADD COLUMN seo_title TEXT"],
+      ["focus_keyword","ALTER TABLE posts ADD COLUMN focus_keyword TEXT"],
+      ["category","ALTER TABLE posts ADD COLUMN category TEXT"],
+      ["tags","ALTER TABLE posts ADD COLUMN tags TEXT"],
+      ["excerpt","ALTER TABLE posts ADD COLUMN excerpt TEXT"]
+    ];
+    for(const [name,sql] of migrations)if(!(postColumns.results||[]).some(column=>column.name===name))await env.DB.prepare(sql).run();
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
       id TEXT PRIMARY KEY,
       filename TEXT NOT NULL,
@@ -84,10 +92,10 @@ function d1Post(row){
   return {title:row.title,path:row.path,slug:row.slug,description:row.description||"",date:row.date,
     published:row.published!==0,appName:row.app_name||"",iconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug)+iconVersion:(row.official_icon_url||null),
     officialIconUrl:hasIcon?"/media/icons/"+encodeURIComponent(row.slug)+iconVersion:(row.official_icon_url||null),
-    thumbnailUrl:row.thumbnail_url||null,generatedThumbnailUrl:row.generated_thumbnail_url||null,downloadUrl:row.download_url||null,rawUrl:row.raw_url||null};
+    thumbnailUrl:row.thumbnail_url||null,generatedThumbnailUrl:row.generated_thumbnail_url||null,downloadUrl:row.download_url||null,seoTitle:row.seo_title||null,focusKeyword:row.focus_keyword||null,category:row.category||null,tags:row.tags||null,excerpt:row.excerpt||null,rawUrl:row.raw_url||null};
 }
 async function d1List(env, includeDrafts=false){
-  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,download_url,raw_url,updated_at";
+  const columns="id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,download_url,seo_title,focus_keyword,category,tags,excerpt,raw_url,updated_at";
   const q=includeDrafts?"SELECT "+columns+" FROM posts ORDER BY date DESC, id DESC":"SELECT "+columns+" FROM posts WHERE published=1 ORDER BY date DESC, id DESC";
   const r=await env.DB.prepare(q).all(); return (r.results||[]).map(d1Post);
 }
@@ -155,7 +163,7 @@ async function d1Api(request,env,url){
     const slug=articleSlug(data.slug||title),appName=String(data.appName||"").trim();
     if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Add a valid title, slug, description and at least 80 characters of article content."},400);
     const exists=await env.DB.prepare("SELECT id FROM posts WHERE slug=?").bind(slug).first();if(exists)return json({error:"That URL slug already exists. Choose a unique slug."},409);
-    const date=new Date().toISOString().slice(0,10),path="_posts/"+date+"-"+slug+".md";
+    const date=new Date().toISOString().slice(0,10),path="_posts/"+date+"-"+slug+".md",published=data.published===false?0:1;
     let icon=String(data.officialIconUrl||"").trim()||null,iconBlob=null,iconMime=null;
     if(data.uploadedIcon&&typeof data.uploadedIcon==="object"){
       const allowed={"image/png":1,"image/jpeg":1,"image/webp":1,"image/avif":1};iconMime=String(data.uploadedIcon.mimeType||"").toLowerCase();
@@ -167,8 +175,9 @@ async function d1Api(request,env,url){
     if(icon){try{const u=new URL(icon);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Logo URL must be HTTPS."},400);icon=u.toString()}catch(e){return json({error:"Logo URL must be HTTPS."},400)}}
     const thumb=String(data.thumbnailUrl||"").trim()||null,downloadUrl=String(data.downloadUrl||"").trim()||null;
     if(downloadUrl){try{const u=new URL(downloadUrl);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Download link must be a valid HTTPS URL."},400)}catch(e){return json({error:"Download link must be a valid HTTPS URL."},400)}}
-    await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url,download_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(title,slug,path,description,content,date,1,appName,null,null,icon,thumb,downloadUrl).run();
+    const seoTitle=String(data.seoTitle||"").trim().slice(0,180),focusKeyword=String(data.focusKeyword||"").trim().slice(0,120),category=String(data.category||"").trim().slice(0,80),tags=String(data.tags||"").trim().slice(0,500),excerpt=String(data.excerpt||"").trim().slice(0,500);
+    await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url,download_url,seo_title,focus_keyword,category,tags,excerpt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(title,slug,path,description,content,date,published,appName,null,null,icon,thumb,downloadUrl,seoTitle,focusKeyword,category,tags,excerpt).run();
     if(iconBlob)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP")
       .bind(slug,iconBlob,iconMime).run();
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE slug=?").bind(slug).first();
@@ -177,7 +186,7 @@ async function d1Api(request,env,url){
   if(url.pathname==="/admin/api/update"&&request.method==="POST"){
     const data=await request.json(),path=String(data.path||"");
     const old=await env.DB.prepare("SELECT * FROM posts WHERE path=?").bind(path).first();if(!old)return json({error:"Article not found."},404);
-    const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim(),slug=articleSlug(data.slug||title);
+    const title=String(data.title||"").trim(),content=String(data.content||"").trim(),description=String(data.description||"").trim(),slug=articleSlug(data.slug||title),published=data.published===false?0:1,seoTitle=String(data.seoTitle||"").trim().slice(0,180),focusKeyword=String(data.focusKeyword||"").trim().slice(0,120),category=String(data.category||"").trim().slice(0,80),tags=String(data.tags||"").trim().slice(0,500),excerpt=String(data.excerpt||"").trim().slice(0,500);
     if(title.length<4||title.length>160||content.length<80||description.length>320||slug.length<3)return json({error:"Check title, slug, description and article content."},400);
     const duplicate=await env.DB.prepare("SELECT id FROM posts WHERE slug=? AND id<>?").bind(slug,old.id).first();if(duplicate)return json({error:"That URL slug is already in use."},409);
     let icon=old.official_icon_url||null,blob=null,mime=null,replaceMedia=false,removeMedia=false,preserveMedia=false;
@@ -209,8 +218,8 @@ async function d1Api(request,env,url){
     }else if(removeMedia){
       await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
     }
-    await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,download_url=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
-      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||"").trim()||null,downloadUrl,old.id).run();
+    await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,download_url=?,published=?,seo_title=?,focus_keyword=?,category=?,tags=?,excerpt=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||"").trim()||null,downloadUrl,published,seoTitle,focusKeyword,category,tags,excerpt,old.id).run();
     if(replaceMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime).run();
     else if(movedMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,movedMedia.icon_blob,movedMedia.icon_mime).run();
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE id=?").bind(old.id).first();
