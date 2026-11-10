@@ -49,6 +49,20 @@ The table stores article fields and applies Row Level Security (RLS) to all four
 
 The CMS article editor is now connected to this table. After the SQL migration has run and the Supabase URL/public key have been configured in `cms-v2/index.html`, sign in and use **New article → Save draft**. The CMS loads articles from Supabase and supports create, edit, and delete. The database—not browser localStorage—enforces ownership through RLS. If the migration has not been run, the dashboard will show a database setup error and article saving will not work.
 
+## Verify database security (read-only)
+
+After running `001_cms_articles.sql`, open `cms-v2/database/002_verify_cms_security.sql` on GitHub, tap **Raw**, copy the complete query, and run it in the same Supabase project's **SQL Editor**. This second query is read-only: it does not change tables or article data.
+
+The result should show:
+- `table_exists = true`
+- `rls_enabled = true`
+- `total_policies = 4` and `expected_policy_count = 4`
+- All four `anon_*_blocked` values = `true`
+- All four `authenticated_*_allowed` values = `true`
+- `all_checks_passed = true`
+
+If `all_checks_passed` is false, do not put any secret key in the page. Check that migration 001 was run in the correct Supabase project, then inspect the individual false result columns.
+
 ## Important limits — do not skip
 
 - Article records are stored in Supabase. Media metadata and workspace preferences still use this browser's localStorage; actual image files are not uploaded. Old prototype drafts previously saved under the `proedits_cms20_articles` localStorage key are not automatically imported.
