@@ -29,32 +29,49 @@ let d1SchemaPromise=null;
 async function ensureD1Schema(env){
   if(d1SchemaReady)return;
   if(!d1SchemaPromise)d1SchemaPromise=(async()=>{
-    const exists=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='posts'").first();
-    if(!exists){
-      await env.DB.batch([
-        env.DB.prepare(`CREATE TABLE IF NOT EXISTS posts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          slug TEXT NOT NULL UNIQUE,
-          path TEXT NOT NULL UNIQUE,
-          description TEXT NOT NULL DEFAULT '',
-          content TEXT NOT NULL DEFAULT '',
-          date TEXT NOT NULL,
-          published INTEGER NOT NULL DEFAULT 1,
-          app_name TEXT,
-          icon_blob BLOB,
-          icon_mime TEXT,
-          official_icon_url TEXT,
-          thumbnail_url TEXT,
-          generated_thumbnail_url TEXT,
-          raw_url TEXT,
-          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )`),
-        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, date DESC)"),
-        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)")
-      ]);
-    }
+    // Bootstrap base tables and indexes in one D1 batch. Previously a cold Worker
+    // performed a table lookup, six separate PRAGMA calls, and two table creates.
+    await env.DB.batch([
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        path TEXT NOT NULL UNIQUE,
+        description TEXT NOT NULL DEFAULT '',
+        content TEXT NOT NULL DEFAULT '',
+        date TEXT NOT NULL,
+        published INTEGER NOT NULL DEFAULT 1,
+        app_name TEXT,
+        icon_blob BLOB,
+        icon_mime TEXT,
+        official_icon_url TEXT,
+        thumbnail_url TEXT,
+        generated_thumbnail_url TEXT,
+        raw_url TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )`),
+      env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, date DESC)"),
+      env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)"),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
+        id TEXT PRIMARY KEY,
+        filename TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        alt_text TEXT NOT NULL DEFAULT '',
+        data BLOB NOT NULL,
+        size INTEGER NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS post_media (
+        slug TEXT PRIMARY KEY,
+        icon_blob BLOB NOT NULL,
+        icon_mime TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (slug) REFERENCES posts(slug) ON DELETE CASCADE
+      )`)
+    ]);
+
+    // Read the column catalog once instead of once for every migration.
     const migrations=[
       ["download_url","ALTER TABLE posts ADD COLUMN download_url TEXT"],
       ["seo_title","ALTER TABLE posts ADD COLUMN seo_title TEXT"],
@@ -63,33 +80,21 @@ async function ensureD1Schema(env){
       ["tags","ALTER TABLE posts ADD COLUMN tags TEXT"],
       ["excerpt","ALTER TABLE posts ADD COLUMN excerpt TEXT"]
     ];
+    const initial=await env.DB.prepare("PRAGMA table_info(posts)").all();
+    const known=new Set((initial.results||[]).map(column=>column.name));
     for(const [name,sql] of migrations){
-      const columns=await env.DB.prepare("PRAGMA table_info(posts)").all();
-      if((columns.results||[]).some(column=>column.name===name))continue;
-      try{await env.DB.prepare(sql).run()}
-      catch(error){
-        // Multiple Worker isolates can initialize D1 simultaneously. Treat a concurrent
-        // duplicate-column ALTER as success only after confirming that column now exists.
+      if(known.has(name))continue;
+      try{
+        await env.DB.prepare(sql).run();
+        known.add(name);
+      }catch(error){
+        // Multiple Worker isolates may add the same column concurrently. Recheck only
+        // after an ALTER error and suppress it only when the column now exists.
         const refreshed=await env.DB.prepare("PRAGMA table_info(posts)").all();
         if(!(refreshed.results||[]).some(column=>column.name===name))throw error;
+        known.add(name);
       }
     }
-    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
-      id TEXT PRIMARY KEY,
-      filename TEXT NOT NULL,
-      mime_type TEXT NOT NULL,
-      alt_text TEXT NOT NULL DEFAULT '',
-      data BLOB NOT NULL,
-      size INTEGER NOT NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )`).run();
-    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS post_media (
-      slug TEXT PRIMARY KEY,
-      icon_blob BLOB NOT NULL,
-      icon_mime TEXT NOT NULL,
-      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (slug) REFERENCES posts(slug) ON DELETE CASCADE
-    )`).run();
     d1SchemaReady=true;
   })();
   try{await d1SchemaPromise}catch(e){d1SchemaPromise=null;throw e}
