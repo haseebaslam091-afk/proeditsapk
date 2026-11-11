@@ -360,6 +360,7 @@ export default {
        const html=await asset.text();
        const canonical=SITE+"/articles/"+slug;
        let injected=html.replace('<meta name="article-path" content="">', '<meta name="article-path" content="'+post.path+'">');
+       injected=injected.replace('</head>','<meta name="proeditsapk-build" content="article-images-20261111"></head>');
        injected=injected.replace('href="https://proeditsapk.com/article.html"', 'href="'+canonical+'"');
        injected=injected.replace('<title>Article | ProEditsAPK</title>', '<title>'+String(post.title).replace(/[&<>"]/g,"")+' | ProEditsAPK</title>');
        if(post.description)injected=injected.replace('content="Explore Android apps, video editing tools and AI apps on ProEditsAPK."', 'content="'+String(post.description).replace(/[&<>"]/g,"")+'"');
