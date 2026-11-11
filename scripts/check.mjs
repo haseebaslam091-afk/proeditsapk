@@ -41,7 +41,7 @@ assert.ok(worker.includes("bytes.length>1572864"), "Media uploads must remain be
 assert.ok(worker.includes("signatureOk"), "Media uploads must validate file signatures");
 assert.ok(worker.includes('headers.set("cache-control","no-store, no-cache, must-revalidate")'), "Admin HTML must not be cached");
 assert.ok(worker.includes('url.pathname==="/sitemap.xml"'), "Worker must provide a D1-backed sitemap");
-assert.ok(article.includes("sanitizeArticleHTML") && article.includes("DOMPurify.sanitize")===false || article.includes("sanitizeArticleHTML"), "Article HTML and Markdown must be sanitized before rendering");
+assert.ok(article.includes("sanitizeArticleHTML"), "Article HTML and Markdown must be sanitized before rendering");
 assert.ok(article.includes("marked.parse"), "Article Markdown renderer must be present");
 assert.ok(home.includes('rel="canonical"'), "Homepage canonical URL is required");
 assert.ok(home.includes('name="description"'), "Homepage meta description is required");
