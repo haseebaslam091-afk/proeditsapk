@@ -352,6 +352,7 @@ async function api(request, env) {
   // TEMPORARY: Cloudflare Access application was removed at the owner's request.
   // This leaves all Admin API read/write endpoints publicly reachable. Restore Access JWT validation before considering the site production-secure.
   const url=new URL(request.url);
+  if(env.ADMIN_PASSWORD){const session=await adminSession(request,env);if(!session)return json({error:"Admin session required.",code:"AUTH_REQUIRED"},401);if(request.method!=="GET"&&(!adminOriginOk(request)||request.headers.get("x-csrf-token")!==session.csrf))return json({error:"Request verification failed.",code:"CSRF_FAILED"},403)}
   if(!env.DB)return json({error:"Cloudflare D1 binding is missing. Configure the DB binding before using the Admin Panel; GitHub tokens are not used for publishing."},503);
   try{return await d1Api(request,env,url)}catch(e){return json({error:e.message||"D1 request failed."},500)}
 }
@@ -404,6 +405,7 @@ export default {
      const urls=[`<url><loc>${SITE}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>`,...posts.map(p=>`<url><loc>${SITE}/articles/${encodeURIComponent(p.slug)}</loc><lastmod>${p.date||new Date().toISOString().slice(0,10)}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`)];
      return new Response('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join("\n")+'\n</urlset>',{headers:{"content-type":"application/xml; charset=utf-8","cache-control":"public, max-age=300"}});
    }
+   if(env.ADMIN_PASSWORD&&(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html"))return Response.redirect(SITE+"/admin-v2/",302);
    if(url.pathname.startsWith("/admin-v2/api/"))return adminV2Api(request,env,url);
    if(url.pathname==="/admin-v2"||url.pathname==="/admin-v2/"||url.pathname==="/admin-v2/index.html"){
      const target=new URL("/admin-v2/index.html",url);
