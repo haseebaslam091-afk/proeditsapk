@@ -45,6 +45,19 @@ No GitHub publishing token is required: the CMS uses D1. Do not add credentials 
 
 The existing Worker configuration declares the D1 database ID and bindings in `wrangler.jsonc`. No secret values are documented here.
 
+## Admin V2 (new secure publisher)
+
+A rebuilt publisher interface is available at `/admin-v2/` on the feature branch. It includes a responsive dashboard, server-side article search and pagination, a rich-text editor, draft/publish/edit/delete workflows, manual app-logo and animated thumbnail uploads, inline article images, SEO/category/tag fields, a media library, and live preview. It uses a signed eight-hour HttpOnly/Secure/SameSite session cookie, same-origin checks, and a CSRF token for mutations. The API fails closed until the Cloudflare Worker secret `ADMIN_PASSWORD` is configured.
+
+### Configure the Admin V2 password
+
+1. In Cloudflare, open **Workers & Pages → proeditsapk → Settings → Variables and Secrets**.
+2. Add a **Secret** named `ADMIN_PASSWORD` (not a plain text variable). Use a unique, randomly generated password of at least 32 characters and keep it in a password manager.
+3. Save the secret and redeploy the Worker. Never put this password in GitHub, source code, chat, or the public website.
+4. Open `/admin-v2/` and sign in. The legacy `/admin/` and `/admin/api/*` remain unchanged during the staged migration; do not treat them as secure until the final cutover protects or disables them.
+
+Do not switch `/admin/` to V2 until the secret is configured and the V2 end-to-end checks pass. Keep the previous Admin available for rollback during the staged rollout.
+
 ## Admin access and content
 
 - Open `/admin/` while temporary public mode is enabled. **Admin and write APIs are currently public at the owner's request. Restore Cloudflare Access before production use.**
