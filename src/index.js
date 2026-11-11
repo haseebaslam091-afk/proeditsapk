@@ -29,73 +29,83 @@ let d1SchemaPromise=null;
 async function ensureD1Schema(env){
   if(d1SchemaReady)return;
   if(!d1SchemaPromise)d1SchemaPromise=(async()=>{
-    // Bootstrap base tables and indexes in one D1 batch. Previously a cold Worker
-    // performed a table lookup, six separate PRAGMA calls, and two table creates.
-    await env.DB.batch([
-      env.DB.prepare(`CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        slug TEXT NOT NULL UNIQUE,
-        path TEXT NOT NULL UNIQUE,
-        description TEXT NOT NULL DEFAULT '',
-        content TEXT NOT NULL DEFAULT '',
-        date TEXT NOT NULL,
-        published INTEGER NOT NULL DEFAULT 1,
-        app_name TEXT,
-        icon_blob BLOB,
-        icon_mime TEXT,
-        official_icon_url TEXT,
-        thumbnail_url TEXT,
-        generated_thumbnail_url TEXT,
-        raw_url TEXT,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-      )`),
-      env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, date DESC)"),
-      env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)"),
-      env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
-        id TEXT PRIMARY KEY,
-        filename TEXT NOT NULL,
-        mime_type TEXT NOT NULL,
-        alt_text TEXT NOT NULL DEFAULT '',
-        data BLOB NOT NULL,
-        size INTEGER NOT NULL,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-      )`),
-      env.DB.prepare(`CREATE TABLE IF NOT EXISTS post_media (
-        slug TEXT PRIMARY KEY,
-        icon_blob BLOB NOT NULL,
-        icon_mime TEXT NOT NULL,
-        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (slug) REFERENCES posts(slug) ON DELETE CASCADE
-      )`)
-    ]);
-
-    // Read the column catalog once instead of once for every migration.
-    const migrations=[
-      ["download_url","ALTER TABLE posts ADD COLUMN download_url TEXT"],
-      ["seo_title","ALTER TABLE posts ADD COLUMN seo_title TEXT"],
-      ["focus_keyword","ALTER TABLE posts ADD COLUMN focus_keyword TEXT"],
-      ["category","ALTER TABLE posts ADD COLUMN category TEXT"],
-      ["tags","ALTER TABLE posts ADD COLUMN tags TEXT"],
-      ["excerpt","ALTER TABLE posts ADD COLUMN excerpt TEXT"]
-    ];
-    const initial=await env.DB.prepare("PRAGMA table_info(posts)").all();
-    const known=new Set((initial.results||[]).map(column=>column.name));
-    for(const [name,sql] of migrations){
-      if(known.has(name))continue;
+    const initialize=async()=>{
+      await env.DB.batch([
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS posts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          slug TEXT NOT NULL UNIQUE,
+          path TEXT NOT NULL UNIQUE,
+          description TEXT NOT NULL DEFAULT '',
+          content TEXT NOT NULL DEFAULT '',
+          date TEXT NOT NULL,
+          published INTEGER NOT NULL DEFAULT 1,
+          app_name TEXT,
+          icon_blob BLOB,
+          icon_mime TEXT,
+          official_icon_url TEXT,
+          thumbnail_url TEXT,
+          generated_thumbnail_url TEXT,
+          raw_url TEXT,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )`),
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_published_date ON posts(published, date DESC)"),
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)"),
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS media_assets (
+          id TEXT PRIMARY KEY,
+          filename TEXT NOT NULL,
+          mime_type TEXT NOT NULL,
+          alt_text TEXT NOT NULL DEFAULT '',
+          data BLOB NOT NULL,
+          size INTEGER NOT NULL,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )`),
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS post_media (
+          slug TEXT PRIMARY KEY,
+          icon_blob BLOB NOT NULL,
+          icon_mime TEXT NOT NULL,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (slug) REFERENCES posts(slug) ON DELETE CASCADE
+        )`)
+      ]);
+      const migrations=[
+        ["download_url","ALTER TABLE posts ADD COLUMN download_url TEXT"],
+        ["seo_title","ALTER TABLE posts ADD COLUMN seo_title TEXT"],
+        ["focus_keyword","ALTER TABLE posts ADD COLUMN focus_keyword TEXT"],
+        ["category","ALTER TABLE posts ADD COLUMN category TEXT"],
+        ["tags","ALTER TABLE posts ADD COLUMN tags TEXT"],
+        ["excerpt","ALTER TABLE posts ADD COLUMN excerpt TEXT"]
+      ];
+      const initial=await env.DB.prepare("PRAGMA table_info(posts)").all();
+      const known=new Set((initial.results||[]).map(column=>column.name));
+      for(const [name,sql] of migrations){
+        if(known.has(name))continue;
+        try{
+          await env.DB.prepare(sql).run();
+          known.add(name);
+        }catch(error){
+          const refreshed=await env.DB.prepare("PRAGMA table_info(posts)").all();
+          if(!(refreshed.results||[]).some(column=>column.name===name))throw error;
+          known.add(name);
+        }
+      }
+    };
+    let lastError;
+    for(let attempt=0;attempt<4;attempt++){
       try{
-        await env.DB.prepare(sql).run();
-        known.add(name);
+        await initialize();
+        d1SchemaReady=true;
+        return;
       }catch(error){
-        // Multiple Worker isolates may add the same column concurrently. Recheck only
-        // after an ALTER error and suppress it only when the column now exists.
-        const refreshed=await env.DB.prepare("PRAGMA table_info(posts)").all();
-        if(!(refreshed.results||[]).some(column=>column.name===name))throw error;
-        known.add(name);
+        lastError=error;
+        const message=String(error&&error.message||error);
+        const transient=/SQLITE_BUSY|database is locked|database is busy|temporar|overload|internal error|rate.?limit|too many requests|timeout/i.test(message);
+        if(!transient||attempt===3)throw error;
+        await new Promise(resolve=>setTimeout(resolve,150*(attempt+1)*(attempt+1)));
       }
     }
-    d1SchemaReady=true;
+    throw lastError;
   })();
   try{await d1SchemaPromise}catch(e){d1SchemaPromise=null;throw e}
 }
