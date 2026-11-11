@@ -299,13 +299,13 @@ export default {
      if(!/^[0-9a-f-]{36}$/i.test(id))return new Response("Not found",{status:404});
      const row=await env.DB.prepare("SELECT filename,mime_type,data FROM media_assets WHERE id=?").bind(id).first();
      if(!row?.data)return new Response("Not found",{status:404});
-     return new Response(row.data,{headers:{"content-type":row.mime_type,"content-disposition":"inline; filename*=UTF-8''"+encodeURIComponent(row.filename),"cache-control":"public, max-age=31536000, immutable","x-content-type-options":"nosniff","content-security-policy":"default-src 'none'; sandbox"}});
+     return new Response(row.data,{headers:{"content-type":row.mime_type,"content-disposition":"inline; filename*=UTF-8''"+encodeURIComponent(row.filename),"cache-control":"public, max-age=300, must-revalidate","x-content-type-options":"nosniff""}});
    }
    if(url.pathname.startsWith("/media/icons/")&&env.DB&&request.method==="GET"){
      const slug=decodeURIComponent(url.pathname.slice("/media/icons/".length));
      const row=await env.DB.prepare("SELECT icon_blob,icon_mime FROM post_media WHERE slug=?").bind(slug).first()||await env.DB.prepare("SELECT icon_blob,icon_mime FROM posts WHERE slug=?").bind(slug).first();
      if(!row?.icon_blob)return new Response("Not found",{status:404});
-     return new Response(row.icon_blob,{headers:{"content-type":row.icon_mime||"application/octet-stream","cache-control":"public, max-age=31536000, immutable","x-content-type-options":"nosniff"}});
+     return new Response(row.icon_blob,{headers:{"content-type":row.icon_mime||"application/octet-stream","cache-control":"public, max-age=300, must-revalidate","x-content-type-options":"nosniff"}});
    }
    if(url.pathname==="/sitemap.xml"&&env.DB&&request.method==="GET"){
      const posts=await d1List(env,false);
