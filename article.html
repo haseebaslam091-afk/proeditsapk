@@ -41,7 +41,7 @@ function fallbackMarkdown(source){
  flush();return out.join('');
 }
 function sanitizeArticleHTML(source){
- const converted=String(source||'').replace(/!\\[([^\\]]*)\\]\\((https:\\/\\/[^)\\s]+|\\/media\\/library\\/[0-9a-f-]{36})\\)/gi,(match,alt,raw)=>{try{const u=new URL(raw,location.origin);if(u.protocol!=='https:'||(u.origin===location.origin&&!/^\\/media\\/library\\/[0-9a-f-]{36}$/i.test(u.pathname)))return escapeHTML(match);return '<img src="'+escapeHTML(u.href)+'" alt="'+escapeHTML(alt)+'" loading="lazy" decoding="async">'}catch(e){return escapeHTML(match)}});
+ const converted=String(source||'').replace(/!\[([^\]]*)\]\((https:\/\/[^)\s]+|\/media\/library\/[0-9a-f-]{36})\)/gi,(match,alt,raw)=>{try{const u=new URL(raw,location.origin);if(u.protocol!=='https:'||(u.origin===location.origin&&!/^\/media\/library\/[0-9a-f-]{36}$/i.test(u.pathname)))return escapeHTML(match);return '<img src="'+escapeHTML(u.href)+'" alt="'+escapeHTML(alt)+'" loading="lazy" decoding="async">'}catch(e){return escapeHTML(match)}});
  const template=document.createElement('template');template.innerHTML=converted;
  const allowed=new Set(['P','H1','H2','H3','H4','H5','H6','UL','OL','LI','STRONG','B','EM','I','U','S','DEL','BLOCKQUOTE','A','IMG','FIGURE','HR','BR','TABLE','THEAD','TBODY','TR','TH','TD','PRE','CODE']);
  const blocked=new Set(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','FORM','INPUT','BUTTON','SVG','MATH']);
