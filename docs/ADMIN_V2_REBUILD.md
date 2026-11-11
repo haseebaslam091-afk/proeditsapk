@@ -45,3 +45,17 @@
 - Verify old published routes, thumbnails, logos, GIFs, body images, download links, sitemap, and public posts feed remain intact.
 - Run mobile Safari smoke tests and a production read-only smoke test.
 - Only switch /admin after all gates pass; retain a documented rollback path.
+
+## Implemented on the feature branch
+- Added a new independent `/admin-v2/` publisher UI; the legacy Admin route is not overwritten.
+- Added signed HMAC sessions using the Cloudflare Worker secret `ADMIN_PASSWORD`, Secure/HttpOnly/SameSite=Strict cookie flags, eight-hour expiry, same-origin mutation checks, and CSRF token verification.
+- Added a fail-closed API namespace under `/admin-v2/api/*`; it returns an explicit setup error if the secret is absent.
+- Added server-side article pagination, filtering, and search; dashboard metrics; draft/publish/edit/delete; rich text content editing; manual logo and thumbnail uploads; inline body image uploads; SEO and taxonomy fields; download URLs; and media library management.
+- Added Worker-first routing for the new Admin V2 page and API.
+- Extended GitHub Actions syntax/config checks to parse the new UI and assert its authentication and API guardrails.
+
+## Not yet safe to cut over
+- The owner must add the `ADMIN_PASSWORD` Worker secret in Cloudflare and redeploy.
+- The legacy `/admin/` and `/admin/api/*` routes are still the existing public temporary setup. They must be protected or disabled as part of final cutover; the new V2 API does not magically secure the legacy namespace.
+- V2 currently uses the existing D1 media library and its 1.5 MB limit. R2 is not bound in this account, so the rebuild deliberately does not assume R2 exists.
+- Production end-to-end create/edit/publish tests must be performed only after login is configured, using a draft and then deleting that test draft. Existing published content must remain untouched.
