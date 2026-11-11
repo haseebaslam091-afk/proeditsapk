@@ -54,7 +54,7 @@ A rebuilt publisher interface is available at `/admin-v2/` on the feature branch
 1. In Cloudflare, open **Workers & Pages → proeditsapk → Settings → Variables and Secrets**.
 2. Add a **Secret** named `ADMIN_PASSWORD` (not a plain text variable). Use a unique, randomly generated password of at least 32 characters and keep it in a password manager.
 3. Save the secret and redeploy the Worker. Never put this password in GitHub, source code, chat, or the public website.
-4. Open `/admin-v2/` and sign in. The legacy `/admin/` and `/admin/api/*` remain unchanged during the staged migration; do not treat them as secure until the final cutover protects or disables them.
+4. Open `/admin-v2/` and sign in. Once `ADMIN_PASSWORD` is configured, `/admin/` automatically redirects to V2 and the legacy `/admin/api/*` endpoints require a valid V2 session and CSRF token. Before the secret is configured, the old temporary public setup remains in place; do not use the new panel until the secret has been added.
 
 Do not switch `/admin/` to V2 until the secret is configured and the V2 end-to-end checks pass. Keep the previous Admin available for rollback during the staged rollout.
 
