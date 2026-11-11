@@ -56,6 +56,6 @@
 
 ## Not yet safe to cut over
 - The owner must add the `ADMIN_PASSWORD` Worker secret in Cloudflare and redeploy.
-- The legacy `/admin/` and `/admin/api/*` routes are still the existing public temporary setup. They must be protected or disabled as part of final cutover; the new V2 API does not magically secure the legacy namespace.
+- When `ADMIN_PASSWORD` is configured, `/admin/` automatically redirects to V2 and legacy `/admin/api/*` requests are rejected unless they carry a valid V2 session and CSRF token. Before the secret is configured, the legacy temporary public setup remains active.
 - V2 currently uses the existing D1 media library and its 1.5 MB limit. R2 is not bound in this account, so the rebuild deliberately does not assume R2 exists.
 - Production end-to-end create/edit/publish tests must be performed only after login is configured, using a draft and then deleting that test draft. Existing published content must remain untouched.
