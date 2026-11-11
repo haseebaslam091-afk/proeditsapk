@@ -1,0 +1,48 @@
+name: Deploy Cloudflare Worker
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "admin-v2/**"
+      - "wrangler.jsonc"
+      - "migrations/**"
+      - ".github/workflows/deploy-worker.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: proeditsapk-production-worker
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Worker and Admin
+        run: node scripts/check.mjs
+      - name: Check Cloudflare deployment credentials
+        id: cloudflare
+        shell: bash
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [[ -z "$CF_API_TOKEN" || -z "$CF_ACCOUNT_ID" ]]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Worker deployment skipped. Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to enable automatic deployment."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy Worker to Cloudflare
+        if: steps.cloudflare.outputs.configured == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
