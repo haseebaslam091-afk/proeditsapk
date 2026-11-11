@@ -10,7 +10,11 @@
     "directory": ".",
     "binding": "ASSETS",
     "run_worker_first": [
+      "/admin",
+      "/admin/*",
       "/admin/api/*",
+      "/admin-v2",
+      "/admin-v2/*",
       "/api/*",
       "/articles/*",
       "/article",

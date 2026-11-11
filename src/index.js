@@ -212,10 +212,10 @@ async function d1Api(request,env,url){
     const thumb=String(data.thumbnailUrl||"").trim()||null,downloadUrl=String(data.downloadUrl||"").trim()||null;
     if(downloadUrl){try{const u=new URL(downloadUrl);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Download link must be a valid HTTPS URL."},400)}catch(e){return json({error:"Download link must be a valid HTTPS URL."},400)}}
     const seoTitle=String(data.seoTitle||"").trim().slice(0,180),focusKeyword=String(data.focusKeyword||"").trim().slice(0,120),category=String(data.category||"").trim().slice(0,80),tags=String(data.tags||"").trim().slice(0,500),excerpt=String(data.excerpt||"").trim().slice(0,500);
-    await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url,download_url,seo_title,focus_keyword,category,tags,excerpt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(title,slug,path,description,content,date,published,appName,null,null,icon,thumb,downloadUrl,seoTitle,focusKeyword,category,tags,excerpt).run();
-    if(iconBlob)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP")
-      .bind(slug,iconBlob,iconMime).run();
+    const createPost=env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url,download_url,seo_title,focus_keyword,category,tags,excerpt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(title,slug,path,description,content,date,published,appName,null,null,icon,thumb,downloadUrl,seoTitle,focusKeyword,category,tags,excerpt);
+    if(iconBlob)await env.DB.batch([createPost,env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,iconBlob,iconMime)]);
+    else await createPost.run();
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE slug=?").bind(slug).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
@@ -244,20 +244,22 @@ async function d1Api(request,env,url){
       icon=null;removeMedia=true;
     }
     let movedMedia=null;
+    const updateStatements=[];
     if(slug!==old.slug){
       if(preserveMedia){
         movedMedia=await env.DB.prepare("SELECT icon_blob,icon_mime FROM post_media WHERE slug=?").bind(old.slug).first();
         if(!movedMedia&&old.icon_blob)movedMedia={icon_blob:old.icon_blob,icon_mime:old.icon_mime};
       }
-      // Remove the old foreign-key child row before changing the post slug.
-      await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+      // Move/delete the media row and update the article in one atomic D1 batch.
+      updateStatements.push(env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug));
     }else if(removeMedia){
-      await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+      updateStatements.push(env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug));
     }
-    await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,download_url=?,published=?,seo_title=?,focus_keyword=?,category=?,tags=?,excerpt=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
-      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||"").trim()||null,downloadUrl,published,seoTitle,focusKeyword,category,tags,excerpt,old.id).run();
-    if(replaceMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime).run();
-    else if(movedMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,movedMedia.icon_blob,movedMedia.icon_mime).run();
+    updateStatements.push(env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,download_url=?,published=?,seo_title=?,focus_keyword=?,category=?,tags=?,excerpt=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||"").trim()||null,downloadUrl,published,seoTitle,focusKeyword,category,tags,excerpt,old.id));
+    if(replaceMedia)updateStatements.push(env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime));
+    else if(movedMedia)updateStatements.push(env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,movedMedia.icon_blob,movedMedia.icon_mime));
+    await env.DB.batch(updateStatements);
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE id=?").bind(old.id).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
@@ -269,11 +271,88 @@ async function d1Api(request,env,url){
   return json({error:"D1 API endpoint not found."},404);
 }
 
+
+function adminB64(bytes){
+  let binary="";for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
+}
+function adminUnb64(value){
+  const normalized=String(value||"").replace(/-/g,"+").replace(/_/g,"/");
+  const binary=atob(normalized+"=".repeat((4-normalized.length%4)%4));
+  return Uint8Array.from(binary,c=>c.charCodeAt(0));
+}
+async function adminSession(request,env){
+  if(!env.ADMIN_PASSWORD)return null;
+  const cookie=String(request.headers.get("cookie")||"").split(";").map(v=>v.trim()).find(v=>v.startsWith("proedits_admin_v2="));
+  if(!cookie)return null;
+  const token=cookie.slice("proedits_admin_v2=".length),parts=token.split(".");
+  if(parts.length!==2)return null;
+  try{
+    const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(env.ADMIN_PASSWORD),{name:"HMAC",hash:"SHA-256"},false,["verify"]);
+    const valid=await crypto.subtle.verify("HMAC",key,adminUnb64(parts[1]),new TextEncoder().encode(parts[0]));
+    if(!valid)return null;
+    const payload=JSON.parse(new TextDecoder().decode(adminUnb64(parts[0])));
+    if(!Number.isFinite(payload.exp)||payload.exp<Date.now()||typeof payload.csrf!=="string")return null;
+    return payload;
+  }catch(e){return null}
+}
+function adminOriginOk(request){return request.headers.get("origin")===new URL(request.url).origin}
+async function adminV2Api(request,env,url){
+  if(!env.ADMIN_PASSWORD)return json({error:"Admin login is not configured yet. Add the ADMIN_PASSWORD Worker secret in Cloudflare before using Admin V2.",code:"ADMIN_SECRET_MISSING"},503);
+  const route=url.pathname.slice("/admin-v2/api/".length);
+  if(route==="login"&&request.method==="POST"){
+    if(!adminOriginOk(request))return json({error:"Request origin could not be verified."},403);
+    let data;try{data=await request.json()}catch(e){return json({error:"Invalid login request."},400)}
+    const supplied=String(data.password||"");const expected=String(env.ADMIN_PASSWORD);
+    let diff=supplied.length^expected.length;for(let i=0;i<Math.max(supplied.length,expected.length);i++)diff|=(supplied.charCodeAt(i)||0)^(expected.charCodeAt(i)||0);
+    if(!supplied||diff!==0)return json({error:"Incorrect admin password."},401);
+    const csrf=adminB64(crypto.getRandomValues(new Uint8Array(24)));
+    const payload=adminB64(new TextEncoder().encode(JSON.stringify({exp:Date.now()+8*60*60*1000,csrf})));
+    const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(expected),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+    const signature=adminB64(new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(payload))));
+    return new Response(JSON.stringify({ok:true,csrf,expiresIn:28800}),{status:200,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store","set-cookie":"proedits_admin_v2="+payload+"."+signature+"; Path=/admin-v2; HttpOnly; Secure; SameSite=Strict; Max-Age=28800","x-content-type-options":"nosniff"}});
+  }
+  const session=await adminSession(request,env);
+  if(route==="session"&&request.method==="GET")return json({authenticated:!!session,csrf:session?.csrf||null,expiresAt:session?.exp||null});
+  if(route==="logout"&&request.method==="POST"){
+    if(!session||!adminOriginOk(request)||request.headers.get("x-csrf-token")!==session.csrf)return json({error:"Session verification failed."},403);
+    return new Response(JSON.stringify({ok:true}),{status:200,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store","set-cookie":"proedits_admin_v2=; Path=/admin-v2; HttpOnly; Secure; SameSite=Strict; Max-Age=0"}});
+  }
+  if(!session)return json({error:"Your Admin session has expired. Please sign in again.",code:"AUTH_REQUIRED"},401);
+  if(request.method!=="GET"){
+    if(!adminOriginOk(request)||request.headers.get("x-csrf-token")!==session.csrf)return json({error:"Request verification failed. Refresh Admin and try again.",code:"CSRF_FAILED"},403);
+  }
+  if(route==="articles"&&request.method==="GET"){
+    const page=Math.max(1,Math.min(100000,Number(url.searchParams.get("page")||1)));
+    const pageSize=Math.max(5,Math.min(50,Number(url.searchParams.get("pageSize")||10)));
+    const search=String(url.searchParams.get("q")||"").trim().slice(0,120);
+    const status=String(url.searchParams.get("status")||"all");
+    const clauses=[],values=[];
+    if(status==="published")clauses.push("published=1");else if(status==="draft")clauses.push("published=0");
+    if(search){clauses.push("(title LIKE ? OR slug LIKE ? OR category LIKE ? OR tags LIKE ?)");const q="%"+search+"%";values.push(q,q,q,q)}
+    const where=clauses.length?" WHERE "+clauses.join(" AND "):"";
+    const total=await env.DB.prepare("SELECT COUNT(*) AS n FROM posts"+where).bind(...values).first();
+    const rows=await env.DB.prepare("SELECT id,title,slug,path,description,date,published,app_name,official_icon_url,CASE WHEN icon_blob IS NOT NULL OR EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon,thumbnail_url,generated_thumbnail_url,download_url,seo_title,focus_keyword,category,tags,excerpt,raw_url,updated_at FROM posts"+where+" ORDER BY updated_at DESC,id DESC LIMIT ? OFFSET ?").bind(...values,pageSize,(page-1)*pageSize).all();
+    return json({posts:(rows.results||[]).map(d1Post),total:Number(total?.n||0),page,pageSize,pages:Math.max(1,Math.ceil(Number(total?.n||0)/pageSize))});
+  }
+  const aliases={article:"article",publish:"publish",update:"update",delete:"delete",media:"media", "media-upload":"media-upload","media-delete":"media-delete"};
+  if(aliases[route]){
+    const target=new URL(request.url);target.pathname="/admin/api/"+aliases[route];
+    return d1Api(new Request(target.toString(),request),env,target);
+  }
+  if(route==="health"&&request.method==="GET"){
+    const row=await env.DB.prepare("SELECT COUNT(*) AS total,SUM(CASE WHEN published=1 THEN 1 ELSE 0 END) AS published,SUM(CASE WHEN published=0 THEN 1 ELSE 0 END) AS drafts FROM posts").first();
+    return json({ok:true,database:"connected",total:Number(row?.total||0),published:Number(row?.published||0),drafts:Number(row?.drafts||0),storage:"D1 media compatibility enabled"});
+  }
+  return json({error:"Admin V2 endpoint not found."},404);
+}
+
 async function api(request, env) {
   if(request.method==="OPTIONS")return new Response(null,{status:204,headers:{"access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type","access-control-max-age":"86400"}});
   // TEMPORARY: Cloudflare Access application was removed at the owner's request.
   // This leaves all Admin API read/write endpoints publicly reachable. Restore Access JWT validation before considering the site production-secure.
   const url=new URL(request.url);
+  if(env.ADMIN_PASSWORD){const session=await adminSession(request,env);if(!session)return json({error:"Admin session required.",code:"AUTH_REQUIRED"},401);if(request.method!=="GET"&&(!adminOriginOk(request)||request.headers.get("x-csrf-token")!==session.csrf))return json({error:"Request verification failed.",code:"CSRF_FAILED"},403)}
   if(!env.DB)return json({error:"Cloudflare D1 binding is missing. Configure the DB binding before using the Admin Panel; GitHub tokens are not used for publishing."},503);
   try{return await d1Api(request,env,url)}catch(e){return json({error:e.message||"D1 request failed."},500)}
 }
@@ -325,6 +404,14 @@ export default {
      const posts=await d1List(env,false);
      const urls=[`<url><loc>${SITE}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>`,...posts.map(p=>`<url><loc>${SITE}/articles/${encodeURIComponent(p.slug)}</loc><lastmod>${p.date||new Date().toISOString().slice(0,10)}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`)];
      return new Response('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join("\n")+'\n</urlset>',{headers:{"content-type":"application/xml; charset=utf-8","cache-control":"public, max-age=300"}});
+   }
+   if(env.ADMIN_PASSWORD&&(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html"))return Response.redirect(SITE+"/admin-v2/",302);
+   if(url.pathname.startsWith("/admin-v2/api/"))return adminV2Api(request,env,url);
+   if(url.pathname==="/admin-v2"||url.pathname==="/admin-v2/"||url.pathname==="/admin-v2/index.html"){
+     const target=new URL("/admin-v2/index.html",url);
+     const asset=await env.ASSETS.fetch(new Request(target.toString(),request));
+     const headers=new Headers(asset.headers);headers.set("cache-control","no-store, no-cache, must-revalidate");headers.set("pragma","no-cache");headers.delete("etag");headers.delete("last-modified");
+     return new Response(asset.body,{status:asset.status,statusText:asset.statusText,headers});
    }
    if(url.pathname.startsWith("/admin/api/"))return api(request,env);
    if(url.pathname==="/admin"||url.pathname==="/admin/"||url.pathname==="/admin/index.html") {
