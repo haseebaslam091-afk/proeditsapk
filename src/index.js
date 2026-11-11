@@ -160,9 +160,13 @@ async function d1Api(request,env,url){
       :mime==="image/webp"?bytes.length>12&&String.fromCharCode(...bytes.slice(0,4))==="RIFF"&&String.fromCharCode(...bytes.slice(8,12))==="WEBP"
       :mime==="image/avif"?bytes.length>12&&String.fromCharCode(...bytes.slice(4,8))==="ftyp"&&/^(avif|avis)$/.test(String.fromCharCode(...bytes.slice(8,12))):mime==="image/gif"?bytes.length>10&&/^GIF8[79]a$/.test(String.fromCharCode(...bytes.slice(0,6))):false;
     if(!signatureOk)return json({error:"The uploaded file does not match its declared image type."},400);
-    const id=crypto.randomUUID();
-    await env.DB.prepare("INSERT INTO media_assets (id,filename,mime_type,alt_text,data,size) VALUES (?,?,?,?,?,?)").bind(id,filename,mime,alt,bytes,bytes.length).run();
-    return json({ok:true,media:{id,filename,mimeType:mime,alt,size:bytes.length,url:"/media/library/"+id}});
+    const id=String(data.uploadId||"").trim()||crypto.randomUUID();
+    if(!/^[0-9a-f-]{36}$/i.test(id))return json({error:"Invalid upload ID."},400);
+    // Stable upload IDs make safe client retries possible after transient 503 responses.
+    await env.DB.prepare("INSERT OR IGNORE INTO media_assets (id,filename,mime_type,alt_text,data,size) VALUES (?,?,?,?,?,?)").bind(id,filename,mime,alt,bytes,bytes.length).run();
+    const saved=await env.DB.prepare("SELECT filename,mime_type,alt_text,size FROM media_assets WHERE id=?").bind(id).first();
+    if(!saved)return json({error:"The image could not be confirmed in the media library. Please retry."},503);
+    return json({ok:true,media:{id,filename:saved.filename,mimeType:saved.mime_type,alt:saved.alt_text,size:saved.size,url:"/media/library/"+id}});
   }
   if(url.pathname==="/admin/api/media-delete"&&request.method==="POST"){
     const data=await request.json(),id=String(data.id||"");
@@ -299,7 +303,7 @@ export default {
      if(!/^[0-9a-f-]{36}$/i.test(id))return new Response("Not found",{status:404});
      const row=await env.DB.prepare("SELECT filename,mime_type,data FROM media_assets WHERE id=?").bind(id).first();
      if(!row?.data)return new Response("Not found",{status:404});
-     return new Response(row.data,{headers:{"content-type":row.mime_type,"content-disposition":"inline; filename*=UTF-8''"+encodeURIComponent(row.filename),"cache-control":"public, max-age=300, must-revalidate","x-content-type-options":"nosniff""}});
+     return new Response(row.data,{headers:{"content-type":row.mime_type,"content-disposition":"inline; filename*=UTF-8''"+encodeURIComponent(row.filename),"cache-control":"public, max-age=300, must-revalidate","x-content-type-options":"nosniff"}});
    }
    if(url.pathname.startsWith("/media/icons/")&&env.DB&&request.method==="GET"){
      const slug=decodeURIComponent(url.pathname.slice("/media/icons/".length));
