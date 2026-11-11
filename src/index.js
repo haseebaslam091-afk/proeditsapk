@@ -361,10 +361,11 @@ export default {
        const canonical=SITE+"/articles/"+slug;
        let injected=html.replace('<meta name="article-path" content="">', '<meta name="article-path" content="'+post.path+'">');
        injected=injected.replace('</head>','<meta name="proeditsapk-build" content="article-images-20261111"></head>');
+       injected=injected.replace('</body>','<!-- proeditsapk article image renderer build: 2026-11-11 -->\\n</body>');
        injected=injected.replace('href="https://proeditsapk.com/article.html"', 'href="'+canonical+'"');
        injected=injected.replace('<title>Article | ProEditsAPK</title>', '<title>'+String(post.title).replace(/[&<>"]/g,"")+' | ProEditsAPK</title>');
        if(post.description)injected=injected.replace('content="Explore Android apps, video editing tools and AI apps on ProEditsAPK."', 'content="'+String(post.description).replace(/[&<>"]/g,"")+'"');
-       const headers=new Headers(asset.headers); headers.delete("content-length"); headers.delete("etag"); headers.set("content-type","text/html; charset=utf-8");
+       const headers=new Headers(asset.headers); headers.delete("content-length"); headers.delete("etag"); headers.set("content-type","text/html; charset=utf-8"); headers.set("cache-control","no-store, no-cache, must-revalidate"); headers.set("x-proeditsapk-build","article-images-20261111");
        return new Response(injected,{status:asset.status,headers});
      } catch(e) { return new Response("Article temporarily unavailable. Please refresh or return to the homepage.",{status:503,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}}); }
    }
