@@ -4,6 +4,7 @@ import { Script } from "node:vm";
 
 const worker = await readFile("src/index.js", "utf8");
 const admin = await readFile("admin/index.html", "utf8");
+const adminV2 = await readFile("admin-v2/index.html", "utf8");
 const article = await readFile("article.html", "utf8");
 const home = await readFile("index.html", "utf8");
 const robots = await readFile("robots.txt", "utf8");
@@ -13,9 +14,17 @@ const config = JSON.parse(configText);
 
 const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(adminScript, "Admin page must contain its application script");
-new Script(adminScript[1], { filename: "admin/index.html inline script" });
+new Script(adminScript[1], { filename: "admin/index.html inline script" });\nassert.ok(adminV2Script, "Admin V2 must contain its application script");\nnew Script(adminV2Script[1], { filename: "admin-v2/index.html inline script" });
 new Script(worker.replace(/^export default\s*\{/m, "const workerDefault = {"), { filename: "src/index.js" });
 
+assert.ok(config.assets?.run_worker_first?.includes("/admin-v2/*"), "Admin V2 routes must reach the authenticated Worker");
+assert.ok(worker.includes("async function adminV2Api") && worker.includes("async function adminSession"), "Admin V2 must use server-verified sessions");
+assert.ok(worker.includes('env.ADMIN_PASSWORD') && worker.includes('HttpOnly; Secure; SameSite=Strict'), "Admin V2 must use a signed secure HttpOnly session cookie");
+assert.ok(worker.includes('x-csrf-token') && worker.includes('adminOriginOk'), "Admin V2 mutations must enforce same-origin CSRF protection");
+assert.ok(worker.includes('LIMIT ? OFFSET ?') && worker.includes('ADMIN_SECRET_MISSING'), "Admin V2 must paginate articles and fail closed without its password secret");
+assert.ok(adminV2.includes('id="loginForm"') && adminV2.includes('id="logout"'), "Admin V2 must provide sign-in and sign-out");
+assert.ok(adminV2.includes('id="content"') && adminV2.includes('id="iconFile"') && adminV2.includes('id="thumbFile"'), "Admin V2 must provide article editor and manual media upload controls");
+assert.ok(adminV2.includes('id="mediaGrid"') && adminV2.includes('id="downloadUrl"') && adminV2.includes('id="seoTitle"'), "Admin V2 must provide media library, download link and SEO controls");
 assert.equal(config.name, "proeditsapk");
 assert.ok(config.d1_databases?.some((binding) => binding.binding === "DB"), "D1 DB binding is required");
 assert.ok(config.assets?.run_worker_first?.includes("/media/library/*"), "Media assets must reach the Worker");
@@ -65,7 +74,7 @@ assert.ok(admin.includes('id="seoTitle"') && admin.includes('id="focusKeyword"')
 assert.ok(article.includes("payload.seoTitle") && article.includes('meta[property="og:title"]') && article.includes("payload.tags"), "Public article pages must use SEO and tag metadata");
 assert.ok(home.includes("p.excerpt||p.description") && articles.includes("p.excerpt||p.description"), "Homepage and archive must use article excerpts");
 
-console.log("PASS: Worker and Admin JavaScript syntax");
+console.log("PASS: Worker, Admin V1 and Admin V2 JavaScript syntax");
 console.log("PASS: Wrangler JSON configuration and free-plan bindings");
-console.log("PASS: D1, Cloudflare Access, media upload safety and no-cache checks");
+console.log("PASS: D1, secure Admin V2 sessions, CSRF, pagination, media upload safety and no-cache checks");
 console.log("PASS: Article sanitization, homepage metadata, robots and sitemap checks");
