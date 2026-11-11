@@ -13,8 +13,11 @@ const configText = await readFile("wrangler.jsonc", "utf8");
 const config = JSON.parse(configText);
 
 const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/);
+const adminV2Script = adminV2.match(/<script>([\s\S]*?)<\/script>/);
 assert.ok(adminScript, "Admin page must contain its application script");
-new Script(adminScript[1], { filename: "admin/index.html inline script" });\nassert.ok(adminV2Script, "Admin V2 must contain its application script");\nnew Script(adminV2Script[1], { filename: "admin-v2/index.html inline script" });
+new Script(adminScript[1], { filename: "admin/index.html inline script" });
+assert.ok(adminV2Script, "Admin V2 must contain its application script");
+new Script(adminV2Script[1], { filename: "admin-v2/index.html inline script" });
 new Script(worker.replace(/^export default\s*\{/m, "const workerDefault = {"), { filename: "src/index.js" });
 
 assert.ok(config.assets?.run_worker_first?.includes("/admin-v2/*"), "Admin V2 routes must reach the authenticated Worker");
