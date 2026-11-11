@@ -212,10 +212,10 @@ async function d1Api(request,env,url){
     const thumb=String(data.thumbnailUrl||"").trim()||null,downloadUrl=String(data.downloadUrl||"").trim()||null;
     if(downloadUrl){try{const u=new URL(downloadUrl);if(u.protocol!=="https:"||u.username||u.password)return json({error:"Download link must be a valid HTTPS URL."},400)}catch(e){return json({error:"Download link must be a valid HTTPS URL."},400)}}
     const seoTitle=String(data.seoTitle||"").trim().slice(0,180),focusKeyword=String(data.focusKeyword||"").trim().slice(0,120),category=String(data.category||"").trim().slice(0,80),tags=String(data.tags||"").trim().slice(0,500),excerpt=String(data.excerpt||"").trim().slice(0,500);
-    await env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url,download_url,seo_title,focus_keyword,category,tags,excerpt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(title,slug,path,description,content,date,published,appName,null,null,icon,thumb,downloadUrl,seoTitle,focusKeyword,category,tags,excerpt).run();
-    if(iconBlob)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP")
-      .bind(slug,iconBlob,iconMime).run();
+    const createPost=env.DB.prepare("INSERT INTO posts (title,slug,path,description,content,date,published,app_name,icon_blob,icon_mime,official_icon_url,thumbnail_url,download_url,seo_title,focus_keyword,category,tags,excerpt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(title,slug,path,description,content,date,published,appName,null,null,icon,thumb,downloadUrl,seoTitle,focusKeyword,category,tags,excerpt);
+    if(iconBlob)await env.DB.batch([createPost,env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,iconBlob,iconMime)]);
+    else await createPost.run();
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE slug=?").bind(slug).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
@@ -244,20 +244,22 @@ async function d1Api(request,env,url){
       icon=null;removeMedia=true;
     }
     let movedMedia=null;
+    const updateStatements=[];
     if(slug!==old.slug){
       if(preserveMedia){
         movedMedia=await env.DB.prepare("SELECT icon_blob,icon_mime FROM post_media WHERE slug=?").bind(old.slug).first();
         if(!movedMedia&&old.icon_blob)movedMedia={icon_blob:old.icon_blob,icon_mime:old.icon_mime};
       }
-      // Remove the old foreign-key child row before changing the post slug.
-      await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+      // Move/delete the media row and update the article in one atomic D1 batch.
+      updateStatements.push(env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug));
     }else if(removeMedia){
-      await env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug).run();
+      updateStatements.push(env.DB.prepare("DELETE FROM post_media WHERE slug=?").bind(old.slug));
     }
-    await env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,download_url=?,published=?,seo_title=?,focus_keyword=?,category=?,tags=?,excerpt=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
-      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||"").trim()||null,downloadUrl,published,seoTitle,focusKeyword,category,tags,excerpt,old.id).run();
-    if(replaceMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime).run();
-    else if(movedMedia)await env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,movedMedia.icon_blob,movedMedia.icon_mime).run();
+    updateStatements.push(env.DB.prepare("UPDATE posts SET title=?,slug=?,description=?,content=?,app_name=?,icon_blob=?,icon_mime=?,official_icon_url=?,thumbnail_url=?,download_url=?,published=?,seo_title=?,focus_keyword=?,category=?,tags=?,excerpt=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(title,slug,description,content,String(data.appName||old.app_name||""),null,null,icon,String(data.thumbnailUrl||"").trim()||null,downloadUrl,published,seoTitle,focusKeyword,category,tags,excerpt,old.id));
+    if(replaceMedia)updateStatements.push(env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,blob,mime));
+    else if(movedMedia)updateStatements.push(env.DB.prepare("INSERT INTO post_media (slug,icon_blob,icon_mime) VALUES (?,?,?) ON CONFLICT(slug) DO UPDATE SET icon_blob=excluded.icon_blob,icon_mime=excluded.icon_mime,updated_at=CURRENT_TIMESTAMP").bind(slug,movedMedia.icon_blob,movedMedia.icon_mime));
+    await env.DB.batch(updateStatements);
     const row=await env.DB.prepare("SELECT *,CASE WHEN EXISTS (SELECT 1 FROM post_media m WHERE m.slug=posts.slug) THEN 1 ELSE 0 END AS has_icon FROM posts WHERE id=?").bind(old.id).first();
     return json({ok:true,article:d1Post(row),url:SITE+"/articles/"+slug});
   }
