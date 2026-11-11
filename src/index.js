@@ -303,7 +303,7 @@ export default {
      if(!/^[0-9a-f-]{36}$/i.test(id))return new Response("Not found",{status:404});
      const row=await env.DB.prepare("SELECT filename,mime_type,data FROM media_assets WHERE id=?").bind(id).first();
      if(!row?.data)return new Response("Not found",{status:404});
-     return new Response(row.data,{headers:{"content-type":row.mime_type,"content-disposition":"inline; filename*=UTF-8''"+encodeURIComponent(row.filename),"cache-control":"public, max-age=300, must-revalidate","x-content-type-options":"nosniff""}});
+     return new Response(row.data,{headers:{"content-type":row.mime_type,"content-disposition":"inline; filename*=UTF-8''"+encodeURIComponent(row.filename),"cache-control":"public, max-age=300, must-revalidate","x-content-type-options":"nosniff"}});
    }
    if(url.pathname.startsWith("/media/icons/")&&env.DB&&request.method==="GET"){
      const slug=decodeURIComponent(url.pathname.slice("/media/icons/".length));
