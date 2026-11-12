@@ -100,3 +100,27 @@ The account settings form asks for the current password, new password, and a mat
 ## Current verification status
 
 The repository code can be statically checked, but the live Supabase integration is not verified until the project URL/public publishable key are configured and the SQL migrations have been run in the user's Supabase project. Do not treat a successful static code check as proof of a live database connection.
+
+## Repeatable static checks (no Supabase secrets required)
+
+A small Node.js check script is included at `cms-v2/tests/static-check.mjs`. It checks:
+- Both inline JavaScript blocks parse successfully.
+- HTML IDs are unique and direct DOM references point to existing IDs.
+- Inline click handlers point to defined functions.
+- Auth sessions are not persisted in browser storage.
+- Article CRUD calls use the `cms_articles` table and article drafts are not stored in localStorage.
+- The SQL migration enables RLS, revokes anonymous table privileges, and defines all four owner-scoped policies.
+
+To run it in GitHub Codespaces:
+1. Open this repository and select the `cms-v2-db-crud-polish` branch.
+2. Open **Code → Codespaces** and start your Codespace.
+3. Open **Terminal → New Terminal**.
+4. Paste and run:
+
+```bash
+node cms-v2/tests/static-check.mjs
+```
+
+Expected final output begins with `CMS 2.0 static checks passed.`
+
+These are static code checks only. They do not prove that Supabase is configured, that the SQL was run in the correct project, or that live login/article CRUD works. Complete the mobile smoke test above after configuring Supabase.
