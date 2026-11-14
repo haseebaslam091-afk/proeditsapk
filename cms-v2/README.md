@@ -107,8 +107,9 @@ A small Node.js check script is included at `cms-v2/tests/static-check.mjs`. It 
 - Both inline JavaScript blocks parse successfully.
 - HTML IDs are unique and direct DOM references point to existing IDs.
 - Inline click handlers point to defined functions.
-- Auth sessions are not persisted in browser storage.
+- Auth sessions are not persisted in browser storage, public sign-up is absent, and no service-role key is embedded.
 - Article CRUD calls use the `cms_articles` table and article drafts are not stored in localStorage.
+- Cancelling a delete or receiving a database delete error keeps the current editor open instead of clearing it.
 - The SQL migration enables RLS, revokes anonymous table privileges, and defines all four owner-scoped policies.
 
 To run it in GitHub Codespaces:
