@@ -44,6 +44,9 @@ assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.select\(/i, 'Missing arti
 assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.insert\(/i, 'Missing article INSERT query.');
 assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.update\(/i, 'Missing article UPDATE query.');
 assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.delete\(/i, 'Missing article DELETE query.');
+const deleteCurrentBody = (html.match(/async function deleteCurrent\(\)\s*\{([\\s\\S]*?)\\n\}/) || [])[1] || '';
+assert.match(deleteCurrentBody, /const deleted=await deleteArticle\(id\)/, 'The editor must wait for the database delete result.');
+assert.match(deleteCurrentBody, /if\(deleted\)\{clearEditor\(\);go\('articles'\);\}/, 'The editor must remain open if deletion is cancelled or fails.');
 
 assert.match(sql, /enable row level security/i, 'The articles table must enable RLS.');
 assert.match(
