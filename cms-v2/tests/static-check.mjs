@@ -35,6 +35,8 @@ const missingHandlers = clickHandlers
 assert.deepEqual([...new Set(missingHandlers)], [], 'An inline click handler has no matching function.');
 
 assert.match(html, /persistSession\s*:\s*false/, 'Auth sessions must not be persisted in browser storage.');
+assert.doesNotMatch(html, /auth\\.signUp\\s*\\(/i, 'Public sign-up must not be available in the admin CMS.');
+assert.doesNotMatch(html, /service_role\\s*[:=]\\s*[\"'][^\"']+/i, 'A service-role key must never be embedded in browser code.');
 assert.doesNotMatch(
   html,
   /proedits_cms20_articles|localStorage\.(?:getItem|setItem|removeItem)\([^)]*articles/i,
@@ -44,7 +46,11 @@ assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.select\(/i, 'Missing arti
 assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.insert\(/i, 'Missing article INSERT query.');
 assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.update\(/i, 'Missing article UPDATE query.');
 assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.delete\(/i, 'Missing article DELETE query.');
-const deleteCurrentBody = (html.match(/async function deleteCurrent\(\)\s*\{([\\s\\S]*?)\\n\}/) || [])[1] || '';
+const deleteCurrentStart = html.indexOf('async function deleteCurrent(){');
+const deleteCurrentEnd = html.indexOf('\\n}', deleteCurrentStart);
+const deleteCurrentBody = deleteCurrentStart >= 0 && deleteCurrentEnd >= 0
+  ? html.slice(deleteCurrentStart, deleteCurrentEnd + 2)
+  : '';
 assert.match(deleteCurrentBody, /const deleted=await deleteArticle\(id\)/, 'The editor must wait for the database delete result.');
 assert.match(deleteCurrentBody, /if\(deleted\)\{clearEditor\(\);go\('articles'\);\}/, 'The editor must remain open if deletion is cancelled or fails.');
 
