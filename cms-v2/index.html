@@ -285,18 +285,20 @@ async function saveArticle(){
 }
 function editArticle(id){const a=articles.find(x=>x.id===id);if(!a)return;go('editor');document.getElementById('articleId').value=a.id;for(const [k,id2] of Object.entries({title:'title',keyword:'keyword',slug:'slug',description:'description',content:'content',category:'category'}))document.getElementById(id2).value=a[k]||'';document.getElementById('tags').value=(a.tags||[]).join(', ');document.getElementById('descCount').textContent=(a.description||'').length;document.getElementById('editorHeading').textContent='Edit article';document.getElementById('editorStatus').textContent=a.status.toUpperCase();document.getElementById('deleteCurrent').style.display='inline-block'}
 async function deleteArticle(id){
-  if(!confirm('Permanently delete this article from the Supabase database?'))return;
-  if(!authClient||!currentAuthUser){toast('Please sign in before deleting.');return;}
+  if(!confirm('Permanently delete this article from the Supabase database?'))return false;
+  if(!authClient||!currentAuthUser){toast('Please sign in before deleting.');return false;}
   const {error}=await authClient.from('cms_articles').delete().eq('id',id);
-  if(error){toast('Delete failed: '+error.message);return;}
+  if(error){toast('Delete failed: '+error.message);return false;}
   articles=articles.filter(a=>a.id!==id);
   renderAll();
   toast('Article deleted from Supabase.');
+  return true;
 }
 async function deleteCurrent(){
   const id=document.getElementById('articleId').value;
-  if(id)await deleteArticle(id);
-  clearEditor();go('articles');
+  if(!id){clearEditor();go('articles');return;}
+  const deleted=await deleteArticle(id);
+  if(deleted){clearEditor();go('articles');}
 }
 function renderArticles(){const q=(document.getElementById('articleSearch')?.value||'').toLowerCase(),rows=articles.filter(a=>(a.title+' '+a.keyword).toLowerCase().includes(q));document.getElementById('articleRows').innerHTML=rows.length?rows.map(a=>`<tr><td><b>${esc(a.title)}</b><div class="hint">/${esc(a.slug||'')}</div></td><td>${esc(a.keyword||'—')}</td><td><span class="pill">${esc(a.status)}</span></td><td>${new Date(a.updated).toLocaleDateString()}</td><td><button class="btn" onclick="editArticle('${a.id}')">Edit</button> <button class="btn danger" onclick="deleteArticle('${a.id}')">Delete</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No matching articles.</td></tr>'}
 function renderAll(){document.getElementById('statTotal').textContent=articles.length;document.getElementById('statDraft').textContent=articles.filter(a=>a.status==='Draft').length;document.getElementById('statPublished').textContent=articles.filter(a=>a.status==='Published').length;document.getElementById('statMedia').textContent=media.length;const recent=articles.slice(0,5);document.getElementById('recentList').innerHTML=recent.length?recent.map(a=>`<div class="activityrow"><span class="dot"></span><div style="flex:1"><b>${esc(a.title)}</b><small>${esc(a.status)} · ${new Date(a.updated).toLocaleDateString()}</small></div><button class="btn" onclick="editArticle('${a.id}')">Open</button></div>`).join(''):'<div class="empty">No articles yet. Create your first draft.</div>';renderArticles()}
