@@ -287,8 +287,14 @@ function editArticle(id){const a=articles.find(x=>x.id===id);if(!a)return;go('ed
 async function deleteArticle(id){
   if(!confirm('Permanently delete this article from the Supabase database?'))return false;
   if(!authClient||!currentAuthUser){toast('Please sign in before deleting.');return false;}
-  const {error}=await authClient.from('cms_articles').delete().eq('id',id);
+  const {data,error}=await authClient.from('cms_articles').delete().eq('id',id).select('id').maybeSingle();
   if(error){toast('Delete failed: '+error.message);return false;}
+  if(!data){
+    toast('Delete was not confirmed. The article may already be removed or is not accessible.');
+    await loadArticlesFromDatabase();
+    renderAll();
+    return false;
+  }
   articles=articles.filter(a=>a.id!==id);
   renderAll();
   toast('Article deleted from Supabase.');
