@@ -1,6 +1,7 @@
 -- ProEditsAPK CMS 2.0: read-only database security verification
 -- Run this AFTER 001_cms_articles.sql in the same Supabase project.
 -- This query does not create, update, or delete any data.
+-- It checks the actual owner-scoped expressions of all four policies, not just their names.
 
 with table_info as (
   select to_regclass('public.cms_articles') as table_oid
@@ -22,7 +23,28 @@ policy_info as (
         'cms_articles_update_own',
         'cms_articles_delete_own'
       )
-    ) as expected_policy_count
+    ) as expected_policy_count,
+    coalesce(bool_or(
+      policyname = 'cms_articles_select_own'
+      and roles @> array['authenticated']::name[]
+      and coalesce(qual, '') ~* 'auth\.uid\(\)\s*=\s*owner_id'
+    ), false) as select_policy_owner_scoped,
+    coalesce(bool_or(
+      policyname = 'cms_articles_insert_own'
+      and roles @> array['authenticated']::name[]
+      and coalesce(with_check, '') ~* 'auth\.uid\(\)\s*=\s*owner_id'
+    ), false) as insert_policy_owner_scoped,
+    coalesce(bool_or(
+      policyname = 'cms_articles_update_own'
+      and roles @> array['authenticated']::name[]
+      and coalesce(qual, '') ~* 'auth\.uid\(\)\s*=\s*owner_id'
+      and coalesce(with_check, '') ~* 'auth\.uid\(\)\s*=\s*owner_id'
+    ), false) as update_policy_owner_scoped,
+    coalesce(bool_or(
+      policyname = 'cms_articles_delete_own'
+      and roles @> array['authenticated']::name[]
+      and coalesce(qual, '') ~* 'auth\.uid\(\)\s*=\s*owner_id'
+    ), false) as delete_policy_owner_scoped
   from pg_policies
   where schemaname = 'public'
     and tablename = 'cms_articles'
@@ -60,6 +82,10 @@ select
   r.rls_enabled,
   p.total_policies,
   p.expected_policy_count,
+  p.select_policy_owner_scoped,
+  p.insert_policy_owner_scoped,
+  p.update_policy_owner_scoped,
+  p.delete_policy_owner_scoped,
   g.anon_select_blocked,
   g.anon_insert_blocked,
   g.anon_update_blocked,
@@ -73,6 +99,10 @@ select
     and r.rls_enabled
     and p.total_policies = 4
     and p.expected_policy_count = 4
+    and p.select_policy_owner_scoped
+    and p.insert_policy_owner_scoped
+    and p.update_policy_owner_scoped
+    and p.delete_policy_owner_scoped
     and g.anon_select_blocked
     and g.anon_insert_blocked
     and g.anon_update_blocked
