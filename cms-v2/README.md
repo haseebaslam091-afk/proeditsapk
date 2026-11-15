@@ -57,9 +57,15 @@ The result should show:
 - `table_exists = true`
 - `rls_enabled = true`
 - `total_policies = 4` and `expected_policy_count = 4`
+- `select_policy_owner_scoped = true`
+- `insert_policy_owner_scoped = true`
+- `update_policy_owner_scoped = true`
+- `delete_policy_owner_scoped = true`
 - All four `anon_*_blocked` values = `true`
 - All four `authenticated_*_allowed` values = `true`
 - `all_checks_passed = true`
+
+The four `*_policy_owner_scoped` fields inspect the actual policy expressions and confirm they target the `authenticated` role and compare `auth.uid()` with `owner_id`. This is stricter than checking policy names alone.
 
 If `all_checks_passed` is false, do not put any secret key in the page. Check that migration 001 was run in the correct Supabase project, then inspect the individual false result columns.
 
@@ -110,7 +116,9 @@ A small Node.js check script is included at `cms-v2/tests/static-check.mjs`. It 
 - Auth sessions are not persisted in browser storage, public sign-up is absent, and no service-role key is embedded.
 - Article CRUD calls use the `cms_articles` table and article drafts are not stored in localStorage.
 - Cancelling a delete or receiving a database delete error keeps the current editor open instead of clearing it.
+- The CMS confirms a deleted row was returned before removing it from the local list; a zero-row delete is treated as unconfirmed.
 - The SQL migration enables RLS, revokes anonymous table privileges, and defines all four owner-scoped policies.
+- The read-only verification SQL inspects each policy's authenticated role and owner_id expression, not just policy names.
 
 To run it in GitHub Codespaces:
 1. Open this repository and select the `cms-v2-db-crud-polish` branch.
