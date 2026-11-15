@@ -8,6 +8,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const cmsDir = path.resolve(here, '..');
 const html = await readFile(path.join(cmsDir, 'index.html'), 'utf8');
 const sql = await readFile(path.join(cmsDir, 'database', '001_cms_articles.sql'), 'utf8');
+const verificationSql = await readFile(path.join(cmsDir, 'database', '002_verify_cms_security.sql'), 'utf8');
 
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
   .filter(([, attrs, code]) => !/\bsrc\s*=/.test(attrs) && code.trim());
@@ -70,8 +71,38 @@ for (const policy of [
 }
 assert.match(sql, /auth\.uid\(\)\s*=\s*owner_id/i, 'Policies must scope rows to the authenticated owner.');
 
+const verificationChecks = [
+  'select_policy_owner_scoped',
+  'insert_policy_owner_scoped',
+  'update_policy_owner_scoped',
+  'delete_policy_owner_scoped'
+];
+for (const check of verificationChecks) {
+  assert.ok(verificationSql.includes(check), 'Read-only verification is missing ' + check + '.');
+}
+assert.ok(
+  verificationSql.includes("roles @> array['authenticated']::name[]"),
+  'Read-only verification must confirm policies target authenticated users.'
+);
+assert.ok(
+  verificationSql.includes(String.raw`auth\.uid\(\)\s*=\s*owner_id`),
+  'Read-only verification must inspect the owner_id expression in each policy.'
+);
+
+const deleteArticleStart = html.indexOf('async function deleteArticle(id){');
+const deleteArticleEnd = html.indexOf('\\n}', deleteArticleStart);
+const deleteArticleBody = deleteArticleStart >= 0 && deleteArticleEnd >= 0
+  ? html.slice(deleteArticleStart, deleteArticleEnd + 2)
+  : '';
+assert.match(
+  deleteArticleBody,
+  /\.delete\(\)\.eq\('id',id\)\.select\('id'\)\.maybeSingle\(\)/,
+  'The UI must confirm a row was actually deleted before removing it locally.'
+);
+assert.match(deleteArticleBody, /if\(!data\)/, 'A zero-row delete must not be reported as success.');
+
 console.log('CMS 2.0 static checks passed.');
 console.log(
   'Checked ' + inlineScripts.length + ' inline scripts, ' + ids.length +
-  ' unique HTML IDs, ' + references.length + ' DOM references, four RLS policies, and database CRUD hooks.'
+  ' unique HTML IDs, ' + references.length + ' DOM references, four owner-scoped RLS policies, strict SQL verification, and database CRUD hooks.'
 );
