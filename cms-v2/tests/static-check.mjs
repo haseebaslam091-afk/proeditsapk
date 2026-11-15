@@ -90,7 +90,7 @@ assert.ok(
 );
 
 const deleteArticleStart = html.indexOf('async function deleteArticle(id){');
-const deleteArticleEnd = html.indexOf('\\n}', deleteArticleStart);
+const deleteArticleEnd = html.indexOf(String.fromCharCode(10) + '}', deleteArticleStart);
 const deleteArticleBody = deleteArticleStart >= 0 && deleteArticleEnd >= 0
   ? html.slice(deleteArticleStart, deleteArticleEnd + 2)
   : '';
