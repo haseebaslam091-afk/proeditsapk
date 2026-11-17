@@ -1,108 +1,59 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { Script } from 'node:vm';
-import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const cmsDir = path.resolve(here, '..');
-const html = await readFile(path.join(cmsDir, 'index.html'), 'utf8');
-const sql = await readFile(path.join(cmsDir, 'database', '001_cms_articles.sql'), 'utf8');
-const verificationSql = await readFile(path.join(cmsDir, 'database', '002_verify_cms_security.sql'), 'utf8');
+const root = path.resolve(here, '..', '..');
+const read = (file) => readFile(path.join(root, file), 'utf8');
 
-const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
-  .filter(([, attrs, code]) => !/\bsrc\s*=/.test(attrs) && code.trim());
+const [alias, admin, worker, wrangler] = await Promise.all([
+  read('cms-v2/index.html'),
+  read('admin-v2/index.html'),
+  read('src/index.js'),
+  read('wrangler.jsonc')
+]);
 
-assert.equal(inlineScripts.length, 2, 'Expected the two inline CMS scripts.');
-inlineScripts.forEach(([, , code], index) => {
-  new Script(code, { filename: 'cms-inline-' + (index + 1) + '.js' });
-});
+assert.match(alias, /http-equiv="refresh"[^>]*content="0;url=\/admin-v2\//i,
+  'CMS 2.0 entry page must have a no-JavaScript redirect to Admin V2.');
+assert.match(alias, /window\.location\.replace\(["']\/admin-v2\/["']\)/,
+  'CMS 2.0 entry page must redirect to the supported publisher.');
+assert.match(alias, /href="\/admin-v2\//,
+  'CMS 2.0 entry page must include a manual fallback link.');
+assert.doesNotMatch(alias, /supabase|service_role|localStorage|github_pat_|ghp_/i,
+  'The CMS entry page must not contain database credentials or browser storage.');
 
-const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map((m) => m[1]);
-assert.equal(new Set(ids).size, ids.length, 'HTML contains duplicate id attributes.');
+assert.match(admin, /fetch\('\/admin-v2\/api\/'\+path/,
+  'Admin V2 UI must call the same-origin Worker API.');
+assert.match(admin, /credentials:'same-origin'/,
+  'Admin V2 API calls must include same-origin cookies.');
+assert.match(admin, /x-csrf-token/,
+  'Admin V2 UI must send its CSRF token on mutations.');
+assert.match(admin, /async function save\(published\)/,
+  'Admin V2 must retain the draft/publish workflow.');
+assert.match(admin, /media-upload/,
+  'Admin V2 must retain its server-backed media upload workflow.');
 
-const idSet = new Set(ids);
-const references = [...html.matchAll(/getElementById\(["']([^"']+)["']\)/g)].map((m) => m[1]);
-const missingIds = [...new Set(references.filter((id) => !idSet.has(id)))];
-assert.deepEqual(missingIds, [], 'Some getElementById references do not exist in the HTML.');
-
-const functions = new Set(
-  [...html.matchAll(/(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map((m) => m[1])
-);
-const clickHandlers = [...html.matchAll(/\bonclick=["']([^"']+)["']/g)].map((m) => m[1]);
-const missingHandlers = clickHandlers
-  .map((handler) => (handler.match(/^\s*([A-Za-z_$][\w$]*)\s*\(/) || [])[1])
-  .filter((name) => name && !functions.has(name));
-assert.deepEqual([...new Set(missingHandlers)], [], 'An inline click handler has no matching function.');
-
-assert.match(html, /persistSession\s*:\s*false/, 'Auth sessions must not be persisted in browser storage.');
-assert.doesNotMatch(html, /auth\.signUp\s*\(/i, 'Public sign-up must not be available in the admin CMS.');
-assert.doesNotMatch(html, /service_role\s*[:=]\s*["'][^"']+/i, 'A service-role key must never be embedded in browser code.');
-assert.doesNotMatch(
-  html,
-  /proedits_cms20_articles|localStorage\.(?:getItem|setItem|removeItem)\([^)]*articles/i,
-  'Article content must not be stored in localStorage.'
-);
-assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.select\(/i, 'Missing article SELECT query.');
-assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.insert\(/i, 'Missing article INSERT query.');
-assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.update\(/i, 'Missing article UPDATE query.');
-assert.match(html, /\.from\(['"]cms_articles['"]\)\s*\.delete\(/i, 'Missing article DELETE query.');
-const deleteCurrentStart = html.indexOf('async function deleteCurrent(){');
-const deleteCurrentEnd = html.indexOf('\n}', deleteCurrentStart);
-const deleteCurrentBody = deleteCurrentStart >= 0 && deleteCurrentEnd >= 0
-  ? html.slice(deleteCurrentStart, deleteCurrentEnd + 2)
-  : '';
-assert.match(deleteCurrentBody, /const deleted=await deleteArticle\(id\)/, 'The editor must wait for the database delete result.');
-assert.match(deleteCurrentBody, /if\(deleted\)\{clearEditor\(\);go\('articles'\);\}/, 'The editor must remain open if deletion is cancelled or fails.');
-
-assert.match(sql, /enable row level security/i, 'The articles table must enable RLS.');
-assert.match(
-  sql,
-  /revoke all on table public\.cms_articles from anon, public/i,
-  'Anonymous/public table privileges must be revoked.'
-);
-for (const policy of [
-  'cms_articles_select_own',
-  'cms_articles_insert_own',
-  'cms_articles_update_own',
-  'cms_articles_delete_own'
-]) {
-  assert.match(sql, new RegExp('create policy\\s+' + policy + '\\b', 'i'), 'Missing policy: ' + policy);
+assert.match(worker, /async function adminSession\(request,env\)/,
+  'Worker must verify the Admin session server-side.');
+assert.match(worker, /crypto\.subtle\.verify\("HMAC"/,
+  'Worker session cookie must have a valid HMAC signature.');
+assert.match(worker, /Path=\/admin-v2; HttpOnly; Secure; SameSite=Strict; Max-Age=28800/,
+  'Worker must set an eight-hour HttpOnly, Secure, SameSite=Strict cookie.');
+assert.match(worker, /function adminOriginOk\(request\)/,
+  'Worker must verify the request origin.');
+assert.match(worker, /x-csrf-token/,
+  'Worker must validate the CSRF token for mutations.');
+assert.match(worker, /url\.pathname\.startsWith\("\/admin-v2\/api\/"\)\)return adminV2Api/,
+  'Worker must route Admin V2 API requests through the protected handler.');
+assert.match(worker, /if\(!env\.ADMIN_PASSWORD\)return json\(/,
+  'Worker must fail closed when ADMIN_PASSWORD is not configured.');
+for (const endpoint of ['publish', 'update', 'delete', 'media-upload', 'media-delete']) {
+  assert.ok(worker.includes('"' + endpoint + '"'), 'Worker is missing D1 endpoint: ' + endpoint);
 }
-assert.match(sql, /auth\.uid\(\)\s*=\s*owner_id/i, 'Policies must scope rows to the authenticated owner.');
 
-const verificationChecks = [
-  'select_policy_owner_scoped',
-  'insert_policy_owner_scoped',
-  'update_policy_owner_scoped',
-  'delete_policy_owner_scoped'
-];
-for (const check of verificationChecks) {
-  assert.ok(verificationSql.includes(check), 'Read-only verification is missing ' + check + '.');
-}
-assert.ok(
-  verificationSql.includes("roles @> array['authenticated']::name[]"),
-  'Read-only verification must confirm policies target authenticated users.'
-);
-assert.ok(
-  verificationSql.includes(String.raw`auth\.uid\(\)\s*=\s*owner_id`),
-  'Read-only verification must inspect the owner_id expression in each policy.'
-);
+assert.match(wrangler, /"\/admin-v2\/\*"/,
+  'Wrangler must route Admin V2 paths through the Worker.');
 
-const deleteArticleStart = html.indexOf('async function deleteArticle(id){');
-const deleteArticleEnd = html.indexOf(String.fromCharCode(10) + '}', deleteArticleStart);
-const deleteArticleBody = deleteArticleStart >= 0 && deleteArticleEnd >= 0
-  ? html.slice(deleteArticleStart, deleteArticleEnd + 2)
-  : '';
-assert.match(
-  deleteArticleBody,
-  /\.delete\(\)\.eq\('id',id\)\.select\('id'\)\.maybeSingle\(\)/,
-  'The UI must confirm a row was actually deleted before removing it locally.'
-);
-assert.match(deleteArticleBody, /if\(!data\)/, 'A zero-row delete must not be reported as success.');
-
-console.log('CMS 2.0 static checks passed.');
-console.log(
-  'Checked ' + inlineScripts.length + ' inline scripts, ' + ids.length +
-  ' unique HTML IDs, ' + references.length + ' DOM references, four owner-scoped RLS policies, strict SQL verification, and database CRUD hooks.'
-);
+console.log('CMS 2.0 architecture checks passed.');
+console.log('Verified the /cms-v2/ redirect, Admin V2 browser API, HMAC session, secure cookie, CSRF/origin checks, D1 publishing/media endpoints, and Wrangler Worker routing.');
