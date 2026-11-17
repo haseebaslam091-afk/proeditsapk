@@ -1,135 +1,63 @@
-# ProEditsAPK CMS 2.0 — isolated authentication + article database foundation
+# ProEditsAPK CMS 2.0
 
-This folder is deliberately separate from the production website. The root `index.html` and existing `admin/index.html` are not changed by this CMS 2.0 work.
+## One publisher, one database
 
-## What this milestone adds
+The supported publisher is the Cloudflare Worker-backed Admin V2 at `/admin-v2/`. The public website reads article records from the existing Cloudflare D1 database through the Worker. Admin V2 uses the same D1 data and already provides:
 
-The CMS 2.0 page is designed to use Supabase Auth for:
-- Admin email/password sign-in (no public sign-up form).
-- Password reset by email.
-- Changing the administrator's display username.
-- Requesting a login-email change.
-- Changing the password after confirming the current password.
-- Logout.
+- Secure admin login with a server-verified HMAC session.
+- Draft, publish, edit and delete actions.
+- Server-side article search and pagination.
+- SEO title, description, excerpt, focus keyword, category and tags.
+- D1-backed media library, article images, thumbnails and app logos.
+- An eight-hour HttpOnly, Secure, SameSite=Strict session cookie.
+- Same-origin and CSRF checks on write requests.
 
-The recovery link now opens an in-page **Set a new password** form and updates the password through Supabase Auth. The Supabase JavaScript client is pinned to v2.102.0 so the current-password check used by the account password-change form is supported.
+**The `/cms-v2/` page is a safe entry link to `/admin-v2/`.** It deliberately reuses the existing publisher instead of creating a second article database.
 
-The page uses a memory-only Supabase session (`persistSession: false`). This avoids writing authentication tokens to localStorage, but it also means a page refresh signs the administrator out.
+## Important architecture correction
 
-The username is a display name. Supabase email/password sign-in uses the admin email address.
+An earlier CMS prototype used Supabase for article storage. The live ProEditsAPK website does not read articles from that Supabase table; it uses Cloudflare D1. Running a separate Supabase migration would create a second, disconnected copy of articles. The Supabase prototype and its SQL migrations have therefore been removed from this draft.
 
-The article list and editor now use the `cms_articles` Supabase table for reading, creating, updating, and deleting articles. Article content is no longer saved to browser localStorage. The table's RLS policies enforce ownership in the database.
+Do not create a Supabase project or run the old `001_cms_articles.sql` / `002_verify_cms_security.sql` scripts for this route. No article data needs to be migrated for this alias.
 
-## One-time Supabase setup
+## Before signing in
 
-1. Create a Supabase project.
-2. In **Authentication → Sign In / Providers**, keep Email enabled.
-3. Disable public user sign-ups. Only create/invite the one administrator from **Authentication → Users**.
-4. In **Authentication → URL Configuration**, set the Site URL to `https://proeditsapk.com` and add these Redirect URLs:
-   - `https://proeditsapk.com/cms-v2/`
-   - `https://proeditsapk.com/cms-v2/index.html`
-5. In **Project Settings → API**, copy the Project URL and the public **publishable** key (or legacy anon key).
-6. Open `cms-v2/index.html` and replace:
-   - `https://YOUR_PROJECT_ID.supabase.co`
-   - `YOUR_SUPABASE_PUBLISHABLE_KEY`
+The Worker must have the `ADMIN_PASSWORD` secret configured:
 
-Only the public publishable/anon key belongs in this static page. Never paste a `service_role` key, secret API key, GitHub token, or Worker secret into HTML, JavaScript, chat, or localStorage.
+1. Open Cloudflare Dashboard → **Workers & Pages** → **proeditsapk**.
+2. Open **Settings → Variables and Secrets**.
+3. Add `ADMIN_PASSWORD` as a **Secret**, not a plain-text variable.
+4. Use a unique password of at least 32 characters and store it in a password manager.
+5. Save the secret and redeploy the Worker using the existing approved deployment process.
 
-## Database preparation — private article table
+Never put this password, a GitHub token, a Cloudflare API token, or any other secret in this repository, browser code, localStorage, or chat. The CMS does not need a GitHub publishing token: the Worker writes to D1.
 
-A first database migration is included at `cms-v2/database/001_cms_articles.sql`.
+If the login screen reports that `ADMIN_PASSWORD` is missing, stop there and configure the Worker secret in Cloudflare. Do not try to fix it by adding a key to `cms-v2/index.html`.
 
-1. In your Supabase project, open **SQL Editor**.
-2. Tap **New query**.
-3. Open `cms-v2/database/001_cms_articles.sql` in GitHub, copy the complete SQL, and paste it into the query editor.
-4. Tap **Run**.
-5. Confirm the final result says `row_level_security_enabled = true`. In **Table Editor**, you should also see `cms_articles`.
+## Open the CMS on iPhone
 
-The table stores article fields and applies Row Level Security (RLS) to all four operations. A signed-in user can select, add, edit, and delete only rows whose `owner_id` equals their Supabase Auth user ID. Anonymous access is not granted. The table defaults `owner_id` to the signed-in user.
+1. Open `https://proeditsapk.com/cms-v2/` in Safari.
+2. The page forwards to `/admin-v2/`.
+3. Sign in using the Admin V2 password configured in Cloudflare.
+4. Create a test draft first. Confirm it appears in **All articles**.
+5. Open the draft, edit it, and save again.
+6. Only after the draft test succeeds, create a separate test article and use **Publish article**.
+7. Open the resulting public article URL and confirm its title, content, thumbnail and download link.
+8. Upload one small test image (the current D1 media limit is 1.5 MB), insert it into a test article, and verify it loads publicly.
+9. Delete only the test article and test image after confirming they are not needed.
 
-The CMS article editor is now connected to this table. After the SQL migration has run and the Supabase URL/public key have been configured in `cms-v2/index.html`, sign in and use **New article → Save draft**. The CMS loads articles from Supabase and supports create, edit, and delete. The database—not browser localStorage—enforces ownership through RLS. If the migration has not been run, the dashboard will show a database setup error and article saving will not work.
+## Static verification
 
-## Verify database security (read-only)
-
-After running `001_cms_articles.sql`, open `cms-v2/database/002_verify_cms_security.sql` on GitHub, tap **Raw**, copy the complete query, and run it in the same Supabase project's **SQL Editor**. This second query is read-only: it does not change tables or article data.
-
-The result should show:
-- `table_exists = true`
-- `rls_enabled = true`
-- `total_policies = 4` and `expected_policy_count = 4`
-- `select_policy_owner_scoped = true`
-- `insert_policy_owner_scoped = true`
-- `update_policy_owner_scoped = true`
-- `delete_policy_owner_scoped = true`
-- All four `anon_*_blocked` values = `true`
-- All four `authenticated_*_allowed` values = `true`
-- `all_checks_passed = true`
-
-The four `*_policy_owner_scoped` fields inspect the actual policy expressions and confirm they target the `authenticated` role and compare `auth.uid()` with `owner_id`. This is stricter than checking policy names alone.
-
-If `all_checks_passed` is false, do not put any secret key in the page. Check that migration 001 was run in the correct Supabase project, then inspect the individual false result columns.
-
-## Important limits — do not skip
-
-- Article records are stored in Supabase. Media metadata and workspace preferences still use this browser's localStorage; actual image files are not uploaded. Old prototype drafts previously saved under the `proedits_cms20_articles` localStorage key are not automatically imported.
-- The static page is downloadable, so its interface is not a security boundary. Direct article database requests use only the public Supabase publishable/anon key, and the database RLS policies enforce ownership on every read/write. Never add a service-role key or other private secret to the page. Privileged GitHub publishing must use a Supabase Edge Function or another server-side service that verifies the signed-in admin before using a server-side GitHub secret.
-- GitHub publishing, real media upload, analytics, and AI services are not connected yet.
-- This branch is not production. Do not change the GitHub Pages production source or merge it into `main` until authentication is configured and tested.
-
-## Mobile smoke test
-
-After adding the CMS page and configuring Supabase:
-1. Open `/cms-v2/` and confirm the login screen appears.
-2. Sign in with the administrator account created in Supabase.
-3. Open **Settings → Admin account** and change the display username.
-4. Test password change with the current password.
-5. Test email change and confirm the email through the message Supabase sends.
-6. Log out, then refresh the page and confirm the login screen appears again.
-7. Use **Forgot password?** to request a recovery email.
-8. Open the recovery email on the same device/browser. Confirm it returns to `/cms-v2/`, then enter and confirm a new password on the **Set a new password** screen.
-9. Sign in with the new password and confirm the account settings still work.
-10. Open **New article**, enter a title, slug, and content, then tap **Save draft**. Confirm the article appears in **Articles**.
-11. Sign out and sign in again. Confirm the same article loads from the database.
-12. Edit the article and save again. Confirm the change remains after signing out and back in.
-13. Delete the test article and confirm it disappears from the list.
-
-Official Supabase references:
-- Password sign-in: https://supabase.com/docs/reference/javascript/auth-signinwithpassword
-- Password reset: https://supabase.com/docs/guides/auth/passwords
-- JavaScript Auth configuration: https://supabase.com/docs/reference/javascript/auth
-
-
-## Password-change confirmation
-
-The account settings form asks for the current password, new password, and a matching confirmation. It uses Supabase Auth's `current_password` option, supported by the pinned supabase-js v2.102.0 client. The page checks that the two new-password fields match before sending the update.
-
-## Current verification status
-
-The repository code can be statically checked, but the live Supabase integration is not verified until the project URL/public publishable key are configured and the SQL migrations have been run in the user's Supabase project. Do not treat a successful static code check as proof of a live database connection.
-
-## Repeatable static checks (no Supabase secrets required)
-
-A small Node.js check script is included at `cms-v2/tests/static-check.mjs`. It checks:
-- Both inline JavaScript blocks parse successfully.
-- HTML IDs are unique and direct DOM references point to existing IDs.
-- Inline click handlers point to defined functions.
-- Auth sessions are not persisted in browser storage, public sign-up is absent, and no service-role key is embedded.
-- Article CRUD calls use the `cms_articles` table and article drafts are not stored in localStorage.
-- Cancelling a delete or receiving a database delete error keeps the current editor open instead of clearing it.
-- The CMS confirms a deleted row was returned before removing it from the local list; a zero-row delete is treated as unconfirmed.
-- The SQL migration enables RLS, revokes anonymous table privileges, and defines all four owner-scoped policies.
-- The read-only verification SQL inspects each policy's authenticated role and owner_id expression, not just policy names.
-
-To run it in GitHub Codespaces:
-1. Open this repository and select the `cms-v2-db-crud-polish` branch.
-2. Open **Code → Codespaces** and start your Codespace.
-3. Open **Terminal → New Terminal**.
-4. Paste and run:
+Run this in GitHub Codespaces from the repository root:
 
 ```bash
 node cms-v2/tests/static-check.mjs
 ```
 
-Expected final output begins with `CMS 2.0 static checks passed.`
+The check verifies the redirect, the Admin V2 browser API calls, the Worker session/cookie/CSRF protections, the D1 publishing endpoints, and the Worker route configuration. It does not prove that the production Worker is deployed or that the Cloudflare secret is configured.
 
-These are static code checks only. They do not prove that Supabase is configured, that the SQL was run in the correct project, or that live login/article CRUD works. Complete the mobile smoke test above after configuring Supabase.
+## Safe rollout
+
+- This draft changes only files under `cms-v2/` plus its dedicated static-check workflow.
+- It does not change the root homepage, existing `/admin/`, `/admin-v2/`, Worker source, D1 records, or production deployment.
+- Keep the pull request in Draft until the static checks pass and the live login, draft, publish, public article, and media smoke tests are completed.
