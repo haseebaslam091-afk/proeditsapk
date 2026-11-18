@@ -33,7 +33,10 @@ assert.ok(config.d1_databases?.some((binding) => binding.binding === "DB"), "D1 
 assert.ok(config.assets?.run_worker_first?.includes("/media/library/*"), "Media assets must reach the Worker");
 assert.ok(config.assets?.run_worker_first?.includes("/admin/api/*"), "Admin API routes must reach the Worker");
 assert.ok(!config.r2_buckets?.length, "Free-plan deployment must not require an R2 bucket");
-assert.ok(worker.includes("TEMPORARY: Cloudflare Access application was removed at the owner's request."), "Temporary public Admin access must be explicitly documented in code");
+const legacyAdminApiStart = worker.indexOf("async function api(request, env) {");
+assert.ok(legacyAdminApiStart >= 0 &&
+  worker.slice(legacyAdminApiStart, legacyAdminApiStart + 500).includes('if(!env.ADMIN_PASSWORD)return json({error:"Admin API is disabled until ADMIN_PASSWORD is configured.",code:"ADMIN_SECRET_MISSING"},503);'),
+  "Legacy Admin API must fail closed when ADMIN_PASSWORD is missing");
 assert.ok(!worker.includes('if(!request.headers.get("cf-access-jwt-assertion"))'), "Temporary mode must not silently claim Access JWT enforcement");
 assert.ok(worker.includes("CREATE TABLE IF NOT EXISTS media_assets"), "Media table schema is required");
 assert.ok(worker.includes("/admin/api/media-upload"), "Media upload API is required");
