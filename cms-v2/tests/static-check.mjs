@@ -48,6 +48,11 @@ assert.match(worker, /url\.pathname\.startsWith\("\/admin-v2\/api\/"\)\)return a
   'Worker must route Admin V2 API requests through the protected handler.');
 assert.match(worker, /if\(!env\.ADMIN_PASSWORD\)return json\(/,
   'Worker must fail closed when ADMIN_PASSWORD is not configured.');
+
+const legacyApiStart = worker.indexOf('async function api(request, env) {');
+assert.ok(legacyApiStart >= 0 &&
+  worker.slice(legacyApiStart, legacyApiStart + 500).includes('if(!env.ADMIN_PASSWORD)return json('),
+  'Legacy /admin/api/ handler must fail closed when ADMIN_PASSWORD is missing.');
 for (const endpoint of ['publish', 'update', 'delete', 'media-upload', 'media-delete']) {
   assert.ok(worker.includes('"' + endpoint + '"'), 'Worker is missing D1 endpoint: ' + endpoint);
 }
