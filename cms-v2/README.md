@@ -14,6 +14,8 @@ The supported publisher is the Cloudflare Worker-backed Admin V2 at `/admin-v2/`
 
 **The `/cms-v2/` page is a safe entry link to `/admin-v2/`.** It deliberately reuses the existing publisher instead of creating a second article database.
 
+**Legacy API safety:** the old `/admin/api/` handler now returns HTTP 503 if `ADMIN_PASSWORD` is missing, and otherwise requires a valid server-side session. The supported interface remains `/admin-v2/`; do not use legacy Admin endpoints.
+
 ## Important architecture correction
 
 An earlier CMS prototype used Supabase for article storage. The live ProEditsAPK website does not read articles from that Supabase table; it uses Cloudflare D1. Running a separate Supabase migration would create a second, disconnected copy of articles. The Supabase prototype and its SQL migrations have therefore been removed from this draft.
