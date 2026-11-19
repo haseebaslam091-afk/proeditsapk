@@ -60,6 +60,18 @@ The check verifies the redirect, the Admin V2 browser API calls, the Worker sess
 
 ## Safe rollout
 
-- This draft changes only files under `cms-v2/` plus its dedicated static-check workflow.
-- It does not change the root homepage, existing `/admin/`, `/admin-v2/`, Worker source, D1 records, or production deployment.
-- Keep the pull request in Draft until the static checks pass and the live login, draft, publish, public article, and media smoke tests are completed.
+This pull request changes six paths:
+
+- Four CMS files under `cms-v2/` and `.github/workflows/cms-v2-static-checks.yml`.
+- `src/index.js`: a narrow fail-closed guard for the legacy `/admin/api/` endpoint. This is a Worker-source change and must be reviewed as such.
+- `scripts/check.mjs`: a regression assertion for that guard.
+
+It does **not** change the homepage HTML, the `/admin-v2/` interface, D1 records, or production deployment. The Worker source change is only on this feature branch until a reviewed merge and deployment; it is not live merely because this pull request exists.
+
+### Current verification snapshot
+
+- GitHub CMS static checks: passed on commit `e47079c`.
+- Existing website validation: passed on commit `e47079c`.
+- Cloudflare Workers Build check: **failed** on that commit. The GitHub check summary does not expose the underlying build error; open the Cloudflare build details and inspect the first failing log line before retrying or merging.
+
+Keep this pull request in Draft until the Cloudflare build failure is understood, `ADMIN_PASSWORD` is confirmed as a Cloudflare Secret, and live login, draft save/edit, publish/public URL, and media smoke tests are completed.
